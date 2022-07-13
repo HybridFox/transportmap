@@ -1,0 +1,54 @@
+version: "3"
+services:
+    server:
+        build:
+            context: api
+            dockerfile: Dockerfile.dev
+        container_name: transportmap-api
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        ports:
+            - 3001:3001
+        volumes:
+            - ./api:/app:delegated
+            - ../hafas-client:/app/node_modules/hafas-client
+            - ./api/src/modules/vehicle/static:/app/dist/modules/vehicle/static
+            - /app/node_modules
+            - /app/data
+        env_file:
+            - ./api/src/config/local.env
+        networks:
+            - transportmap
+
+    mongodb:
+        image: "mongo:4.4.4"
+        container_name: mongo
+        ports:
+            - 27017:27017
+        volumes:
+            - ./data:/data/db
+        networks:
+            - transportmap
+
+    app:
+        build:
+            context: app
+            dockerfile: Dockerfile.dev
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        container_name: transportmap-app
+        volumes:
+            - ./app:/app:delegated
+            - /app/node_modules
+            - /app/dist
+        ports:
+            - 3000:3000
+        networks:
+            - transportmap
+
+volumes:
+    redis-data:
+    elastic-data:
+
+networks:
+    transportmap:

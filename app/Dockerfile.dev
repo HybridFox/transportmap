@@ -1,0 +1,9 @@
+FROM node:gallium-alpine
+
+RUN apk --no-cache add python3 gcc make automake autoconf g++
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm install --legacy-peer-deps
+
+CMD [ "npm", "run", "start" ]
