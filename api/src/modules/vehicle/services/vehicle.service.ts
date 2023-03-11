@@ -8,33 +8,43 @@ import * as dbProfile from 'hafas-client/p/sncb';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { unnest } from 'ramda';
+import { createClient } from 'redis';
 import * as PathFinder from 'geojson-path-finder';
-import got from 'got';
+import got, { Got } from 'got';
+import { RedisClientType } from '@redis/client';
+import { Cron } from '@nestjs/schedule';
 
 import { TRAIN_PRODUCTS } from '../vehicle.const';
 import { distToSegment, projectToLine, splitBoundingBox } from '../helpers/mapHelpers';
 import { BoundingBox } from '../helpers/mapHelpers.types';
-
-import { Vehicle, VehicleDocument } from '~schemas/vehicle.schema';
+import { Vehicle, VehicleDocument } from '../../../database/schemas/vehicle.schema';
+import { gotInstance } from '../helpers/got';
+import { tokenRepository } from '../helpers/tokenRepository';
 
 @Injectable()
 export class VehicleService {
 	private client: hafas.HafasClient;
 	private pathFinder: any;
 	private lineSections: any;
+	private redisClient: RedisClientType;
 
 	constructor(@InjectModel(Vehicle.name) private vehicleModel: Model<VehicleDocument>) {
 		void (async () => {
+			this.redisClient = createClient({
+				url: process.env.REDIS_URI,
+			});
+
+			await this.redisClient.connect();
 			this.lineSections = JSON.parse(
-				await fs.readFile(path.join(__dirname, '../static/lijnsecties.geojson'), 'utf-8'),
+				await fs.readFile(path.join(__dirname, '../static/belgium-export.geojson'), 'utf-8'),
 			);
-			this.pathFinder = new PathFinder(this.lineSections, { precision: 0.01 });
+			this.pathFinder = new PathFinder(this.lineSections, { precision: 0.005 });
 		})();
 
-		this.client = hafas(dbProfile, 'uwu owo uwu');
+		// this.client = hafas(dbProfile, 'uwu owo uwu');
 	}
 
-	// @Cron('* * * * *')
+	// @Cron('*/15 * * * * *')
 	@Command({
 		command: 'sync:vehicles',
 		describe: 'Sync vehicles',
@@ -48,160 +58,157 @@ export class VehicleService {
 		});
 
 		const items = await Promise.all(
-			boxes.map(({ ...coords }) => this.client.radar(coords, { results: 20, polylines: false })),
+			boxes.map(({ ...coords }) => this.client.radar(coords, { results: 200, polylines: false })),
 		);
 
 		await this.vehicleModel.deleteMany({}).exec();
 
-		try {
-			await Promise.allSettled(
-				unnest(items).map(async (item) => {
-					if (!TRAIN_PRODUCTS.includes(item.line.product)) {
-						return this.vehicleModel.create({
-							...item,
-							lineId: item.line.id,
-							projectedLocation: {
-								latitude: item.location.latitude,
-								longitude: item.location.longitude,
-							},
-						});
-					}
+		// try {
+		// 	await Promise.allSettled(
+		// 		unnest(items).map(async (item) => {
+		// 			if (!TRAIN_PRODUCTS.includes(item.line.product)) {
+		// 				return this.vehicleModel.create({
+		// 					...item,
+		// 					lineId: item.line.id,
+		// 					projectedLocation: {
+		// 						latitude: item.location.latitude,
+		// 						longitude: item.location.longitude,
+		// 					},
+		// 				});
+		// 			}
 
-					const trip = await this.client.trip(item.tripId, item.line.name, {
-						polyline: true,
-						language: 'nl',
-					});
+		// 			const trip = await this.getCachedTip(item.tripId, item.line.name);
 
-					const routeDetail = trip.stopovers.reduce((acc: unknown[], currentStopOver, i) => {
-						if (typeof trip.stopovers[i + 1] === 'undefined') {
-							return acc;
-						}
+		// 			const routeDetail = trip.stopovers.reduce((acc: unknown[], currentStopOver, i) => {
+		// 				if (typeof trip.stopovers[i + 1] === 'undefined') {
+		// 					return acc;
+		// 				}
 
-						const nextStopOver = trip.stopovers[i + 1];
+		// 				const nextStopOver = trip.stopovers[i + 1];
 
-						const travelInfo = this.pathFinder.findPath(
-							{
-								type: 'Feature',
-								geometry: {
-									type: 'Point',
-									coordinates: [
-										currentStopOver.stop.location.longitude,
-										currentStopOver.stop.location.latitude,
-									],
-								},
-							},
-							{
-								type: 'Feature',
-								geometry: {
-									type: 'Point',
-									coordinates: [
-										nextStopOver.stop.location.longitude,
-										nextStopOver.stop.location.latitude,
-									],
-								},
-							},
-						);
+		// 				const travelInfo = this.pathFinder.findPath(
+		// 					{
+		// 						type: 'Feature',
+		// 						geometry: {
+		// 							type: 'Point',
+		// 							coordinates: [
+		// 								currentStopOver.stop.location.longitude,
+		// 								currentStopOver.stop.location.latitude,
+		// 							],
+		// 						},
+		// 					},
+		// 					{
+		// 						type: 'Feature',
+		// 						geometry: {
+		// 							type: 'Point',
+		// 							coordinates: [
+		// 								nextStopOver.stop.location.longitude,
+		// 								nextStopOver.stop.location.latitude,
+		// 							],
+		// 						},
+		// 					},
+		// 				);
 
-						if (!travelInfo) {
-							return acc;
-						}
+		// 				if (!travelInfo) {
+		// 					return acc;
+		// 				}
 
-						return [...acc, ...travelInfo.path];
-					}, []);
+		// 				return [...acc, ...travelInfo.path];
+		// 			}, []);
 
-					let shortestSegment = {
-						distance: 999,
-						segment: [],
-					};
+		// 			let shortestSegment = {
+		// 				distance: 999,
+		// 				segment: [],
+		// 			};
 
-					for (
-						let lineSectionIndex = 0;
-						lineSectionIndex < this.lineSections.features.length;
-						lineSectionIndex++
-					) {
-						const lineSection = this.lineSections.features[lineSectionIndex];
+		// 			for (
+		// 				let lineSectionIndex = 0;
+		// 				lineSectionIndex < this.lineSections.features.length;
+		// 				lineSectionIndex++
+		// 			) {
+		// 				const lineSection = this.lineSections.features[lineSectionIndex];
 
-						for (let index = 0; index < lineSection.geometry.coordinates.length - 1; index++) {
-							const firstCoordinate = lineSection.geometry.coordinates[index];
-							const secondCoordinate = lineSection.geometry.coordinates[index + 1];
+		// 				for (let index = 0; index < lineSection.geometry.coordinates.length - 1; index++) {
+		// 					const firstCoordinate = lineSection.geometry.coordinates[index];
+		// 					const secondCoordinate = lineSection.geometry.coordinates[index + 1];
 
-							const distance = distToSegment(
-								{
-									x: item.location.latitude,
-									y: item.location.longitude,
-								},
-								{
-									x: firstCoordinate[1],
-									y: firstCoordinate[0],
-								},
-								{
-									x: secondCoordinate[1],
-									y: secondCoordinate[0],
-								},
-							);
+		// 					const distance = distToSegment(
+		// 						{
+		// 							x: item.location.latitude,
+		// 							y: item.location.longitude,
+		// 						},
+		// 						{
+		// 							x: firstCoordinate[1],
+		// 							y: firstCoordinate[0],
+		// 						},
+		// 						{
+		// 							x: secondCoordinate[1],
+		// 							y: secondCoordinate[0],
+		// 						},
+		// 					);
 
-							if (distance < shortestSegment.distance) {
-								shortestSegment = {
-									distance: distance,
-									segment: [firstCoordinate, secondCoordinate],
-								};
-							}
-						}
-					}
+		// 					if (distance < shortestSegment.distance) {
+		// 						shortestSegment = {
+		// 							distance: distance,
+		// 							segment: [firstCoordinate, secondCoordinate],
+		// 						};
+		// 					}
+		// 				}
+		// 			}
 
-					const projection = projectToLine(
-						{
-							x: item.location.latitude,
-							y: item.location.longitude,
-						},
-						{
-							x: shortestSegment.segment[0][1],
-							y: shortestSegment.segment[0][0],
-						},
-						{
-							x: shortestSegment.segment[1][1],
-							y: shortestSegment.segment[1][0],
-						},
-					);
+		// 			const projection = projectToLine(
+		// 				{
+		// 					x: item.location.latitude,
+		// 					y: item.location.longitude,
+		// 				},
+		// 				{
+		// 					x: shortestSegment.segment[0][1],
+		// 					y: shortestSegment.segment[0][0],
+		// 				},
+		// 				{
+		// 					x: shortestSegment.segment[1][1],
+		// 					y: shortestSegment.segment[1][0],
+		// 				},
+		// 			);
 
-					await this.vehicleModel.create({
-						...item,
-						lineId: item.line.id,
-						lineGeo: {
-							type: 'FeatureCollection',
-							features: [
-								{
-									type: 'Feature',
-									geometry: {
-										type: 'LineString',
-										coordinates: routeDetail,
-									},
-								},
-								...trip.stopovers.map((stopover) => ({
-									type: 'Feature',
-									geometry: {
-										type: 'Point',
-										coordinates: [
-											stopover.stop.location.longitude,
-											stopover.stop.location.latitude,
-										],
-									},
-									properties: {
-										name: stopover.stop.name,
-									},
-								})),
-							],
-						},
-						projectedLocation: {
-							latitude: projection.point.x,
-							longitude: projection.point.y,
-						},
-					});
-				}),
-			);
-		} catch (e) {
-			console.error(e);
-		}
+		// 			await this.vehicleModel.create({
+		// 				...item,
+		// 				lineId: item.line.id,
+		// 				lineGeo: {
+		// 					type: 'FeatureCollection',
+		// 					features: [
+		// 						{
+		// 							type: 'Feature',
+		// 							geometry: {
+		// 								type: 'LineString',
+		// 								coordinates: routeDetail,
+		// 							},
+		// 						},
+		// 						...trip.stopovers.map((stopover) => ({
+		// 							type: 'Feature',
+		// 							geometry: {
+		// 								type: 'Point',
+		// 								coordinates: [
+		// 									stopover.stop.location.longitude,
+		// 									stopover.stop.location.latitude,
+		// 								],
+		// 							},
+		// 							properties: {
+		// 								name: stopover.stop.name,
+		// 							},
+		// 						})),
+		// 					],
+		// 				},
+		// 				projectedLocation: {
+		// 					latitude: projection.point.x,
+		// 					longitude: projection.point.y,
+		// 				},
+		// 			});
+		// 		}),
+		// 	);
+		// } catch (e) {
+		// 	console.error(e);
+		// }
 	}
 
 	public async getAll({ north, south, west, east }: BoundingBox): Promise<VehicleDocument[]> {
@@ -229,26 +236,64 @@ export class VehicleService {
 	}
 
 	public async getOne(lineId: string): Promise<any> {
-		const vehicle = await this.vehicleModel.findOne({ 'line.id': lineId }).lean();
-		const trip = await this.client.trip(vehicle.tripId, vehicle.line.name, {
-			polyline: true,
-			language: 'nl',
-		});
+		// const vehicle = await this.vehicleModel.findOne({ 'line.id': lineId }).lean();
+		// const trip = await this.client.trip(vehicle.tripId, vehicle.line.name, {
+		// 	polyline: true,
+		// 	language: 'nl',
+		// });
 
-		const composition = await got.get(
-			`https://trainmap.belgiantrain.be/data/composition/${
-				vehicle.lineId.split('-')[vehicle.lineId.split('-').length - 1]
-			}`,
-			{
+		// const composition = await this.getCachedComposition(
+		// 	vehicle.lineId.split('-')[vehicle.lineId.split('-').length - 1],
+		// );
+
+		// return {
+		// 	...vehicle,
+		// 	composition,
+		// 	trip,
+		// };
+		return {};
+	}
+
+	// private async getCachedTip(tripId: string, lineName: string): Promise<hafas.Trip> {
+	// 	const cachedTrip = await this.redisClient.get(`trip:${tripId}:${lineName}`);
+
+	// 	if (cachedTrip) {
+	// 		return JSON.parse(cachedTrip);
+	// 	}
+
+	// 	const trip = await this.client.trip(tripId, lineName, {
+	// 		polyline: true,
+	// 		language: 'nl',
+	// 	});
+
+	// 	await this.redisClient.set(`trip:${tripId}:${lineName}`, JSON.stringify(trip), {
+	// 		EX: 24 * 60 * 60,
+	// 	});
+
+	// 	return trip;
+	// }
+
+	private async getCachedComposition(compositionId: string): Promise<any> {
+		const cachedComposition = await this.redisClient.get(`composition:${compositionId}`);
+		if (cachedComposition) {
+			return JSON.parse(cachedComposition);
+		}
+
+		const composition = await gotInstance
+			.get(`https://trainmap.belgiantrain.be/data/composition/${compositionId}`, {
+				headers: {
+					'auth-code': (await tokenRepository.getToken()) as string,
+				},
 				resolveBodyOnly: true,
 				responseType: 'json',
-			},
-		);
+			})
+			.catch((e) => {
+				console.log(e.response.body);
+			});
 
-		return {
-			...vehicle,
-			composition,
-			trip,
-		};
+		await this.redisClient.set(`composition:${compositionId}`, JSON.stringify(composition), {
+			EX: 60 * 60,
+		});
+		return composition;
 	}
 }

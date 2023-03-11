@@ -1,35 +1,39 @@
 module.exports = {
 	parser: '@typescript-eslint/parser',
-	parserOptions: {
-		project: 'tsconfig.json',
-		tsconfigRootDir: __dirname,
-		sourceType: 'module',
-	},
-	settings: {
-		"import/resolver": {
-			"typescript": {}
-		}
-	},
-	plugins: ['@typescript-eslint/eslint-plugin', 'import'],
+	// parserOptions: {
+	// 	project: 'tsconfig.json',
+	// 	tsconfigRootDir: __dirname,
+	// 	sourceType: 'module',
+	// },
+	// settings: {
+	// 	'import/resolver': {
+	// 		typescript: {},
+	// 	},
+	// },
+	plugins: ['@typescript-eslint', 'import'],
 	extends: [
+		'eslint:recommended',
+		'plugin:@typescript-eslint/eslint-recommended',
 		'plugin:@typescript-eslint/recommended',
-		"plugin:@typescript-eslint/recommended-requiring-type-checking",
 		'plugin:prettier/recommended',
+		'plugin:import/errors',
+		'plugin:import/warnings',
+		'plugin:import/typescript',
 	],
-	root: true,
-	env: {
-		node: true,
-		jest: true,
-	},
-	ignorePatterns: ['.eslintrc.js'],
 	rules: {
-		'@typescript-eslint/interface-name-prefix': 'off',
+		indent: ['error', 'tab'],
+		'@typescript-eslint/no-unused-vars': [
+			'warn',
+			{
+				vars: 'all',
+				args: 'all',
+				varsIgnorePattern: '^jsx$',
+				argsIgnorePattern: '[Ii]gnored$',
+			},
+		],
+		'@typescript-eslint/no-use-before-define': 'off',
 		'@typescript-eslint/explicit-function-return-type': 'off',
-		'@typescript-eslint/explicit-module-boundary-types': 'off',
 		'@typescript-eslint/no-explicit-any': 'off',
-		'@typescript-eslint/no-unsafe-call': 'off',
-		'@typescript-eslint/no-unsafe-member-access': 'off',
-		'@typescript-eslint/no-unsafe-assignment': 'off',
 		'import/order': [
 			'error',
 			{

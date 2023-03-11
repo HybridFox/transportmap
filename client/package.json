@@ -1,0 +1,30 @@
+{
+  "name": "client",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@ngneat/elf": "^2.3.1",
+    "@ngneat/elf-devtools": "^1.2.1",
+    "@ngneat/elf-entities": "^4.4.4",
+    "@ngneat/elf-persist-state": "^1.1.6",
+    "@ngneat/elf-requests": "^1.6.0",
+    "@ngneat/react-rxjs": "^1.1.0",
+    "ky": "^0.33.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "rxjs": "^7.8.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.27",
+    "@types/react-dom": "^18.0.10",
+    "@vitejs/plugin-react-swc": "^3.0.0",
+    "typescript": "^4.9.3",
+    "vite": "^4.1.0"
+  }
+}

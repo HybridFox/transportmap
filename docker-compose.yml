@@ -2,47 +2,59 @@ version: "3"
 services:
     server:
         build:
-            context: api
+            context: server
             dockerfile: Dockerfile.dev
-        container_name: transportmap-api
+        container_name: transportmap-server
         extra_hosts:
             - "host.docker.internal:host-gateway"
         ports:
             - 3001:3001
         volumes:
-            - ./api:/app:delegated
-            - ../hafas-client:/app/node_modules/hafas-client
-            - ./api/src/modules/vehicle/static:/app/dist/modules/vehicle/static
+            - ./server:/app:delegated
+            # - ../hafas-client:/app/node_modules/hafas-client
+            # - ./api/src/modules/vehicle/static:/app/dist/modules/vehicle/static
             - /app/node_modules
-            - /app/data
+            # - /app/data
         env_file:
-            - ./api/src/config/local.env
+            - ./server/.env/local.env
         networks:
             - transportmap
 
-    mongodb:
-        image: "mongo:4.4.4"
-        container_name: mongo
+    postgres:
+        image: "postgres:15.2-alpine"
+        container_name: transportmap-postgres
         ports:
-            - 27017:27017
+            - 5432:5432
         volumes:
-            - ./data:/data/db
+            - ./data:/var/lib/postgresql/data
+        environment:
+            POSTGRES_USER: transportmap
+            POSTGRES_PASSWORD: transportmap
+            POSTGRES_DB: transportmap
         networks:
             - transportmap
 
-    app:
-        build:
-            context: app
-            dockerfile: Dockerfile.dev
-        extra_hosts:
-            - "host.docker.internal:host-gateway"
-        container_name: transportmap-app
-        volumes:
-            - ./app:/app:delegated
-            - /app/node_modules
-            - /app/dist
+    # app:
+    #     build:
+    #         context: app
+    #         dockerfile: Dockerfile.dev
+    #     extra_hosts:
+    #         - "host.docker.internal:host-gateway"
+    #     container_name: transportmap-app
+    #     volumes:
+    #         - ./app:/app:delegated
+    #         - /app/node_modules
+    #         - /app/dist
+    #     ports:
+    #         - 3000:3000
+    #     networks:
+    #         - transportmap
+
+    redis:
+        image: "redis:7.0.3-alpine"
+        container_name: transportmap-redis
         ports:
-            - 3000:3000
+            - 6379:6379
         networks:
             - transportmap
 
