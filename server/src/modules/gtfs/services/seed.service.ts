@@ -6,6 +6,13 @@ import { Agency, Calendar, CalendarDate, Route, Stop, StopTime, Transfer, Transl
 import { Repository } from 'typeorm';
 import { TABLE_PROVIDERS } from 'core/providers/table.providers';
 import { randomUUID } from 'crypto';
+import { gtfsFileMap } from '../gtfs.const';
+import got from 'got/dist/source';
+import { randomBytes } from 'crypto';
+import { promisify } from 'node:util';
+import { pipeline } from 'stream';
+import * as AdmZip from 'adm-zip';
+import { StopTimeSeederService } from '../seeders/stop-time.seeder';
 
 type FileMap = Record<
 	string,
@@ -19,162 +26,46 @@ type FileMap = Record<
 @Injectable()
 export class SeedService {
 	constructor(
-		@Inject(TABLE_PROVIDERS.AGENCY_REPOSITORY) private agencyRepository: Repository<Agency>,
-		@Inject(TABLE_PROVIDERS.CALENDAR_DATE_REPOSITORY) private calendarDateRepository: Repository<CalendarDate>,
-		@Inject(TABLE_PROVIDERS.CALENDAR_REPOSITORY) private calendarRepository: Repository<Calendar>,
-		@Inject(TABLE_PROVIDERS.ROUTE_REPOSITORY) private routeRepository: Repository<Route>,
-		@Inject(TABLE_PROVIDERS.STOP_TIME_REPOSITORY) private stopTimeRepository: Repository<StopTime>,
-		@Inject(TABLE_PROVIDERS.STOP_REPOSITORY) private stopRepository: Repository<Stop>,
-		@Inject(TABLE_PROVIDERS.TRANSFER_REPOSITORY) private transferRepository: Repository<Transfer>,
-		@Inject(TABLE_PROVIDERS.TRANSLATION_REPOSITORY) private translationRepository: Repository<Translation>,
-		@Inject(TABLE_PROVIDERS.TRIP_REPOSITORY) private tripRepository: Repository<Trip>,
+		// @Inject(TABLE_PROVIDERS.AGENCY_REPOSITORY) private agencyRepository: Repository<Agency>,
+		// @Inject(TABLE_PROVIDERS.CALENDAR_DATE_REPOSITORY) private calendarDateRepository: Repository<CalendarDate>,
+		// @Inject(TABLE_PROVIDERS.CALENDAR_REPOSITORY) private calendarRepository: Repository<Calendar>,
+		// @Inject(TABLE_PROVIDERS.ROUTE_REPOSITORY) private routeRepository: Repository<Route>,
+		// @Inject(TABLE_PROVIDERS.STOP_TIME_REPOSITORY) private stopTimeRepository: Repository<StopTime>,
+		// @Inject(TABLE_PROVIDERS.STOP_REPOSITORY) private stopRepository: Repository<Stop>,
+		// @Inject(TABLE_PROVIDERS.TRANSFER_REPOSITORY) private transferRepository: Repository<Transfer>,
+		// @Inject(TABLE_PROVIDERS.TRANSLATION_REPOSITORY) private translationRepository: Repository<Translation>,
+		// @Inject(TABLE_PROVIDERS.TRIP_REPOSITORY) private tripRepository: Repository<Trip>,
+		private readonly stopTimeSeederService: StopTimeSeederService,
 	) {}
-
-	public fileMap: FileMap = {
-		stop_times: {
-			repository: this.stopTimeRepository,
-			columnMapping: {
-				tripId: 'trip_id',
-				arrivalTime: 'arrival_time',
-				departureTime: 'departure_time',
-				stopId: 'stop_id',
-				stopSequence: 'stop_sequence',
-				stopHeadsign: 'stop_headsign',
-				pickupType: 'pickup_type',
-				dropOffType: 'drop_off_type',
-				shapeDistTraveled: 'shape_dist_traveled',
-			},
-		},
-		trips: {
-			repository: this.tripRepository,
-			columnMapping: {
-				id: 'trip_id',
-				routeId: 'route_id',
-				serviceId: 'service_id',
-				headsign: 'trip_headsign',
-				name: 'trip_short_name',
-				directionId: 'direction_id',
-				blockId: 'block_id',
-				shapeId: 'shape_id',
-				type: 'trip_type',
-			},
-		},
-		routes: {
-			repository: this.routeRepository,
-			columnMapping: {
-				id: 'route_id',
-				agencyId: 'agency_id',
-				routeCode: 'route_short_name',
-				name: 'route_long_name',
-				description: 'route_desc',
-				type: 'route_type',
-				url: 'route_url',
-				color: 'route_color',
-				textColor: 'route_text_color',
-			},
-		},
-		agency: {
-			repository: this.agencyRepository,
-			columnMapping: {
-				id: 'agency_id',
-				name: 'agency_name',
-				url: 'agency_url',
-				timezone: 'agency_timezone',
-				language: 'agency_lang',
-				phoneNumber: 'agency_phone',
-			},
-		},
-		calendar_dates: {
-			repository: this.calendarDateRepository,
-			requiresId: true,
-			columnMapping: {
-				serviceId: 'service_id',
-				date: 'date',
-				exceptionType: 'exception_type',
-			},
-		},
-		calendar: {
-			repository: this.calendarRepository,
-			columnMapping: {
-				serviceId: 'service_id',
-				monday: 'monday',
-				tuesday: 'tuesday',
-				wednesday: 'wednesday',
-				thursday: 'thursday',
-				friday: 'friday',
-				saturday: 'saturday',
-				sunday: 'sunday',
-				startDate: 'start_date',
-				endDate: 'end_date',
-			},
-		},
-		stops: {
-			repository: this.stopRepository,
-			columnMapping: {
-				id: 'stop_id',
-				code: 'stop_code',
-				name: 'stop_name',
-				description: 'stop_desc',
-				latitude: 'stop_lat',
-				longitude: 'stop_lon',
-				zoneId: 'zone_id',
-				url: 'stop_url',
-				locationType: 'location_type',
-				parent_station: 'parentStationId',
-				platformCode: 'platform_code',
-			},
-		},
-		// transfers: {
-		// 	repository: this.transferRepository,
-		// 	columnMapping: {
-		// 		fromStopId: 'from_stop_id',
-		// 		toStopId: 'to_stop_id',
-		// 		transferType: 'transfer_type',
-		// 		minTransferTime: 'min_transfer_time',
-		// 		fromTripId: 'from_trip_id',
-		// 		toTripId: 'to_trip_id',
-		// 	},
-		// },
-		// translations: {
-		// 	repository: this.translationRepository,
-		// 	columnMapping: {
-		// 		translationKey: 'trans_id',
-		// 		language: 'lang',
-		// 		translation: 'translation',
-		// 	},
-		// },
-	};
 
 	@Command({
 		command: 'seed',
 		describe: 'Sync vehicles',
 	})
 	public async seed() {
-		Object.keys(this.fileMap).reduce(async (acc, fileName) => {
+		console.log('- Starting nightly seeding');
+		const promisePipeline = promisify(pipeline);
+		const gtfsStaticSources = ['https://sncb-opendata.hafas.de/gtfs/static/c21ac6758dd25af84cca5b707f3cb3de'];
+
+		// Daily nighttime job. Get static data
+		gtfsStaticSources.reduce(async (acc, staticSourceUrl) => {
 			await acc;
-			await this.fileMap[fileName].repository.clear();
 
-			const routeCsv = fs.readFileSync(`${__dirname}/../static/${fileName}.txt`, 'utf-8');
-			const parser = parse(routeCsv, {
-				columns: true,
-				relax_column_count: true,
-			});
+			// const id = randomBytes(20).toString('hex');
+			// console.log(`-- saving file ${id}.zip`);
+			// await promisePipeline(
+			// 	got.stream(staticSourceUrl),
+			// 	fs.createWriteStream(`${__dirname}/../../../../tmp/rawdata_${id}.zip`),
+			// );
 
-			let i = 0;
-			for await (const record of parser) {
-				await this.fileMap[fileName].repository
-					.insert(
-						Object.keys(this.fileMap[fileName].columnMapping).reduce(
-							(acc, fieldKey) => ({
-								...acc,
-								[fieldKey]: record?.[this.fileMap[fileName].columnMapping[fieldKey]],
-							}),
-							{},
-						),
-					)
-					.then(() => console.log(`[${fileName}] (${i++}) OK`))
-					.catch((e) => console.error(e));
-			}
+			// console.log(`-- unzipping file ${id}`);
+			// const zipFile = new AdmZip(`${__dirname}/../../../../tmp/rawdata_${id}.zip`);
+			// await new Promise((resolve) =>
+			// 	zipFile.extractAllToAsync(`${__dirname}/../../../../tmp/${id}`, false, false, resolve),
+			// );
+
+			// console.log('-- passing files to seeders');
+			await this.stopTimeSeederService.seed(`72bffedfac86c04e32d36b23a72c2afbbec502fe`);
 		}, Promise.resolve());
 	}
 }

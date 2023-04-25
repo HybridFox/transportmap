@@ -17,6 +17,7 @@ export const databaseProviders = [
 				database: process.env.POSTGRES_DATABASE,
 				entities: [__dirname + '/../entities/**/*.entity{.ts,.js}'],
 				synchronize: true,
+				cache: true,
 			});
 
 			return dataSource.initialize();

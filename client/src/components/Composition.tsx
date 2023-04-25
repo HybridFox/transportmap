@@ -3,7 +3,7 @@ import React, { FC } from 'react';
 import styled from 'styled-components';
 import { Scrollbars } from 'react-custom-scrollbars-2';
 
-import { VehicleModel } from '../store/vehicle/vehicle.model';
+import { Trip } from '../store/vehicles/trips.types';
 
 export interface Composition {
 	hasReadingLights: boolean;
@@ -61,7 +61,7 @@ export interface Composition {
 }
 
 interface CompositionProps {
-	vehicle: VehicleModel;
+	trip: Trip;
 	className?: string;
 }
 
@@ -111,7 +111,7 @@ const Class = styled.span`
 	display: inline-block;
 `
 
-export const Composition: FC<CompositionProps> = ({ vehicle }: CompositionProps) => {
+export const Composition: FC<CompositionProps> = ({ trip }: CompositionProps) => {
 	const renderThumb = ({ style, ...props }: { style: any }) => {
 		const thumbStyle = {
 			backgroundColor: '#FFF',
@@ -122,11 +122,11 @@ export const Composition: FC<CompositionProps> = ({ vehicle }: CompositionProps)
 		return <div style={{ ...style, ...thumbStyle }} {...props} />
 	}
 
-	console.log(vehicle?.composition)
+	console.log(trip?.composition)
 	return (
 		<Scrollbars style={{ height: "110px" }} renderThumbHorizontal={renderThumb}>
 			<Vehicles>
-				{(vehicle?.composition?.[0]?.materialUnits || []).filter((x) => x.materialSubTypeName).map((composition: Composition, i) => (
+				{(trip?.composition?.[0]?.materialUnits || []).filter((x) => x.materialSubTypeName).map((composition: Composition, i) => (
 					<Vehicle key={i}>
 						<img
 							src={`/assets/img/vehicles/${composition.materialSubTypeName}${composition.isFirstClass ? '_p' : ''}.gif`}

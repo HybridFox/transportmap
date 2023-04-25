@@ -1,14 +1,13 @@
 import React, { FC, useState } from 'react';
 import styled, { css } from 'styled-components';
 
-import { VehicleModel } from '../store/vehicle/vehicle.model';
-
 import { Badge } from './Badge';
 import { NextStops } from './NextStops';
 import { Composition } from './Composition';
+import { Trip } from '../store/vehicles/trips.types';
 
 interface PopupProps {
-	vehicle: VehicleModel;
+	trip: Trip;
 	className?: string;
 }
 
@@ -62,22 +61,21 @@ const Tab = styled.button<{
 		`}
 `;
 
-const RawPopup: FC<PopupProps> = ({ vehicle, className }: PopupProps) => {
-	const [selectedTab, setSelectedTab] = useState<string>('composition');
+const RawPopup: FC<PopupProps> = ({ trip, className }: PopupProps) => {
+	const [selectedTab, setSelectedTab] = useState<string>('next-stops');
 
 	return (
 		<div className={className}>
 			<PopupHeader>
 				<Title>
 					<Badge
-						color={vehicle?.extraData?.foregroundColor}
-						borderColor={vehicle?.extraData?.backgroundBorderColor}
-						backgroundColor={vehicle?.extraData?.backgroundColor}>
-						{vehicle?.line?.name}
+						color={trip?.extraData?.foregroundColor}
+						borderColor={trip?.extraData?.backgroundBorderColor}
+						backgroundColor={trip?.extraData?.backgroundColor}>
+						{trip.route.routeCode.replaceAll(/[0-9]/g, '')}{trip.name}
 					</Badge>
 					<h2>
-						{vehicle.trip?.destination?.name?.replace(/ ?\[.*?]/gi, '') ||
-							vehicle.direction?.replace(/ ?\[.*?]/gi, '')}
+						{trip.headsign}
 					</h2>
 				</Title>
 				<Tabs>
@@ -93,8 +91,8 @@ const RawPopup: FC<PopupProps> = ({ vehicle, className }: PopupProps) => {
 				</Tabs>
 			</PopupHeader>
 			<PopupBody>
-				{selectedTab === 'next-stops' && <NextStops vehicle={vehicle}></NextStops>}
-				{selectedTab === 'composition' && <Composition vehicle={vehicle}></Composition>}
+				{selectedTab === 'next-stops' && <NextStops trip={trip}></NextStops>}
+				{selectedTab === 'composition' && <Composition trip={trip}></Composition>}
 			</PopupBody>
 		</div>
 	);

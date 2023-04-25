@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import React, { FC, useEffect, useRef, useState } from 'react';
-import { useObservable } from 'react-use-observable';
 import * as ol from 'ol';
 import * as olProj from 'ol/proj';
 import VectorLayer from 'ol/layer/Vector';
@@ -10,70 +9,57 @@ import XYZ from 'ol/source/XYZ';
 import * as olExtent from 'ol/extent';
 import * as olGeom from 'ol/geom';
 import { GeoJSON } from 'ol/format';
-import { Observable } from 'rxjs';
-import { Stroke, Style, Fill, Circle, Text } from 'ol/style';
-
-import { vehicleQuery } from '../../store/vehicle/vehicle.query';
-import { clearVehicle, fetchVehicle, fetchVehicles } from '../../store/vehicle/vehicle.service';
-import { VehicleModel } from '../../store/vehicle/vehicle.model';
 
 import { MAP_ICON_STYLES } from './Map.const';
-
-const styles = (feature: ol.Feature) => ({
-	LineString: new Style({
-		stroke: new Stroke({
-			color: '#212121',
-			width: 5,
-		}),
-	}),
-	Point: new Style({
-		image: new Circle({
-			radius: 7,
-			fill: new Fill({ color: '#e6e6e6' }),
-			stroke: new Stroke({
-				color: '#212121',
-				width: 5,
-			}),
-		}),
-		text: new Text({
-			text: feature.get('name'),
-			font: '20px bold sansserif',
-			offsetY: -20,
-			overflow: true,
-			fill: new Fill({ color: '#e6e6e6' }),
-			stroke: new Stroke({
-				color: '#212121',
-				width: 5,
-			}),
-		}),
-	}),
-});
-
-const styleFunction = (feature: any) => {
-	return styles(feature)[feature.getGeometry().getType() as keyof typeof styles];
-};
+import { tripsSelector } from '../../store/vehicles/trips.selectors';
+import { useObservable } from '@ngneat/react-rxjs';
+// import { tripsRepository } from '../../store/vehicles/trips.repository';
+import { StopTime, Trip } from '../../store/vehicles/trips.types';
+import ky from 'ky';
+import { socket } from '../../modules/core/services/socket.service';
+import { getTranslate, railStyleFunction, routeStyleFunction } from '../../helpers/map.utils';
+import { SocketEvents } from '../../modules/map/const/socket.const';
+import { tripsRepository } from '../../store/vehicles/trips.repository';
+import dayjs from 'dayjs';
+import { getVehicleLocation } from '../../helpers/location.utils';
 
 export const MapComponent: FC = () => {
 	const mapElement = useRef<HTMLDivElement | null>(null);
 	const map = useRef<ol.Map | null>(null);
 
-	const [vehicles] = useObservable(() => vehicleQuery.selectAll(), []);
-	const [activeVehicle] = useObservable(() => vehicleQuery.selectActive() as Observable<VehicleModel>, []);
+	// const [vehicles] = useObservable(tripsSelector.trips$);
+	const [trips, setTrips] = useState<Trip[]>([]);
+	const [activeVehicle] = useObservable(tripsSelector.activeTrip$);
 
 	const [lat, setLat] = useState(4.5394187);
 	const [lon, setLon] = useState(51.119221);
 	const [zoom, setZoom] = useState(13);
 	const [vectorSource, setVectorSource] = useState<VectorSource>();
 
-	const clearTempLayers = () => {
-		map.current!.getLayers().forEach((layer) => {
-			if (!layer.getProperties().tempLayer) {
-				return;
-			}
 
-			layer.dispose();
-		});
-	};
+	useEffect(() => {
+		function onConnect() {
+		//   setIsConnected(true);
+		}
+	
+		function onDisconnect() {
+		//   setIsConnected(false);
+		}
+	
+		function onReceiveTrips(value: Trip[]) {
+			setTrips(value);
+		}
+	
+		socket.on('connect', onConnect);
+		socket.on('disconnect', onDisconnect);
+		socket.on(SocketEvents.RCVTRIPS, onReceiveTrips);
+	
+		return () => {
+		  socket.off('connect', onConnect);
+		  socket.off('disconnect', onDisconnect);
+		  socket.off(SocketEvents.RCVTRIPS, onReceiveTrips);
+		};
+	}, []);
 
 	const loadTrainData = () => {
 		if (!map.current) {
@@ -90,31 +76,75 @@ export const MapComponent: FC = () => {
 		const [west, north] = olExtent.getTopLeft(boundingBoxExtent);
 		const [east, south] = olExtent.getBottomRight(boundingBoxExtent);
 
-		fetchVehicles({
-			north: north,
-			west: west,
-			east: east,
-			south: south,
+		socket.emit(SocketEvents.SETBBOX, { west, north, east, south })
+
+		// fetchVehicles({
+		// 	north: north,
+		// 	west: west,
+		// 	east: east,
+		// 	south: south,
+		// });
+	};
+
+	/**
+	 * Animate markers
+	 * TODO: Move this on a line. Duh
+	 */
+	const moveMarkers = (source: VectorSource) => {
+		// TODO: clean this up
+		source?.forEachFeature((feature) => {
+			const sections = feature.get('sections');
+			const osrmRoute = feature.get('osrmRoute');
+
+			const coordinates = getVehicleLocation(sections, osrmRoute);
+
+			if (!coordinates) {
+				return;
+			}
+
+			feature.setGeometry(new olGeom.Point(
+				olProj.fromLonLat(coordinates),
+			))
+		});
+
+		map.current?.changed()
+		setTimeout(() => moveMarkers(source), 50)
+	}
+
+	const clearTempLayers = () => {
+		map.current!.getLayers().forEach((layer) => {
+			if (!layer.getProperties().tempLayer) {
+				return;
+			}
+
+			layer.dispose();
 		});
 	};
 
+	/**
+	 * Load GeoJSON
+	 * TODO: maybe we want this, but in a simpler style tho. And we don't want to use `lijnsecties`. Maybe we can look at something like mapbox? Expensive tho.
+	 */
 	useEffect(() => {
-		if (!activeVehicle?.trip?.polyline) {
-			return;
-		}
+		(async () => {
+			const geojson: any = await ky.get('/static/lijnsecties.geojson').json();
+			
+			const vectorSource = new VectorSource({
+				features: new GeoJSON().readFeatures(geojson, { featureProjection: 'EPSG:3857' }), 
+			});
+	
+			const vectorLayer = new VectorLayer({
+				source: vectorSource,
+				style: railStyleFunction,
+			});
+	
+			map.current?.addLayer(vectorLayer);
+		})();
+	}, []);
 
-		const vectorSource = new VectorSource({
-			features: new GeoJSON().readFeatures(activeVehicle?.trip?.polyline || {}),
-		});
-
-		const vectorLayer = new VectorLayer({
-			source: vectorSource,
-			style: styleFunction,
-		});
-
-		map.current?.addLayer(vectorLayer);
-	}, [activeVehicle]);
-
+	/**
+	 * Initialise map
+	 */
 	useEffect(() => {
 		const source = new VectorSource({
 			format: new GeoJSON(),
@@ -144,19 +174,25 @@ export const MapComponent: FC = () => {
 			controls: [],
 		});
 
+		initialMap.addEventListener('moveend', loadTrainData);
+
 		// save map and vector layer references to state
 		map.current = initialMap;
 		setVectorSource(source);
+		moveMarkers(source);
 
-		initialMap.addEventListener('moveend', loadTrainData);
+		// initialMap.addEventListener('moveend', loadTrainData);
 
+		/**
+		 * Make mouse a pointer when hovering over clickable stuff
+		 */
 		initialMap.on('pointermove', function (evt) {
 			if (evt.dragging) {
 				return;
 			}
 
 			const pixel = initialMap.getEventPixel(evt.originalEvent);
-			initialFeaturesLayer.getFeatures(pixel).then((features: ol.Feature[]) => {
+			initialFeaturesLayer.getFeatures(pixel).then((features: any) => {
 				const feature = features.length ? features[0] : undefined;
 				initialMap.getTargetElement().style.cursor = feature ? 'pointer' : '';
 			});
@@ -165,36 +201,70 @@ export const MapComponent: FC = () => {
 		initialMap.on('click', function (evt) {
 			const pixel = initialMap.getEventPixel(evt.originalEvent);
 
-			initialFeaturesLayer.getFeatures(pixel).then((features: ol.Feature[]) => {
+			initialFeaturesLayer.getFeatures(pixel).then((features: any) => {
 				const feature = features.length ? features[0] : undefined;
 				clearTempLayers();
 
-				if (feature) {
-					const tempSource = new VectorSource({
-						features: new GeoJSON().readFeatures(feature.get('lineGeo'), {
-							dataProjection: 'EPSG:4326',
-							featureProjection: 'EPSG:3857',
-						}),
-					});
-
-					const tempLayer = new VectorLayer({
-						source: tempSource,
-						style: styleFunction,
-						properties: {
-							tempLayer: true,
-						},
-					});
-
-					initialMap.addLayer(tempLayer);
-
-					return fetchVehicle(feature.get('lineId'));
+				if (!feature) {
+					return tripsRepository.clearActive();
 				}
 
-				return clearVehicle();
+				tripsRepository.getTrip(feature.get('id'))
+					.then((activeTrip) => {
+						const stopTimes: StopTime[] = feature.get('stopTimes');
+
+						const coordinates = activeTrip.osrmRoute.reduce((acc, leg) => {
+							return [
+								...acc,
+								...leg.steps.reduce((stepAcc, step) => ([...stepAcc, ...step.geometry.coordinates]), [] as number[][])
+							]
+						}, [] as number[][]);
+
+						const tempSource = new VectorSource({
+							features: new GeoJSON().readFeatures({
+								type: 'FeatureCollection',
+								features: [
+									{
+										type: 'Feature',
+										geometry: {
+											type: 'LineString',
+											coordinates: coordinates,
+										},
+									},
+									...stopTimes.map((stopTime) => ({
+										type: 'Feature',
+										geometry: {
+											type: 'Point',
+											coordinates: [
+												stopTime.stop.longitude,
+												stopTime.stop.latitude,
+											],
+										},
+										properties: {
+											name: stopTime.stop.name,
+										},
+									})),
+								],
+							}, {
+								dataProjection: 'EPSG:4326',
+								featureProjection: 'EPSG:3857',
+							}),
+						});
+
+						const tempLayer = new VectorLayer({
+							source: tempSource,
+							style: routeStyleFunction,
+							properties: {
+								tempLayer: true,
+							},
+						});
+
+						initialMap.addLayer(tempLayer);
+					})
 			});
 		});
 
-		setInterval(loadTrainData, 15000);
+		// setInterval(loadTripData, 5000);
 
 		return () => {
 			initialMap.setTarget(undefined);
@@ -202,52 +272,50 @@ export const MapComponent: FC = () => {
 	}, []);
 
 	useEffect(() => {
+
+	}, [activeVehicle])
+
+	useEffect(() => {
 		if (!vectorSource) {
 			return;
 		}
 
+		// TODO: find a way to prevent flicker. Maybe just updating stuff?
 		vectorSource.clear();
+		const currentTime = dayjs().format('HH:mm:ss');
 
 		vectorSource.addFeatures(
-			(vehicles || [])?.map((vehicle) => {
+			(trips || [])?.reduce((acc, trip) => {
+				// TODO: calculate sectionProgress here? 
+				// This would prevent needing to refresh every 5 seconds
+				// BUT. We would need to pass all sections. Tho it won't be hard to copy pasta the code from the backend.
+				const coordinates = getVehicleLocation(trip.sections, trip.osrmRoute);
+
+				if (!coordinates) {
+					return acc;
+				}
+
 				const feature = new ol.Feature({
-					id: vehicle.line?.id,
-					product: vehicle.line?.product,
-					mode: vehicle.line?.mode,
-					lineId: vehicle.line?.id,
-					lineGeo: vehicle.lineGeo,
+					id: trip.id,
+					product: 'vehicle.line?.product',
+					mode: trip.route.routeCode.replaceAll(/[0-9]/g, ''),
+					lineId: trip.id,
+					stopTimes: trip.stopTimes,
+					bearing: trip.bearing,
+					speed: trip.speed,
 					geometry: new olGeom.Point(
-						olProj.fromLonLat([
-							vehicle.projectedLocation!.longitude!,
-							vehicle.projectedLocation!.latitude!,
-						]),
+						olProj.fromLonLat(coordinates),
 					),
+					sections: trip.sections,
+					osrmRoute: trip.osrmRoute
 				});
 
-				feature.setStyle(MAP_ICON_STYLES()['normal'][vehicle.line?.product as any]);
+				feature.setStyle(MAP_ICON_STYLES()['normal'][trip.route.routeCode.replaceAll(/[0-9]/g, '')]);
 
-				return feature;
-			}),
+				return [...acc, feature];
+			}, [] as any[])
 		);
-
-		// vectorSource.addFeatures(
-		// 	(vehicles || [])?.map((vehicle) => {
-		// 		const feature = new ol.Feature({
-		// 			id: vehicle.line?.id,
-		// 			product: vehicle.line?.product,
-		// 			mode: vehicle.line?.mode,
-		// 			lineId: vehicle.line?.id,
-		// 			geometry: new olGeom.Point(
-		// 				olProj.fromLonLat([vehicle.location!.longitude!, vehicle.location!.latitude!]),
-		// 			),
-		// 		});
-
-		// 		feature.setStyle(MAP_ICON_STYLES()['ghost'][vehicle.line?.product as any]);
-
-		// 		return feature;
-		// 	}),
-		// );
-	}, [vehicles]);
+	}, [trips]);
 
 	return <div ref={mapElement} className="map-container" style={{ height: '100%' }}></div>;
 };

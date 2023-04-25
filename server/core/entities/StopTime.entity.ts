@@ -1,10 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, Index, PrimaryColumn } from 'typeorm';
 import { Stop } from './Stop.entity';
 import { Trip } from './Trip.entity';
 
 @Entity()
 export class StopTime {
-	@PrimaryGeneratedColumn('uuid')
+	@PrimaryColumn()
 	@Index()
 	id: string;
 
@@ -13,9 +13,15 @@ export class StopTime {
 	tripId: string;
 
 	@Column()
+	@Index()
+	agencyId: string;
+
+	@Column()
+	@Index()
 	arrivalTime: string;
 
 	@Column()
+	@Index()
 	departureTime: string;
 
 	@Column()

@@ -34,27 +34,49 @@ services:
         networks:
             - transportmap
 
-    # app:
-    #     build:
-    #         context: app
-    #         dockerfile: Dockerfile.dev
-    #     extra_hosts:
-    #         - "host.docker.internal:host-gateway"
-    #     container_name: transportmap-app
-    #     volumes:
-    #         - ./app:/app:delegated
-    #         - /app/node_modules
-    #         - /app/dist
-    #     ports:
-    #         - 3000:3000
-    #     networks:
-    #         - transportmap
+    app:
+        build:
+            context: client
+            dockerfile: Dockerfile.dev
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        container_name: transportmap-app
+        volumes:
+            - ./client:/app:delegated
+            - /app/node_modules
+            - /app/dist
+        ports:
+            - 3000:3000
+        networks:
+            - transportmap
 
     redis:
         image: "redis:7.0.3-alpine"
         container_name: transportmap-redis
         ports:
             - 6379:6379
+        networks:
+            - transportmap
+
+    osrm:
+        image: "ghcr.io/project-osrm/osrm-backend:v5.27.1"
+        command: osrm-routed --algorithm mld /data/belgium-latest.osrm
+        container_name: osrm
+        ports:
+            - 5000:5000
+        volumes:
+            - ./osm:/data:delegated
+        networks:
+            - transportmap
+
+    redis-commander:
+        container_name: transportmap-redis-commander
+        image: ghcr.io/joeferner/redis-commander:latest
+        restart: always
+        environment:
+            - REDIS_HOSTS=local:redis:6379
+        ports:
+            - 8081:8081
         networks:
             - transportmap
 

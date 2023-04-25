@@ -1,9 +1,9 @@
 import styled from 'styled-components';
 
 export const Badge = styled.div<{
-	borderColor: string;
-	color: string;
-	backgroundColor: string;
+	borderColor?: string;
+	color?: string;
+	backgroundColor?: string;
 }>`
 	display: inline-block;
 	min-width: 2.75em;

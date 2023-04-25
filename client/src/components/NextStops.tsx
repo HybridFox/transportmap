@@ -1,14 +1,16 @@
 /* eslint-disable indent */
-import { StopOver } from 'hafas-client';
 import React, { FC } from 'react';
 import styled, { css } from 'styled-components';
 import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat'
 import Scrollbars from 'react-custom-scrollbars-2';
 
-import { VehicleModel } from '../store/vehicle/vehicle.model';
+dayjs.extend(customParseFormat)
+
+import { StopTime, Trip } from '../store/vehicles/trips.types';
 
 interface PopupProps {
-	vehicle: VehicleModel;
+	trip: Trip;
 	className?: string;
 }
 
@@ -81,7 +83,7 @@ const UpcomingLine = styled.div<{
 		`}
 `;
 
-export const NextStops: FC<PopupProps> = ({ vehicle }: PopupProps) => {
+export const NextStops: FC<PopupProps> = ({ trip }: PopupProps) => {
 	const renderThumb = ({ style, ...props }: { style: any }) => {
 		const thumbStyle = {
 			backgroundColor: '#FFF',
@@ -92,26 +94,22 @@ export const NextStops: FC<PopupProps> = ({ vehicle }: PopupProps) => {
 		return <div style={{ ...style, ...thumbStyle }} {...props} />;
 	};
 
-	console.log(vehicle.trip?.stopovers);
-
 	return (
 		<Scrollbars style={{ height: '110px' }} renderThumbHorizontal={renderThumb}>
 			<Stops>
-				{vehicle.trip?.stopovers?.map(
-					(stopOver: StopOver & { arrivalPrognosisType?: string; departurePrognosisType?: string }, i) => (
+				{trip.stopTimes?.map(
+					(stopTime: StopTime, i) => (
 						<Stop
 							key={i}
 							isPassed={
-								stopOver.arrivalPrognosisType === 'REPORTED' ||
-								stopOver.departurePrognosisType === 'REPORTED'
+								stopTime.departureTime < dayjs().format('HH:mm:ss')
 							}>
-							<p>{stopOver?.stop?.name?.replace(/ ?\[.*?]/gi, '')}</p>
-							<h4>{dayjs(stopOver.arrival || stopOver.departure).format('HH:mm')}</h4>
-							{stopOver.arrivalPrognosisType === 'REPORTED' ||
-							stopOver.departurePrognosisType === 'REPORTED' ? (
+							<p>{stopTime?.stop?.name?.replace(/ ?\[.*?]/gi, '')}</p>
+							<h4>{dayjs(`${dayjs().format('DD/MM/YYYY')} ${stopTime.arrivalTime || stopTime.departureTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</h4>
+							{stopTime.departureTime < dayjs().format('HH:mm:ss') ? (
 								<PassedLine />
 							) : (
-								<UpcomingLine isLastItem={i === (vehicle.trip?.stopovers?.length || 0) - 1} />
+								<UpcomingLine isLastItem={i === (trip.stopTimes?.length || 0) - 1} />
 							)}
 						</Stop>
 					),

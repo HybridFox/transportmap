@@ -53,3 +53,5 @@ Thumbs.db
 data
 
 .env
+tmp
+osm

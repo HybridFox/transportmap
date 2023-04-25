@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, Index, ManyToOne, JoinColumn } from 'typeorm';
+import { Trip } from './Trip.entity';
 
 @Entity()
 export class CalendarDate {
@@ -16,4 +17,8 @@ export class CalendarDate {
 
 	@Column()
 	exceptionType: string;
+
+	@ManyToOne(() => Trip, (trip) => trip.serviceId, { createForeignKeyConstraints: false })
+	@JoinColumn({ name: 'serviceId', referencedColumnName: 'serviceId' })
+	trip: Trip;
 }

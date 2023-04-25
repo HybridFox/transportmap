@@ -1,6 +1,6 @@
 import * as olStyle from 'ol/style';
 
-const defaultIconProps = {
+const defaultIconProps: any = {
 	anchor: [0.5, 46],
 	anchorXUnits: 'fraction',
 	anchorYUnits: 'pixels',
@@ -14,42 +14,49 @@ const defaultGhostProps = {
 
 export const MAP_ICON_STYLES = (): Record<string, Record<string, olStyle.Style>> => ({
 	normal: {
-		bus: new olStyle.Style({
+		BUS: new olStyle.Style({
 			image: new olStyle.Icon({
 				...defaultIconProps,
 				color: '#FFC312',
 				src: '/assets/img/icons/popup-bus.svg',
 			}),
 		}),
-		'local-train': new olStyle.Style({
+		'L': new olStyle.Style({
 			image: new olStyle.Icon({
 				...defaultIconProps,
 				color: '#12CBC4',
 				src: '/assets/img/icons/popup-train.svg',
 			}),
 		}),
-		'intercity-p': new olStyle.Style({
+		'IC': new olStyle.Style({
 			image: new olStyle.Icon({
 				...defaultIconProps,
 				color: '#12CBC4',
 				src: '/assets/img/icons/popup-train.svg',
 			}),
 		}),
-		's-train': new olStyle.Style({
+		'S': new olStyle.Style({
 			image: new olStyle.Icon({
 				...defaultIconProps,
 				color: '#12CBC4',
 				src: '/assets/img/icons/popup-train.svg',
 			}),
 		}),
-		metro: new olStyle.Style({
+		'P': new olStyle.Style({
+			image: new olStyle.Icon({
+				...defaultIconProps,
+				color: '#12CBC4',
+				src: '/assets/img/icons/popup-train.svg',
+			}),
+		}),
+		METRO: new olStyle.Style({
 			image: new olStyle.Icon({
 				...defaultIconProps,
 				color: '#ED4C67',
 				src: '/assets/img/icons/popup-metro.svg',
 			}),
 		}),
-		tram: new olStyle.Style({
+		TRAM: new olStyle.Style({
 			image: new olStyle.Icon({
 				...defaultIconProps,
 				color: '#ED4C67',
@@ -58,7 +65,7 @@ export const MAP_ICON_STYLES = (): Record<string, Record<string, olStyle.Style>>
 		}),
 	},
 	ghost: {
-		bus: new olStyle.Style({
+		BUS: new olStyle.Style({
 			image: new olStyle.Icon({
 				...defaultIconProps,
 				...defaultGhostProps,
@@ -66,7 +73,7 @@ export const MAP_ICON_STYLES = (): Record<string, Record<string, olStyle.Style>>
 				src: '/assets/img/icons/popup-bus.svg',
 			}),
 		}),
-		'local-train': new olStyle.Style({
+		'L': new olStyle.Style({
 			image: new olStyle.Icon({
 				...defaultIconProps,
 				...defaultGhostProps,
@@ -74,7 +81,7 @@ export const MAP_ICON_STYLES = (): Record<string, Record<string, olStyle.Style>>
 				src: '/assets/img/icons/popup-train.svg',
 			}),
 		}),
-		'intercity-p': new olStyle.Style({
+		'IC': new olStyle.Style({
 			image: new olStyle.Icon({
 				...defaultIconProps,
 				...defaultGhostProps,
@@ -82,7 +89,7 @@ export const MAP_ICON_STYLES = (): Record<string, Record<string, olStyle.Style>>
 				src: '/assets/img/icons/popup-train.svg',
 			}),
 		}),
-		's-train': new olStyle.Style({
+		'S': new olStyle.Style({
 			image: new olStyle.Icon({
 				...defaultIconProps,
 				...defaultGhostProps,
@@ -90,7 +97,7 @@ export const MAP_ICON_STYLES = (): Record<string, Record<string, olStyle.Style>>
 				src: '/assets/img/icons/popup-train.svg',
 			}),
 		}),
-		metro: new olStyle.Style({
+		METRO: new olStyle.Style({
 			image: new olStyle.Icon({
 				...defaultIconProps,
 				...defaultGhostProps,
@@ -98,7 +105,7 @@ export const MAP_ICON_STYLES = (): Record<string, Record<string, olStyle.Style>>
 				src: '/assets/img/icons/popup-metro.svg',
 			}),
 		}),
-		tram: new olStyle.Style({
+		TRAM: new olStyle.Style({
 			image: new olStyle.Icon({
 				...defaultIconProps,
 				...defaultGhostProps,
