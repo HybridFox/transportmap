@@ -6,7 +6,7 @@ on:
 
 jobs:
   push_app_to_registry:
-    name: [CLIENT] Build
+    name: CLIENT - Build
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
@@ -39,7 +39,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   push_api_to_registry:
-    name: [SERVER] Build
+    name: SERVER - Build
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
