@@ -70,3 +70,12 @@ jobs:
           platforms: linux/amd64,linux/arm/v7,linux/arm64/v8
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+  deploy:
+    needs: [push_app_to_registry, push_api_to_registry]
+    runs-on: ubuntu-latest
+    steps:
+    - name: curl
+      uses: wei/curl@v1
+      with:
+        args: -X POST ${{ secrets.RANCHER_DEPLOY_URL }}
