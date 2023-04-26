@@ -14,5 +14,9 @@ export class Translation {
 	language: string;
 
 	@Column()
+	@Index()
+	agencyId: string;
+
+	@Column()
 	translation: string;
 }

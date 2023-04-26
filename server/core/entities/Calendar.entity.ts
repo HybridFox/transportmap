@@ -11,6 +11,10 @@ export class Calendar {
 
 	@Column()
 	@Index()
+	agencyId: string;
+
+	@Column()
+	@Index()
 	monday: number;
 
 	@Column()

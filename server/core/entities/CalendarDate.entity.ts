@@ -16,6 +16,10 @@ export class CalendarDate {
 	serviceId: string;
 
 	@Column()
+	@Index()
+	agencyId: string;
+
+	@Column()
 	exceptionType: string;
 
 	@ManyToOne(() => Trip, (trip) => trip.serviceId, { createForeignKeyConstraints: false })

@@ -10,6 +10,10 @@ export class Stop {
 	@Column({ nullable: true })
 	code: string;
 
+	@Column()
+	@Index()
+	agencyId: string;
+
 	@Column({ nullable: true })
 	name: string;
 

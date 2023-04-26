@@ -7,11 +7,11 @@ import { TABLE_PROVIDERS } from 'core/providers/table.providers';
 import * as async from 'async';
 
 @Injectable()
-export class StopTimeSeederService {
+export class TripSeederService {
 	constructor(@Inject(TABLE_PROVIDERS.TRIP_REPOSITORY) private tripRepository: Repository<Trip>) {}
 
-	public async seed(temporaryIdentifier: string) {
-		const routeCsv = fs.readFileSync(`${__dirname}/../../../../tmp/${temporaryIdentifier}/stop_times.txt`, 'utf-8');
+	public async seed(temporaryIdentifier: string, agencyId: string) {
+		const routeCsv = fs.readFileSync(`${__dirname}/../../../../tmp/${temporaryIdentifier}/trips.txt`, 'utf-8');
 		const parser = parse(routeCsv, {
 			columns: true,
 			relax_column_count: true,
@@ -30,7 +30,7 @@ export class StopTimeSeederService {
 						blockId: record.block_id,
 						shapeId: record.shape_id,
 						type: record.trip_type,
-						agencyId: 'NMBS/SNCB',
+						agencyId,
 					})),
 				);
 
@@ -41,7 +41,9 @@ export class StopTimeSeederService {
 		);
 
 		console.log('[SEED] {TRIP} truncate table');
-		this.tripRepository.clear();
+		await this.tripRepository.delete({
+			agencyId,
+		});
 
 		console.log('[SEED] {TRIP} queue records');
 		for await (const record of parser) {

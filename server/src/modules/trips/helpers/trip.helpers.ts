@@ -37,7 +37,7 @@ const clamp = (number: number, min: number, max: number) => Math.max(min, Math.m
 
 export const calculateTripPositions = async (trip: Trip, LineString: any): Promise<any> => {
 	const currentTime = dayjs().format('HH:mm:ss');
-	const sortedStopTimes: StopTime[] = trip.stopTimes.sort((a: any, b: any) => a.arrivalTime - b.arrivalTime);
+	const sortedStopTimes: StopTime[] = trip.stopTimes.sort((a: any, b: any) => a.stopSequence - b.stopSequence);
 	const firstDepartureTime = sortedStopTimes[0].departureTime;
 	const lastDepartureTime = sortedStopTimes[sortedStopTimes.length - 1].arrivalTime;
 

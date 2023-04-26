@@ -10,7 +10,7 @@ import * as async from 'async';
 export class StopTimeSeederService {
 	constructor(@Inject(TABLE_PROVIDERS.STOP_TIME_REPOSITORY) private stopTimeRepository: Repository<StopTime>) {}
 
-	public async seed(temporaryIdentifier: string) {
+	public async seed(temporaryIdentifier: string, agencyId: string) {
 		const routeCsv = fs.readFileSync(`${__dirname}/../../../../tmp/${temporaryIdentifier}/stop_times.txt`, 'utf-8');
 		const parser = parse(routeCsv, {
 			columns: true,
@@ -21,7 +21,7 @@ export class StopTimeSeederService {
 			async (records: any[], callback) => {
 				await this.stopTimeRepository.insert(
 					records.map((record) => ({
-						id: `${record.trip_id}_${record.arrival_time}_${record.departure_time}_${record.stop_id}`,
+						id: `${record.trip_id}_${record.stop_sequence}`,
 						tripId: record.trip_id,
 						arrivalTime: record.arrival_time,
 						departureTime: record.departure_time,
@@ -31,7 +31,7 @@ export class StopTimeSeederService {
 						pickupType: record.pickup_type,
 						dropOffType: record.drop_off_type,
 						shapeDistTraveled: record.shape_dist_traveled,
-						agencyId: 'NMBS/SNCB',
+						agencyId,
 					})),
 				);
 
@@ -42,7 +42,9 @@ export class StopTimeSeederService {
 		);
 
 		console.log('[SEED] {STOP_TIMES} truncate table');
-		this.stopTimeRepository.clear();
+		await this.stopTimeRepository.delete({
+			agencyId,
+		});
 
 		console.log('[SEED] {STOP_TIMES} queue records');
 		for await (const record of parser) {

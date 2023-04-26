@@ -1,6 +1,4 @@
 import { Controller, Get, Param } from '@nestjs/common';
-import { Trip } from 'core/entities';
-import { calculateTripPositions } from '../helpers/trip.helpers';
 import { CompositionService } from '../services/composition.service';
 import { GeoService } from '../services/geo.service';
 import { TripsService } from '../services/trips.service';

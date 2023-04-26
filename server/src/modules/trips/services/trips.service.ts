@@ -14,7 +14,7 @@ export class TripsService {
 	constructor(@Inject(TABLE_PROVIDERS.TRIP_REPOSITORY) private tripRepository: Repository<Trip>) {
 		this.tripsCache = new NodeCache({ stdTTL: 5 * 60, checkperiod: 5 });
 
-		// setInterval(this.calculatePositions.bind(this), 15_000);
+		setInterval(this.calculatePositions.bind(this), 15_000);
 	}
 
 	private async calculatePositions(): Promise<void> {
@@ -69,8 +69,9 @@ export class TripsService {
 				return;
 			}
 
+			console.log('FETCH OG TRIPS!!!!');
 			console.time('trips');
-			redis.set('RAWTRIPSLASTREFRESH', dayjs(new Date()).add(5, 'minutes').unix().toString());
+			redis.set('RAWTRIPSLASTREFRESH', dayjs(new Date()).add(60, 'minutes').unix().toString());
 			const trips = await this.tripRepository
 				.createQueryBuilder('trip')
 				.leftJoinAndSelect('trip.stopTimes', 'stopTime')
@@ -110,7 +111,6 @@ export class TripsService {
 			.andWhere('calendarDate.date = :today', { today: dayjs().format('YYYYMMDD') })
 			.andWhere(`calendarDate.exceptionType = '1'`)
 			.andWhere(`trip.id = :tripId`, { tripId })
-			.cache(`trips-${tripId}`, 5 * 60 * 1000)
 			.getOne();
 		// .andWhere('stopTime.arrivalTime > :arrivalTime', { arrivalTime: dayjs().subtract(1, 'hour').format('HH:mm:ss') })
 		// .andWhere('stopTime.departureTime < :departureTime', { departureTime: dayjs().add(1, 'hour').format('HH:mm:ss') })
