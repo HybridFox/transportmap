@@ -10,27 +10,21 @@ import { getCenter, getDistance } from 'geolib';
 export class TripsGateway {
 	@WebSocketServer() private server: Server;
 
-	constructor(private readonly tripsService: TripsService) {
-		// TODO: Maybe put this in a env var?
-		setInterval(this.emitLocations.bind(this), 5000);
-		// setTimeout(this.emitLocations.bind(this), 3000);
-	}
+	// private async emitLocations(): Promise<void> {
+	// 	if (!this.server) {
+	// 		return;
+	// 	}
 
-	private async emitLocations(): Promise<void> {
-		if (!this.server) {
-			return;
-		}
+	// 	const clients = Array.from(this.server.sockets.sockets, ([id, socket]) => ({ id, socket }));
+	// 	clients.forEach(async ({ id, socket }) => this.sendTrips(socket));
+	// }
 
-		const clients = Array.from(this.server.sockets.sockets, ([id, socket]) => ({ id, socket }));
-		clients.forEach(async ({ id, socket }) => this.sendTrips(socket));
-	}
+	private async sendTrips(socket: Socket, bbox: string): Promise<void> {
+		// const bbox = await redis.get(`BBOX:${socket.id}`);
 
-	private async sendTrips(socket: Socket): Promise<void> {
-		const bbox = await redis.get(`BBOX:${socket.id}`);
-
-		if (!bbox) {
-			return;
-		}
+		// if (!bbox) {
+		// 	return;
+		// }
 
 		const [north, east, south, west] = bbox.split(':').map((x) => Number(x));
 
@@ -93,6 +87,6 @@ export class TripsGateway {
 
 		// TODO: Return latest data when setting bbox
 		// TODO: Validate max zoom, so that scraping can be impossible i guess
-		this.sendTrips(socket);
+		this.sendTrips(socket, `${data.north}:${data.east}:${data.south}:${data.west}`);
 	}
 }

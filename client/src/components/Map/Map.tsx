@@ -265,6 +265,7 @@ export const MapComponent: FC = () => {
 		});
 
 		// setInterval(loadTripData, 5000);
+		loadTrainData();
 
 		return () => {
 			initialMap.setTarget(undefined);
