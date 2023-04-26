@@ -30,7 +30,7 @@ COPY --from=builder /home/node/dist/ /home/node/dist/
 
 USER root
 RUN mkdir /home/node/dist/tmp
-RUN chmown node:node /home/node/dist/tmp
+RUN chown node:node /home/node/dist/tmp
 USER node
 
 RUN npm ci
