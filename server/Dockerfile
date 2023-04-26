@@ -1,6 +1,6 @@
 FROM node:hydrogen-alpine as builder
 
-RUN apk add --update --no-cache python3 gcc make automake autoconf g++ vips vips-dev
+# RUN apk add --update --no-cache python3
 ENV NODE_ENV build
 
 USER node
@@ -15,7 +15,7 @@ RUN npm ci \
 
 FROM node:hydrogen-alpine
 
-RUN apk add --update --no-cache python3 gcc make automake autoconf g++ vips vips-dev
+# RUN apk add --update --no-cache python3 gcc make automake autoconf g++ vips vips-dev
 ENV NODE_ENV production
 
 EXPOSE 80
@@ -27,6 +27,11 @@ WORKDIR /home/node
 
 COPY --from=builder /home/node/package*.json /home/node/
 COPY --from=builder /home/node/dist/ /home/node/dist/
+
+USER root
+RUN mkdir /home/node/dist
+RUN chmown node:node /home/node/dist
+USER node
 
 RUN npm ci
 
