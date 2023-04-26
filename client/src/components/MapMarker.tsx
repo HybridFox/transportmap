@@ -1,10 +1,8 @@
 import { propOr } from 'ramda';
 import React, { FC } from 'react';
 
-import { VehicleModel } from '../store/vehicle/vehicle.model';
-
 interface MapMarkerProps {
-	vehicle: VehicleModel;
+	vehicle: any;
 	isSelected?: boolean;
 }
 

@@ -126,7 +126,7 @@ export const Composition: FC<CompositionProps> = ({ trip }: CompositionProps) =>
 	return (
 		<Scrollbars style={{ height: "110px" }} renderThumbHorizontal={renderThumb}>
 			<Vehicles>
-				{(trip?.composition?.[0]?.materialUnits || []).filter((x) => x.materialSubTypeName).map((composition: Composition, i) => (
+				{(trip?.composition?.[0]?.materialUnits || []).filter((x: any) => x.materialSubTypeName).map((composition: Composition, i: number) => (
 					<Vehicle key={i}>
 						<img
 							src={`/assets/img/vehicles/${composition.materialSubTypeName}${composition.isFirstClass ? '_p' : ''}.gif`}

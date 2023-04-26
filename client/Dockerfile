@@ -5,7 +5,7 @@ WORKDIR /usr/build
 COPY package.json package-lock.json* ./
 RUN npm ci
 COPY . .
-RUN npm run build -- --prod
+RUN npm run build
 
 # Stage 1: Serve Angular
 FROM nginx:1.21.0-alpine

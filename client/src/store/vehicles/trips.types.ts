@@ -64,6 +64,7 @@ export interface Trip {
 	speed: number;
 	osrmRoute: OSRMLeg[];
 	sections: Section[];
+	composition: any;
 }
 
 export interface Section {
