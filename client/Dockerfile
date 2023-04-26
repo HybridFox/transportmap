@@ -10,7 +10,7 @@ RUN npm run build
 # Stage 1: Serve Angular
 FROM nginx:1.21.0-alpine
 
-COPY --from=build /usr/build/dist/* /usr/share/nginx/html
+COPY --from=build /usr/build/dist/. /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/nginx.template
 COPY docker-entrypoint.sh /
 RUN chmod +x docker-entrypoint.sh
