@@ -125,22 +125,22 @@ export const MapComponent: FC = () => {
 	 * Load GeoJSON
 	 * TODO: maybe we want this, but in a simpler style tho. And we don't want to use `lijnsecties`. Maybe we can look at something like mapbox? Expensive tho.
 	 */
-	useEffect(() => {
-		(async () => {
-			const geojson: any = await ky.get('/static/lijnsecties.geojson').json();
+	// useEffect(() => {
+	// 	(async () => {
+	// 		const geojson: any = await ky.get('/static/lijnsecties.geojson').json();
 			
-			const vectorSource = new VectorSource({
-				features: new GeoJSON().readFeatures(geojson, { featureProjection: 'EPSG:3857' }), 
-			});
+	// 		const vectorSource = new VectorSource({
+	// 			features: new GeoJSON().readFeatures(geojson, { featureProjection: 'EPSG:3857' }), 
+	// 		});
 	
-			const vectorLayer = new VectorLayer({
-				source: vectorSource,
-				style: railStyleFunction,
-			});
+	// 		const vectorLayer = new VectorLayer({
+	// 			source: vectorSource,
+	// 			style: railStyleFunction,
+	// 		});
 	
-			map.current?.addLayer(vectorLayer);
-		})();
-	}, []);
+	// 		map.current?.addLayer(vectorLayer);
+	// 	})();
+	// }, []);
 
 	/**
 	 * Initialise map
