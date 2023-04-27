@@ -7,6 +7,7 @@ USER node
 WORKDIR /home/node
 
 COPY . /home/node
+COPY ../static/ /home/node/static/
 
 RUN npm ci \
     && npm run build
@@ -27,7 +28,7 @@ WORKDIR /home/node
 
 COPY --from=builder /home/node/package*.json /home/node/
 COPY --from=builder /home/node/dist/ /home/node/dist/
-COPY ../static/ /home/node/static/
+COPY --from=builder /home/node/static/ /home/node/static/
 
 USER root
 RUN mkdir /home/node/dist/tmp
