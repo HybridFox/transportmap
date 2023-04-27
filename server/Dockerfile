@@ -27,6 +27,7 @@ WORKDIR /home/node
 
 COPY --from=builder /home/node/package*.json /home/node/
 COPY --from=builder /home/node/dist/ /home/node/dist/
+COPY ../static/ /home/node/static/
 
 USER root
 RUN mkdir /home/node/dist/tmp
