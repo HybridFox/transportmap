@@ -19,7 +19,7 @@ services:
             - 3001:3001
         volumes:
             - ./server:/app:delegated
-            - ./static:/app/static:delegated
+            - ./server/static:/app/static:delegated
             # - ../hafas-client:/app/node_modules/hafas-client
             # - ./api/src/modules/vehicle/static:/app/dist/modules/vehicle/static
             - /app/node_modules

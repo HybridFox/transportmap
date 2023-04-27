@@ -7,7 +7,6 @@ USER node
 WORKDIR /home/node
 
 COPY . /home/node
-COPY ../static/ /home/node/static/
 
 RUN npm ci \
     && npm run build
