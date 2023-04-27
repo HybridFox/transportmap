@@ -5,6 +5,7 @@ import { StopTime } from 'core/entities';
 import { Repository } from 'typeorm';
 import { TABLE_PROVIDERS } from 'core/providers/table.providers';
 import * as async from 'async';
+import * as cliProgress from 'cli-progress';
 
 @Injectable()
 export class StopTimeSeederService {
@@ -16,6 +17,19 @@ export class StopTimeSeederService {
 			columns: true,
 			relax_column_count: true,
 		});
+		const progressBar = new cliProgress.SingleBar(
+			{
+				fps: 30,
+				forceRedraw: true,
+				noTTYOutput: true,
+				notTTYSchedule: 1000,
+			},
+			{
+				format: '[SEED] {STOP_TIMES} {bar} {percentage}% | ETA: {eta}s | {value}/{total}',
+				barCompleteChar: '\u2588',
+				barIncompleteChar: '\u2591',
+			},
+		);
 
 		const q = async.cargoQueue(
 			async (records: any[], callback) => {
@@ -35,6 +49,7 @@ export class StopTimeSeederService {
 					})),
 				);
 
+				progressBar.increment(records.length);
 				callback();
 			},
 			5,
@@ -52,7 +67,9 @@ export class StopTimeSeederService {
 		}
 
 		console.log('[SEED] {STOP_TIMES} down the drain');
+		progressBar.start(q.length(), 0);
 		await q.drain();
+		progressBar.stop();
 		console.log('[SEED] {STOP_TIMES} sink empty');
 	}
 }

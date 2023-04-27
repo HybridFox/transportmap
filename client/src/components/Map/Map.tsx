@@ -76,7 +76,7 @@ export const MapComponent: FC = () => {
 		const [west, north] = olExtent.getTopLeft(boundingBoxExtent);
 		const [east, south] = olExtent.getBottomRight(boundingBoxExtent);
 
-		socket.emit(SocketEvents.SETBBOX, { west, north, east, south })
+		socket.compress(true).emit(SocketEvents.SETBBOX, { west, north, east, south })
 
 		// fetchVehicles({
 		// 	north: north,
@@ -283,7 +283,6 @@ export const MapComponent: FC = () => {
 
 		// TODO: find a way to prevent flicker. Maybe just updating stuff?
 		vectorSource.clear();
-		const currentTime = dayjs().format('HH:mm:ss');
 
 		vectorSource.addFeatures(
 			(trips || [])?.reduce((acc, trip) => {

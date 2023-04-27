@@ -20,13 +20,25 @@ export class StopTime {
 	@Index()
 	arrivalTime: string;
 
+	@Column({ nullable: true })
+	@Index()
+	realtimeArrivalTime: string;
+
 	@Column()
 	@Index()
 	departureTime: string;
 
+	@Column({ nullable: true })
+	@Index()
+	realtimeDepartureTime: string;
+
 	@Column()
 	@Index()
 	stopId: string;
+
+	@Column({ nullable: true })
+	@Index()
+	stopIdOverride: string;
 
 	@Column({ nullable: true })
 	stopSequence: number;

@@ -5,6 +5,7 @@ import { Calendar } from 'core/entities';
 import { Repository } from 'typeorm';
 import { TABLE_PROVIDERS } from 'core/providers/table.providers';
 import * as async from 'async';
+import * as cliProgress from 'cli-progress';
 
 @Injectable()
 export class CalendarSeederService {
@@ -16,6 +17,19 @@ export class CalendarSeederService {
 			columns: true,
 			relax_column_count: true,
 		});
+		const progressBar = new cliProgress.SingleBar(
+			{
+				fps: 30,
+				forceRedraw: true,
+				noTTYOutput: true,
+				notTTYSchedule: 1000,
+			},
+			{
+				format: '[SEED] {CALENDAR} {bar} {percentage}% | ETA: {eta}s | {value}/{total}',
+				barCompleteChar: '\u2588',
+				barIncompleteChar: '\u2591',
+			},
+		);
 
 		const q = async.cargoQueue(
 			async (records: any[], callback) => {
@@ -35,6 +49,7 @@ export class CalendarSeederService {
 					})),
 				);
 
+				progressBar.increment(records.length);
 				callback();
 			},
 			5,
@@ -52,7 +67,9 @@ export class CalendarSeederService {
 		}
 
 		console.log('[SEED] {CALENDAR} down the drain');
+		progressBar.start(q.length(), 0);
 		await q.drain();
+		progressBar.stop();
 		console.log('[SEED] {CALENDAR} sink empty');
 	}
 }

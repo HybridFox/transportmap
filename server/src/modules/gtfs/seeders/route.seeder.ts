@@ -5,6 +5,7 @@ import { Route } from 'core/entities';
 import { Repository } from 'typeorm';
 import { TABLE_PROVIDERS } from 'core/providers/table.providers';
 import * as async from 'async';
+import * as cliProgress from 'cli-progress';
 
 @Injectable()
 export class RouteSeederService {
@@ -16,6 +17,19 @@ export class RouteSeederService {
 			columns: true,
 			relax_column_count: true,
 		});
+		const progressBar = new cliProgress.SingleBar(
+			{
+				fps: 30,
+				forceRedraw: true,
+				noTTYOutput: true,
+				notTTYSchedule: 1000,
+			},
+			{
+				format: '[SEED] {ROUTE} {bar} {percentage}% | ETA: {eta}s | {value}/{total}',
+				barCompleteChar: '\u2588',
+				barIncompleteChar: '\u2591',
+			},
+		);
 
 		const q = async.cargoQueue(
 			async (records: any[], callback) => {
@@ -33,6 +47,7 @@ export class RouteSeederService {
 					})),
 				);
 
+				progressBar.increment(records.length);
 				callback();
 			},
 			5,
@@ -50,7 +65,9 @@ export class RouteSeederService {
 		}
 
 		console.log('[SEED] {ROUTE} down the drain');
+		progressBar.start(q.length(), 0);
 		await q.drain();
+		progressBar.stop();
 		console.log('[SEED] {ROUTE} sink empty');
 	}
 }

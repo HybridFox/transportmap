@@ -5,22 +5,31 @@ import { CalendarDate } from 'core/entities';
 import { Repository } from 'typeorm';
 import { TABLE_PROVIDERS } from 'core/providers/table.providers';
 import * as async from 'async';
+import * as cliProgress from 'cli-progress';
 
 @Injectable()
 export class CalendarDateSeederService {
-	constructor(
-		@Inject(TABLE_PROVIDERS.CALENDAR_DATE_REPOSITORY) private calendarDateRepository: Repository<CalendarDate>,
-	) {}
+	constructor(@Inject(TABLE_PROVIDERS.CALENDAR_DATE_REPOSITORY) private calendarDateRepository: Repository<CalendarDate>) {}
 
 	public async seed(temporaryIdentifier: string, agencyId: string) {
-		const routeCsv = fs.readFileSync(
-			`${__dirname}/../../../../tmp/${temporaryIdentifier}/calendar_dates.txt`,
-			'utf-8',
-		);
+		const routeCsv = fs.readFileSync(`${__dirname}/../../../../tmp/${temporaryIdentifier}/calendar_dates.txt`, 'utf-8');
 		const parser = parse(routeCsv, {
 			columns: true,
 			relax_column_count: true,
 		});
+		const progressBar = new cliProgress.SingleBar(
+			{
+				fps: 30,
+				forceRedraw: true,
+				noTTYOutput: true,
+				notTTYSchedule: 1000,
+			},
+			{
+				format: '[SEED] {CALENDAR_DATE} {bar} {percentage}% | ETA: {eta}s | {value}/{total}',
+				barCompleteChar: '\u2588',
+				barIncompleteChar: '\u2591',
+			},
+		);
 
 		const q = async.cargoQueue(
 			async (records: any[], callback) => {
@@ -33,6 +42,7 @@ export class CalendarDateSeederService {
 					})),
 				);
 
+				progressBar.increment(records.length);
 				callback();
 			},
 			5,
@@ -50,7 +60,9 @@ export class CalendarDateSeederService {
 		}
 
 		console.log('[SEED] {CALENDAR_DATE} down the drain');
+		progressBar.start(q.length(), 0);
 		await q.drain();
+		progressBar.stop();
 		console.log('[SEED] {CALENDAR_DATE} sink empty');
 	}
 }

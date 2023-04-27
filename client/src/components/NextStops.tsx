@@ -37,12 +37,6 @@ const Stop = styled.div<{
 		border-radius: 50%;
 	}
 
-	p {
-		margin: 0;
-		font-size: 0.9rem;
-		white-space: nowrap;
-	}
-
 	h4 {
 		font-size: 2rem;
 		color: #fff;
@@ -83,6 +77,48 @@ const UpcomingLine = styled.div<{
 		`}
 `;
 
+const StopName = styled.div`
+	white-space: nowrap;
+	color: #FFF;
+`
+
+const StopTimeWrapper = styled.div`
+	display: flex;
+	align-items: flex-end;
+`
+
+const StopTimeSeparator = styled.p`
+	margin: 0 0.5rem;
+	align-self: flex-end;
+	line-height: 1;
+`
+
+const StopTime = styled.div`
+	line-height: 1;
+	margin: 0;
+	font-size: 1rem;
+	white-space: nowrap;
+`;
+
+const StopTimeTitle = styled.p`
+	margin: 0;
+	font-size: 0.8rem;
+	color: #989898;
+`;
+
+const Strikethrough = styled.span`
+	text-decoration: line-through;
+`
+
+// TODO: colors
+const Delay = styled.span`
+	color: red;
+`
+
+const OnTime = styled.span`
+	color: green;
+`
+
 export const NextStops: FC<PopupProps> = ({ trip }: PopupProps) => {
 	const renderThumb = ({ style, ...props }: { style: any }) => {
 		const thumbStyle = {
@@ -98,14 +134,38 @@ export const NextStops: FC<PopupProps> = ({ trip }: PopupProps) => {
 		<Scrollbars style={{ height: '110px' }} renderThumbHorizontal={renderThumb}>
 			<Stops>
 				{trip.stopTimes?.map(
-					(stopTime: StopTime, i) => (
+					(stopTime: StopTime, i) => console.log(stopTime) as any || (
 						<Stop
 							key={i}
 							isPassed={
 								stopTime.departureTime < dayjs().format('HH:mm:ss')
 							}>
-							<p>{stopTime?.stop?.name?.replace(/ ?\[.*?]/gi, '')}</p>
-							<h4>{dayjs(`${dayjs().format('DD/MM/YYYY')} ${stopTime.arrivalTime || stopTime.departureTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</h4>
+							<StopName>{stopTime?.stop?.name?.replace(/ ?\[.*?]/gi, '')}</StopName>
+							<StopTimeWrapper>
+								<StopTime>
+									<StopTimeTitle>Arrival</StopTimeTitle>
+									{stopTime.realtimeArrivalTime ? (
+										<>
+											<Strikethrough>{dayjs(`${dayjs().format('DD/MM/YYYY')} ${stopTime.arrivalTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</Strikethrough>{' '}
+											<Delay>{dayjs(`${dayjs().format('DD/MM/YYYY')} ${stopTime.realtimeArrivalTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</Delay>
+										</>
+									) : (
+										<OnTime>{dayjs(`${dayjs().format('DD/MM/YYYY')} ${stopTime.arrivalTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</OnTime>
+									)}
+								</StopTime>
+								<StopTimeSeparator>-</StopTimeSeparator>
+								<StopTime>
+									<StopTimeTitle>Departure</StopTimeTitle>
+									{stopTime.realtimeDepartureTime ? (
+										<>
+											<Strikethrough>{dayjs(`${dayjs().format('DD/MM/YYYY')} ${stopTime.departureTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</Strikethrough>{' '}
+											<Delay>{dayjs(`${dayjs().format('DD/MM/YYYY')} ${stopTime.realtimeDepartureTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</Delay>
+										</>
+									) : (
+										<OnTime>{dayjs(`${dayjs().format('DD/MM/YYYY')} ${stopTime.departureTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</OnTime>
+									)}
+								</StopTime>
+							</StopTimeWrapper>
 							{stopTime.departureTime < dayjs().format('HH:mm:ss') ? (
 								<PassedLine />
 							) : (

@@ -34,7 +34,7 @@ export class TripsController {
 	@Get(':tripId')
 	public async getOne(@Param('tripId') tripId: string): Promise<any> {
 		// const trip = await this.tripsService.getOne(tripId);
-		const rawTrip = await redis.get(`TRIPS:${tripId}`);
+		const rawTrip = await redis.get(`TRIPS:NMBS/SNCB:${tripId}`);
 		const trip = JSON.parse(rawTrip);
 
 		const composition = await this.compositionService.getCachedComposition(trip.name);

@@ -28,6 +28,8 @@ export interface StopTime {
 	tripId: string;
 	arrivalTime: string;
 	departureTime: string;
+	realtimeArrivalTime: string;
+	realtimeDepartureTime: string;
 	stopId: string;
 	stopSequence: number;
 	stopHeadsign: string;
@@ -71,6 +73,8 @@ export interface Section {
 	type: string;
 	startTime: string;
 	endTime: string;
+	realtimeStartTime: string | null;
+	realtimeEndTime: string | null;
 	startLocation: { longitude: number; latitude: number };
 	endLocation: { longitude: number; latitude: number };
 	distance: number;

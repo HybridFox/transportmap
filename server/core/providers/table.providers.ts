@@ -12,6 +12,7 @@ export enum TABLE_PROVIDERS {
 	TRANSFER_REPOSITORY = 'TRANSFER_REPOSITORY',
 	TRANSLATION_REPOSITORY = 'TRANSLATION_REPOSITORY',
 	TRIP_REPOSITORY = 'TRIP_REPOSITORY',
+	GTFS_PROCESS_STATUS = 'GTFS_PROCESS_STATUS',
 }
 
 export const columnProviders = [
@@ -58,6 +59,11 @@ export const columnProviders = [
 	{
 		provide: TABLE_PROVIDERS.TRIP_REPOSITORY,
 		useFactory: (dataSource: DataSource) => dataSource.getRepository(Entites.Trip),
+		inject: [DATABASE_PROVIDERS.DATA_SOURCE],
+	},
+	{
+		provide: TABLE_PROVIDERS.GTFS_PROCESS_STATUS,
+		useFactory: (dataSource: DataSource) => dataSource.getRepository(Entites.GTFSProcessStatus),
 		inject: [DATABASE_PROVIDERS.DATA_SOURCE],
 	},
 ];

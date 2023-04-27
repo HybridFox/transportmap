@@ -5,7 +5,7 @@ import * as olGeom from 'ol/geom'
 export const getVehicleLocation = (sections: Section[], osrmRoute: OSRMLeg[]): [number, number] | null => {
     const currentTime = dayjs().format('HH:mm:ss');
     const activeSection = sections.find(
-        (calculation) => calculation.startTime <= currentTime && currentTime <= calculation.endTime,
+        (calculation) => (calculation.realtimeStartTime || calculation.startTime) <= currentTime && currentTime <= (calculation.realtimeEndTime || calculation.endTime),
     );
 
     if (!activeSection) {
@@ -17,9 +17,9 @@ export const getVehicleLocation = (sections: Section[], osrmRoute: OSRMLeg[]): [
     }
 
     const sectionProgress =
-        (dayjs().valueOf() - dayjs(`${dayjs().format('YYYY/MM/DD')} ${activeSection.startTime}`).valueOf()) /
-        (dayjs(`${dayjs().format('YYYY/MM/DD')} ${activeSection.endTime}`).valueOf() -
-            dayjs(`${dayjs().format('YYYY/MM/DD')} ${activeSection.startTime}`).valueOf());
+        (dayjs().valueOf() - dayjs(`${dayjs().format('YYYY/MM/DD')} ${activeSection.realtimeStartTime || activeSection.startTime}`).valueOf()) /
+        (dayjs(`${dayjs().format('YYYY/MM/DD')} ${activeSection.realtimeEndTime || activeSection.endTime}`).valueOf() -
+            dayjs(`${dayjs().format('YYYY/MM/DD')} ${activeSection.realtimeStartTime || activeSection.startTime}`).valueOf());
 
     // Grab index
     const activeGeometry = osrmRoute[activeSection.index];

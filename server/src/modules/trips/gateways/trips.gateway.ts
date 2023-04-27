@@ -72,9 +72,10 @@ export class TripsGateway {
 			return;
 		}
 
-		const trips = await redis.mget(...tripIds.map(([id]) => `TRIPS:${id}`));
+		// TODO: fix
+		const trips = await redis.mget(...tripIds.map(([id]) => `TRIPS:NMBS/SNCB:${id}`));
 
-		socket.emit(
+		socket.compress(true).emit(
 			'RCVTRIPS',
 			trips.map((trip) => JSON.parse(trip)),
 		);

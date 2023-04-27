@@ -7,8 +7,9 @@ import { StopTime } from './StopTime.entity';
 import { Transfer } from './Transfer.entity';
 import { Translation } from './Translation.entity';
 import { Trip } from './Trip.entity';
+import { GTFSProcessStatus } from './GTFSProcessStatus.entity';
 
-export const Entities = [Agency, Calendar, CalendarDate, Route, Stop, StopTime, Transfer, Translation, Trip];
+export const Entities = [Agency, Calendar, CalendarDate, Route, Stop, StopTime, Transfer, Translation, Trip, GTFSProcessStatus];
 
 export { Agency } from './Agency.entity';
 export { Calendar } from './Calendar.entity';
@@ -19,3 +20,4 @@ export { StopTime } from './StopTime.entity';
 export { Transfer } from './Transfer.entity';
 export { Translation } from './Translation.entity';
 export { Trip } from './Trip.entity';
+export { GTFSProcessStatus } from './GTFSProcessStatus.entity';

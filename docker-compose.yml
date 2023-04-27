@@ -1,4 +1,12 @@
 version: "3"
+
+x-default-options: &default-options
+  tty: true
+  logging:
+    options:
+      max-size: '10m'
+      max-file: '3'
+      
 services:
     server:
         build:
@@ -11,6 +19,7 @@ services:
             - 3001:3001
         volumes:
             - ./server:/app:delegated
+            - ./static:/app/static:delegated
             # - ../hafas-client:/app/node_modules/hafas-client
             # - ./api/src/modules/vehicle/static:/app/dist/modules/vehicle/static
             - /app/node_modules
@@ -19,6 +28,7 @@ services:
             - ./server/.env/local.env
         networks:
             - transportmap
+        <<: *default-options
 
     postgres:
         image: "postgres:15.2-alpine"

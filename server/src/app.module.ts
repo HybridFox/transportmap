@@ -7,6 +7,7 @@ import { RoutesModule } from './modules/routes/routes.module';
 import { StopsModule } from './modules/stops/stops.module';
 import { TripsModule } from './modules/trips/trips.module';
 import * as path from 'path';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
 	imports: [
@@ -20,6 +21,8 @@ import * as path from 'path';
 			rootPath: path.join(__dirname, '../..', 'src/modules/trips/static'),
 			serveRoot: '/static',
 		}),
+
+		ScheduleModule.forRoot(),
 	],
 	controllers: [],
 	providers: [],

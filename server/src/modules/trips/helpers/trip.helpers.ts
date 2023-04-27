@@ -1,6 +1,6 @@
 import { StopTime, Trip } from 'core/entities';
 import * as dayjs from 'dayjs';
-import { computeDestinationPoint, getDistance, getRhumbLineBearing, getSpeed } from 'geolib';
+import { getDistance, getRhumbLineBearing, getSpeed } from 'geolib';
 import { omit, pick } from 'ramda';
 import { redis } from '../../../modules/core/instances/redis.instance';
 import got from 'got/dist/source';
@@ -11,6 +11,8 @@ export interface Section {
 	type: string;
 	startTime: string;
 	endTime: string;
+	realtimeStartTime: string | null;
+	realtimeEndTime: string | null;
 	startLocation: { longitude: number; latitude: number };
 	endLocation: { longitude: number; latitude: number };
 	distance: number;
@@ -56,6 +58,8 @@ export const calculateTripPositions = async (trip: Trip, LineString: any): Promi
 				type: 'station',
 				startTime: currentStopTime.arrivalTime,
 				endTime: currentStopTime.departureTime,
+				realtimeStartTime: currentStopTime.realtimeArrivalTime,
+				realtimeEndTime: currentStopTime.realtimeDepartureTime,
 				startLocation: pick(['latitude', 'longitude'])(currentStopTime.stop),
 				endLocation: pick(['latitude', 'longitude'])(currentStopTime.stop),
 				distance: 0,
@@ -70,6 +74,8 @@ export const calculateTripPositions = async (trip: Trip, LineString: any): Promi
 							type: 'travel',
 							startTime: currentStopTime.departureTime,
 							endTime: nextStopTime.arrivalTime,
+							realtimeStartTime: currentStopTime.realtimeDepartureTime,
+							realtimeEndTime: nextStopTime.realtimeArrivalTime,
 							startLocation: pick(['latitude', 'longitude'])(currentStopTime.stop),
 							endLocation: pick(['latitude', 'longitude'])(nextStopTime.stop),
 							distance: getDistance(
@@ -85,14 +91,17 @@ export const calculateTripPositions = async (trip: Trip, LineString: any): Promi
 									...pick(['latitude', 'longitude'])(currentStopTime.stop),
 									time:
 										dayjs(
-											`${dayjs().format('YYYY/MM/DD')} ${currentStopTime.departureTime}`,
+											`${dayjs().format('YYYY/MM/DD')} ${
+												currentStopTime.realtimeDepartureTime || currentStopTime.departureTime
+											}`,
 										).unix() * 1000,
 								},
 								{
 									...pick(['latitude', 'longitude'])(nextStopTime.stop),
 									time:
-										dayjs(`${dayjs().format('YYYY/MM/DD')} ${nextStopTime.arrivalTime}`).unix() *
-										1000,
+										dayjs(
+											`${dayjs().format('YYYY/MM/DD')} ${nextStopTime.realtimeArrivalTime || nextStopTime.arrivalTime}`,
+										).unix() * 1000,
 								},
 							),
 						},
@@ -101,14 +110,12 @@ export const calculateTripPositions = async (trip: Trip, LineString: any): Promi
 		];
 	}, []);
 
-	const osrmRoute = await getOsrmRoute(
-		sortedStopTimes.map((stopTime) => `${stopTime.stop.longitude},${stopTime.stop.latitude}`).join(';'),
-	).catch(console.error);
+	const osrmRoute = await getOsrmRoute(sortedStopTimes.map((stopTime) => `${stopTime.stop.longitude},${stopTime.stop.latitude}`).join(';')).catch(
+		console.error,
+	);
 
 	// Now that we have all the section, find the section we are currently in by the current time.
-	const activeSection = sections.find(
-		(calculation) => calculation.startTime <= currentTime && currentTime <= calculation.endTime,
-	);
+	const activeSection = sections.find((calculation) => calculation.startTime <= currentTime && currentTime <= calculation.endTime);
 
 	if (activeSection.index === -1) {
 		return {
@@ -137,10 +144,7 @@ export const calculateTripPositions = async (trip: Trip, LineString: any): Promi
 	// Grab index
 	const activeGeometry = osrmRoute[activeSection.index];
 
-	const sectionCoordinates = activeGeometry.steps.reduce(
-		(acc, step) => [...acc, ...step.geometry.coordinates],
-		[] as number[][],
-	);
+	const sectionCoordinates = activeGeometry.steps.reduce((acc, step) => [...acc, ...step.geometry.coordinates], [] as number[][]);
 
 	// const sectionLocation = interpolatePoint(
 	// 	sectionCoordinates,
