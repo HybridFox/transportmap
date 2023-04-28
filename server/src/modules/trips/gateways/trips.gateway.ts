@@ -85,7 +85,7 @@ export class TripsGateway {
 		const calculatedTrips = trips
 			.filter((trip) => !!trip)
 			.map((trip) => JSON.parse(trip))
-			.map((trip) => pick(['strippedOsrmRoute', 'route', 'sections', 'id'])(trip));
+			.map((trip) => pick(['osrmRoute', 'route', 'sections', 'id'])(trip));
 		console.timeEnd('calc');
 		console.time('socket');
 		socket.compress(true).emit('RCVTRIPS', calculatedTrips);
