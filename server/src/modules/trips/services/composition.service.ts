@@ -12,12 +12,13 @@ export class CompositionService {
 	}
 
 	public async getCachedComposition(compositionId: string): Promise<any> {
-		const cachedComposition: string = this.nodeCache.get(`composition:${compositionId}`);
+		const cachedComposition: string = this.nodeCache.get(`COMPOSITIONS:${compositionId}`);
 
 		if (cachedComposition) {
 			return JSON.parse(cachedComposition);
 		}
 
+		console.log('get comp');
 		const composition = await gotInstance
 			.get(`https://trainmap.belgiantrain.be/data/composition/${compositionId}`, {
 				headers: {
@@ -30,7 +31,7 @@ export class CompositionService {
 				console.log(e.response.body);
 			});
 
-		this.nodeCache.set(`composition:${compositionId}`, JSON.stringify(composition));
+		this.nodeCache.set(`COMPOSITIONS:${compositionId}`, JSON.stringify(composition));
 
 		return composition;
 	}

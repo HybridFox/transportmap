@@ -4,6 +4,7 @@ import { Socket, Server } from 'socket.io';
 import { redis } from '../../core/instances/redis.instance';
 import { TripsService } from '../services/trips.service';
 import { getCenter, getDistance } from 'geolib';
+import { pick } from 'ramda';
 
 @Injectable()
 @WebSocketGateway(Number(process.env.PORT), { transports: ['websocket'] })
@@ -20,6 +21,7 @@ export class TripsGateway {
 	// }
 
 	private async sendTrips(socket: Socket, bbox: string): Promise<void> {
+		console.time('--- TOTAL');
 		// const bbox = await redis.get(`BBOX:${socket.id}`);
 
 		// if (!bbox) {
@@ -54,6 +56,7 @@ export class TripsGateway {
 			},
 		);
 
+		console.time('geosearch');
 		const tripIds = await redis.geosearch(
 			'TRIPLOCATIONS',
 			'FROMLONLAT',
@@ -67,18 +70,27 @@ export class TripsGateway {
 			'WITHCOORD',
 			'WITHDIST',
 		);
+		console.timeEnd('geosearch');
 
 		if (tripIds.length === 0) {
 			return;
 		}
 
 		// TODO: fix
+		console.time('trips');
 		const trips = await redis.mget(...tripIds.map(([id]) => `TRIPS:NMBS/SNCB:${id}`));
+		console.timeEnd('trips');
 
-		socket.compress(true).emit(
-			'RCVTRIPS',
-			trips.map((trip) => JSON.parse(trip)),
-		);
+		console.time('calc');
+		const calculatedTrips = trips
+			.filter((trip) => !!trip)
+			.map((trip) => JSON.parse(trip))
+			.map((trip) => pick(['strippedOsrmRoute', 'route', 'sections', 'id'])(trip));
+		console.timeEnd('calc');
+		console.time('socket');
+		socket.compress(true).emit('RCVTRIPS', calculatedTrips);
+		console.timeEnd('socket');
+		console.timeEnd('--- TOTAL');
 	}
 
 	@SubscribeMessage('SETBBOX')

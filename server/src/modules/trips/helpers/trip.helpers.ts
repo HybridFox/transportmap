@@ -117,6 +117,8 @@ export const calculateTripPositions = async (trip: Trip, LineString: any): Promi
 	// Now that we have all the section, find the section we are currently in by the current time.
 	const activeSection = sections.find((calculation) => calculation.startTime <= currentTime && currentTime <= calculation.endTime);
 
+	const strippedOsrmRoute = [...(osrmRoute || [])].splice(activeSection.index, 3);
+
 	if (activeSection.index === -1) {
 		return {
 			...omit(['calendar', 'calendarDates'])(trip),
@@ -127,11 +129,12 @@ export const calculateTripPositions = async (trip: Trip, LineString: any): Promi
 				longitude: activeSection.startLocation.longitude,
 			},
 			sectionCoordinates: [[activeSection.startLocation.longitude, activeSection.startLocation.latitude]],
-			osrmRoute,
 			sectionProgress: 0,
 			bearing: activeSection.bearing,
 			speed: activeSection.speed,
 			sections,
+			osrmRoute,
+			strippedOsrmRoute,
 		};
 	}
 
@@ -166,7 +169,6 @@ export const calculateTripPositions = async (trip: Trip, LineString: any): Promi
 		...omit(['calendar', 'calendarDates'])(trip),
 		firstDepartureTime,
 		lastDepartureTime,
-		osrmRoute,
 		sectionLocation: {
 			longitude: sectionLocation[0],
 			latitude: sectionLocation[1],
@@ -175,6 +177,8 @@ export const calculateTripPositions = async (trip: Trip, LineString: any): Promi
 		bearing: activeSection.bearing,
 		speed: activeSection.speed,
 		sections,
+		osrmRoute,
+		strippedOsrmRoute,
 	};
 };
 
@@ -199,8 +203,14 @@ const getOsrmRoute = async (coordinates: string): Promise<OSRMLeg[]> => {
 		responseType: 'json',
 	});
 
-	redis.set(`TRIPROUTES:${key}`, JSON.stringify(osrmRoute.routes[0].legs));
+	const strippedRoute = osrmRoute.routes[0].legs.map((leg) => ({
+		steps: leg.steps.map((step) => ({
+			geometry: step.geometry,
+		})),
+	}));
+
+	redis.set(`TRIPROUTES:${key}`, JSON.stringify(strippedRoute));
 	redis.expire(`TRIPROUTES:${key}`, 60 * 60 * 24 * 7);
 
-	return osrmRoute.routes[0].legs;
+	return strippedRoute;
 };

@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { TABLE_PROVIDERS } from 'core/providers/table.providers';
-import { Agency, Calendar, GTFSProcessStatus, Stop, Trip } from 'core/entities';
+import { Agency, GTFSProcessStatus, Trip } from 'core/entities';
 import * as NodeCache from 'node-cache';
 import * as dayjs from 'dayjs';
 import { redis } from 'src/modules/core/instances/redis.instance';
