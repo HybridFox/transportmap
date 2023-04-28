@@ -192,7 +192,7 @@ const getOsrmRoute = async (coordinates: string): Promise<OSRMLeg[]> => {
 			steps: true,
 			generate_hints: false,
 			geometries: 'geojson',
-			// snapping: 'any',
+			snapping: 'any',
 			continue_straight: true,
 		},
 		resolveBodyOnly: true,

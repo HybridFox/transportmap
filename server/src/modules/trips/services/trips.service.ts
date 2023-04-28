@@ -27,7 +27,7 @@ export class TripsService {
 
 		const agencies = await this.agencyRepository.find();
 
-		await redis.del('TRIPLOCATIONS');
+		const allKeys = await redis.zrange('TRIPLOCATIONS', 0, -1);
 		agencies.forEach(async (agency) => {
 			const gtfsProcessStatus = await this.gtfsProcessStatus.findOneBy({ key: agency.id });
 			if (!gtfsProcessStatus) {
@@ -41,21 +41,28 @@ export class TripsService {
 			const trips = await this.getAll(agency.id);
 
 			let i = 0;
-			await trips.reduce(async (acc, trip) => {
-				await acc;
+			const leftoverKeys = await trips.reduce(async (acc, trip) => {
+				const keys = await acc;
 
 				const calculatedTrip = await calculateTripPositions(trip, LineString).catch(console.error);
 
 				if (!calculatedTrip || !calculatedTrip.sectionLocation.longitude || !calculatedTrip.sectionLocation.latitude) {
-					return;
+					return keys;
 				}
 
 				i++;
 				redis.set(`TRIPS:${agency.id}:${trip.id}`, JSON.stringify(calculatedTrip));
 				redis.geoadd(`TRIPLOCATIONS`, calculatedTrip.sectionLocation.longitude, calculatedTrip.sectionLocation.latitude, trip.id);
 				redis.expire(`TRIPS:${agency.id}:${trip.id}`, 60);
-			}, Promise.resolve());
-			console.log(`[POSITIONS] {${agency.id}} calculation done, got ${i} trips rendered to redis`);
+
+				return keys.filter((key) => key !== trip.id);
+			}, Promise.resolve(allKeys));
+
+			if (leftoverKeys.length) {
+				await redis.zrem('TRIPLOCATIONS', ...leftoverKeys);
+			}
+
+			console.log(`[POSITIONS] {${agency.id}} calculation done, got ${i} trips rendered to redis, ${leftoverKeys.length} keys removed`);
 		});
 	}
 

@@ -20,6 +20,7 @@ import {
 import { TABLE_PROVIDERS } from 'core/providers/table.providers';
 import { GTFSProcessStatus } from 'core/entities';
 import { Repository } from 'typeorm';
+import { Cron } from '@nestjs/schedule';
 
 // TODO: add realtime typings
 @Injectable()
@@ -41,6 +42,7 @@ export class StaticSeederService {
 		command: 'seed:static',
 		describe: 'Sync vehicles',
 	})
+	@Cron('0 2 * * *')
 	public async seedStatic() {
 		console.log('[SEED] starting seeding');
 		const promisePipeline = promisify(pipeline);
@@ -49,6 +51,10 @@ export class StaticSeederService {
 				key: 'NMBS/SNCB',
 				staticSourceUrl: 'https://sncb-opendata.hafas.de/gtfs/static/c21ac6758dd25af84cca5b707f3cb3de',
 			},
+			// {
+			// 	key: 'De Lijn',
+			// 	staticSourceUrl: 'https://gtfs.irail.be/de-lijn/de_lijn-gtfs.zip',
+			// },
 		];
 
 		// Daily nighttime job. Get static data
