@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
 import { redis } from '../../core/instances/redis.instance';
-import { TripsService } from '../services/trips.service';
 import { getCenter, getDistance } from 'geolib';
 import { pick } from 'ramda';
 
@@ -87,6 +86,12 @@ export class TripsGateway {
 			.map((trip) => JSON.parse(trip))
 			.map((trip) => pick(['osrmRoute', 'route', 'sections', 'id'])(trip));
 		console.timeEnd('calc');
+
+		// console.time('gzip');
+		// const zippedTrips = await gzip(JSON.stringify(calculatedTrips));
+		// const zippedTripsCompressed = await gzip(JSON.stringify(compress(calculatedTrips)));
+		// console.timeEnd('gzip');
+
 		console.time('socket');
 		socket.compress(true).emit('RCVTRIPS', calculatedTrips);
 		console.timeEnd('socket');

@@ -5,6 +5,7 @@ import { omit, pick } from 'ramda';
 import { redis } from '../../../modules/core/instances/redis.instance';
 import got from 'got/dist/source';
 import { createHash } from 'crypto';
+import * as polyline from '@mapbox/polyline';
 
 // TODO: clean this up
 export interface Section {
@@ -20,19 +21,6 @@ export interface Section {
 	bearing: number;
 	speed: number;
 	index: number;
-}
-
-interface OSRMStep {
-	distance: number;
-	geometry: {
-		coordinates: number[][];
-	};
-}
-
-interface OSRMLeg {
-	distance: number;
-	duration: number;
-	steps: OSRMStep[];
 }
 
 const clamp = (number: number, min: number, max: number) => Math.max(min, Math.min(number, max));
@@ -117,8 +105,6 @@ export const calculateTripPositions = async (trip: Trip, LineString: any): Promi
 	// Now that we have all the section, find the section we are currently in by the current time.
 	const activeSection = sections.find((calculation) => calculation.startTime <= currentTime && currentTime <= calculation.endTime);
 
-	const strippedOsrmRoute = [...(osrmRoute || [])].splice(activeSection.index, 3);
-
 	if (activeSection.index === -1) {
 		return {
 			...omit(['calendar', 'calendarDates'])(trip),
@@ -135,7 +121,6 @@ export const calculateTripPositions = async (trip: Trip, LineString: any): Promi
 			stopTimes: sortedStopTimes,
 			sections,
 			osrmRoute,
-			strippedOsrmRoute,
 		};
 	}
 
@@ -146,9 +131,7 @@ export const calculateTripPositions = async (trip: Trip, LineString: any): Promi
 			dayjs(`${dayjs().format('YYYY/MM/DD')} ${activeSection.startTime}`).unix());
 
 	// Grab index
-	const activeGeometry = osrmRoute[activeSection.index];
-
-	const sectionCoordinates = activeGeometry.steps.reduce((acc, step) => [...acc, ...step.geometry.coordinates], [] as number[][]);
+	const activePolyline = osrmRoute[activeSection.index];
 
 	// const sectionLocation = interpolatePoint(
 	// 	sectionCoordinates,
@@ -159,7 +142,7 @@ export const calculateTripPositions = async (trip: Trip, LineString: any): Promi
 	// 	null,
 	// 	2,
 	// );
-	const lineString = new LineString(sectionCoordinates);
+	const lineString = new LineString(polyline.decode(activePolyline));
 	const sectionLocation = lineString.getCoordinateAt(clamp(sectionProgress, 0, 1));
 
 	if (!Array.isArray(sectionLocation)) {
@@ -171,8 +154,8 @@ export const calculateTripPositions = async (trip: Trip, LineString: any): Promi
 		firstDepartureTime,
 		lastDepartureTime,
 		sectionLocation: {
-			longitude: sectionLocation[0],
-			latitude: sectionLocation[1],
+			longitude: sectionLocation[1],
+			latitude: sectionLocation[0],
 		},
 		sectionProgress,
 		bearing: activeSection.bearing,
@@ -180,13 +163,12 @@ export const calculateTripPositions = async (trip: Trip, LineString: any): Promi
 		stopTimes: sortedStopTimes,
 		sections,
 		osrmRoute,
-		strippedOsrmRoute,
 	};
 };
 
-const getOsrmRoute = async (coordinates: string): Promise<OSRMLeg[]> => {
+const getOsrmRoute = async (coordinates: string): Promise<string[]> => {
 	const key = createHash('sha256').update(coordinates).digest('hex');
-	const cachedTripRoute = await redis.get(`TRIPROUTES:${key}`);
+	const cachedTripRoute = await redis.get(`TRIPSECTIONCOORDINATES:${key}`);
 
 	if (cachedTripRoute) {
 		return JSON.parse(cachedTripRoute);
@@ -198,7 +180,7 @@ const getOsrmRoute = async (coordinates: string): Promise<OSRMLeg[]> => {
 			searchParams: {
 				steps: true,
 				generate_hints: false,
-				geometries: 'geojson',
+				// geometries: 'geojson',
 				continue_straight: true,
 			},
 			resolveBodyOnly: true,
@@ -206,14 +188,11 @@ const getOsrmRoute = async (coordinates: string): Promise<OSRMLeg[]> => {
 		})
 		.catch((e) => console.error(e.response));
 
-	const strippedRoute = osrmRoute.routes[0].legs.map((leg) => ({
-		steps: leg.steps.map((step) => ({
-			geometry: step.geometry,
-		})),
-	}));
+	// TODO: check if [0] is correct here on the steps
+	const sectionCoordinates: string[] = osrmRoute.routes[0].legs.reduce((acc, leg) => [...acc, leg.steps[0].geometry], []);
 
-	redis.set(`TRIPROUTES:${key}`, JSON.stringify(strippedRoute));
-	redis.expire(`TRIPROUTES:${key}`, 60 * 60 * 24 * 7);
+	redis.set(`TRIPSECTIONCOORDINATES:${key}`, JSON.stringify(sectionCoordinates));
+	redis.expire(`TRIPSECTIONCOORDINATES:${key}`, 60 * 60 * 24 * 7);
 
-	return strippedRoute;
+	return sectionCoordinates;
 };
