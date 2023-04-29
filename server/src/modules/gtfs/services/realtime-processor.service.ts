@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Command } from 'nestjs-command';
-import got from 'got/dist/source';
+import got from 'got';
 import { load } from 'protobufjs';
 import { TABLE_PROVIDERS } from 'core/providers/table.providers';
 import { Repository } from 'typeorm';

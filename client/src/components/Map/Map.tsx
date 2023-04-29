@@ -15,12 +15,10 @@ import { tripsSelector } from '../../store/vehicles/trips.selectors';
 import { useObservable } from '@ngneat/react-rxjs';
 // import { tripsRepository } from '../../store/vehicles/trips.repository';
 import { StopTime, Trip } from '../../store/vehicles/trips.types';
-import ky from 'ky';
 import { socket } from '../../modules/core/services/socket.service';
-import { getTranslate, railStyleFunction, routeStyleFunction } from '../../helpers/map.utils';
+import { routeStyleFunction } from '../../helpers/map.utils';
 import { SocketEvents } from '../../modules/map/const/socket.const';
 import { tripsRepository } from '../../store/vehicles/trips.repository';
-import dayjs from 'dayjs';
 import { getVehicleLocation } from '../../helpers/location.utils';
 
 export const MapComponent: FC = () => {
@@ -211,8 +209,6 @@ export const MapComponent: FC = () => {
 
 				tripsRepository.getTrip(feature.get('id'))
 					.then((activeTrip) => {
-						const stopTimes: StopTime[] = feature.get('stopTimes');
-
 						const coordinates = activeTrip.osrmRoute.reduce((acc, leg) => {
 							return [
 								...acc,
@@ -231,7 +227,7 @@ export const MapComponent: FC = () => {
 											coordinates: coordinates,
 										},
 									},
-									...stopTimes.map((stopTime) => ({
+									...activeTrip.stopTimes.map((stopTime) => ({
 										type: 'Feature',
 										geometry: {
 											type: 'Point',
@@ -300,7 +296,6 @@ export const MapComponent: FC = () => {
 					product: 'vehicle.line?.product',
 					mode: trip.route.routeCode.replaceAll(/[0-9]/g, ''),
 					lineId: trip.id,
-					stopTimes: trip.stopTimes,
 					bearing: trip.bearing,
 					speed: trip.speed,
 					geometry: new olGeom.Point(

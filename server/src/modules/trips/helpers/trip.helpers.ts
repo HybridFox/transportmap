@@ -132,6 +132,7 @@ export const calculateTripPositions = async (trip: Trip, LineString: any): Promi
 			sectionProgress: 0,
 			bearing: activeSection.bearing,
 			speed: activeSection.speed,
+			stopTimes: sortedStopTimes,
 			sections,
 			osrmRoute,
 			strippedOsrmRoute,
@@ -176,6 +177,7 @@ export const calculateTripPositions = async (trip: Trip, LineString: any): Promi
 		sectionProgress,
 		bearing: activeSection.bearing,
 		speed: activeSection.speed,
+		stopTimes: sortedStopTimes,
 		sections,
 		osrmRoute,
 		strippedOsrmRoute,
@@ -191,17 +193,18 @@ const getOsrmRoute = async (coordinates: string): Promise<OSRMLeg[]> => {
 	}
 
 	// Grab the steps
-	const osrmRoute: any = await got.get(`${process.env.OSRM_URL}/route/v1/train/${coordinates}`, {
-		searchParams: {
-			steps: true,
-			generate_hints: false,
-			geometries: 'geojson',
-			snapping: 'any',
-			continue_straight: true,
-		},
-		resolveBodyOnly: true,
-		responseType: 'json',
-	});
+	const osrmRoute: any = await got
+		.get(`${process.env.OSRM_URL}/route/v1/train/${coordinates}`, {
+			searchParams: {
+				steps: true,
+				generate_hints: false,
+				geometries: 'geojson',
+				continue_straight: true,
+			},
+			resolveBodyOnly: true,
+			responseType: 'json',
+		})
+		.catch((e) => console.error(e.response));
 
 	const strippedRoute = osrmRoute.routes[0].legs.map((leg) => ({
 		steps: leg.steps.map((step) => ({
