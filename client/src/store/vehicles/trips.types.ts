@@ -64,7 +64,7 @@ export interface Trip {
 	sectionProgress: number;
 	bearing: number;
 	speed: number;
-	osrmRoute: OSRMLeg[];
+	osrmRoute: string[];
 	sections: Section[];
 	composition: any;
 }

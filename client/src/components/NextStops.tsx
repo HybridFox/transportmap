@@ -134,7 +134,7 @@ export const NextStops: FC<PopupProps> = ({ trip }: PopupProps) => {
 		<Scrollbars style={{ height: '110px' }} renderThumbHorizontal={renderThumb}>
 			<Stops>
 				{trip.stopTimes?.map(
-					(stopTime: StopTime, i) => console.log(stopTime) as any || (
+					(stopTime: StopTime, i) => (
 						<Stop
 							key={i}
 							isPassed={

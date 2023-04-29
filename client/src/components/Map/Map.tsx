@@ -18,6 +18,7 @@ import { StopTime, Trip } from '../../store/vehicles/trips.types';
 import { socket } from '../../modules/core/services/socket.service';
 import { routeStyleFunction } from '../../helpers/map.utils';
 import { SocketEvents } from '../../modules/map/const/socket.const';
+import * as polyline from '@mapbox/polyline';
 import { tripsRepository } from '../../store/vehicles/trips.repository';
 import { getVehicleLocation } from '../../helpers/location.utils';
 
@@ -46,6 +47,7 @@ export const MapComponent: FC = () => {
 	
 		function onReceiveTrips(value: Trip[]) {
 			setTrips(value);
+			console.log(JSON.stringify(value[0]))
 		}
 	
 		socket.on('connect', onConnect);
@@ -212,7 +214,7 @@ export const MapComponent: FC = () => {
 						const coordinates = activeTrip.osrmRoute.reduce((acc, leg) => {
 							return [
 								...acc,
-								...leg.steps.reduce((stepAcc, step) => ([...stepAcc, ...step.geometry.coordinates]), [] as number[][])
+								...polyline.decode(leg).map(([latitude, longitude]) => [longitude, latitude])
 							]
 						}, [] as number[][]);
 

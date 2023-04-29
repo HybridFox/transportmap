@@ -1,8 +1,9 @@
 import dayjs from "dayjs";
 import { OSRMLeg, Section } from "../store/vehicles/trips.types";
 import * as olGeom from 'ol/geom'
+import * as polyline from '@mapbox/polyline';
 
-export const getVehicleLocation = (sections: Section[], osrmRoute: OSRMLeg[]): [number, number] | null => {
+export const getVehicleLocation = (sections: Section[], osrmRoute: string[]): [number, number] | null => {
     const currentTime = dayjs().format('HH:mm:ss');
     const activeSection = sections.find(
         (calculation) => (calculation.realtimeStartTime || calculation.startTime) <= currentTime && currentTime <= (calculation.realtimeEndTime || calculation.endTime),
@@ -22,15 +23,9 @@ export const getVehicleLocation = (sections: Section[], osrmRoute: OSRMLeg[]): [
             dayjs(`${dayjs().format('YYYY/MM/DD')} ${activeSection.realtimeStartTime || activeSection.startTime}`).valueOf());
 
     // Grab index
-    const activeGeometry = osrmRoute[activeSection.index];
-
-    const sectionCoordinates = activeGeometry.steps.reduce(
-        (acc, step) => [...acc, ...step.geometry.coordinates],
-        [] as number[][],
-    );
-
-    const lineString = new olGeom.LineString(sectionCoordinates);
+    const activePolyline = osrmRoute[activeSection.index];
+    const lineString = new olGeom.LineString(polyline.decode(activePolyline));
     const sectionLocation = lineString.getCoordinateAt(sectionProgress);
 
-    return [sectionLocation[0], sectionLocation[1]]
+    return [sectionLocation[1], sectionLocation[0]]
 }
