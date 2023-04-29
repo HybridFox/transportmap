@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as NodeCache from 'node-cache';
-import { gotInstance } from '../helpers/got';
+import fetch from 'node-fetch';
+// import { gotInstance } from '../helpers/got';
 import { tokenRepository } from '../helpers/tokenRepository';
 
 @Injectable()
@@ -19,17 +20,20 @@ export class CompositionService {
 		}
 
 		console.log('get comp');
-		const composition = await gotInstance
-			.get(`https://trainmap.belgiantrain.be/data/composition/${compositionId}`, {
-				headers: {
-					'auth-code': (await tokenRepository.getToken()) as string,
-				},
-				resolveBodyOnly: true,
-				responseType: 'json',
+		const composition = await fetch(`https://trainmap.belgiantrain.be/data/composition/${compositionId}`, {
+			headers: {
+				'auth-code': (await tokenRepository.getToken()) as string,
+			},
+		})
+			.then((response) => response.json())
+			.catch(async () => {
+				return fetch(`https://trainmap.belgiantrain.be/data/composition/${compositionId}`, {
+					headers: {
+						'auth-code': (await tokenRepository.fetchNewToken()) as string,
+					},
+				}).then((response) => response.json());
 			})
-			.catch((e) => {
-				console.log(e.response.body);
-			});
+			.catch((e) => console.log(e.response.body));
 
 		this.nodeCache.set(`COMPOSITIONS:${compositionId}`, JSON.stringify(composition));
 
