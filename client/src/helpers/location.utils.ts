@@ -2,9 +2,14 @@ import dayjs from "dayjs";
 import { OSRMLeg, Section } from "../store/vehicles/trips.types";
 import * as olGeom from 'ol/geom'
 import * as polyline from '@mapbox/polyline';
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc)
+dayjs.extend(timezone)
 
 export const getVehicleLocation = (sections: Section[], osrmRoute: string[]): [number, number] | null => {
-    const currentTime = dayjs().format('HH:mm:ss');
+    const currentTime = dayjs().tz('Europe/Brussels').format('HH:mm:ss');
     const activeSection = sections.find(
         (calculation) => (calculation.realtimeStartTime || calculation.startTime) <= currentTime && currentTime <= (calculation.realtimeEndTime || calculation.endTime),
     );
@@ -18,9 +23,9 @@ export const getVehicleLocation = (sections: Section[], osrmRoute: string[]): [n
     }
 
     const sectionProgress =
-        (dayjs().valueOf() - dayjs(`${dayjs().format('YYYY/MM/DD')} ${activeSection.realtimeStartTime || activeSection.startTime}`).valueOf()) /
-        (dayjs(`${dayjs().format('YYYY/MM/DD')} ${activeSection.realtimeEndTime || activeSection.endTime}`).valueOf() -
-            dayjs(`${dayjs().format('YYYY/MM/DD')} ${activeSection.realtimeStartTime || activeSection.startTime}`).valueOf());
+        (dayjs().tz('Europe/Brussels').valueOf() - dayjs(`${dayjs().tz('Europe/Brussels').format('YYYY/MM/DD')} ${activeSection.realtimeStartTime || activeSection.startTime}`).valueOf()) /
+        (dayjs(`${dayjs().tz('Europe/Brussels').format('YYYY/MM/DD')} ${activeSection.realtimeEndTime || activeSection.endTime}`).valueOf() -
+            dayjs(`${dayjs().tz('Europe/Brussels').format('YYYY/MM/DD')} ${activeSection.realtimeStartTime || activeSection.startTime}`).valueOf());
 
     // Grab index
     const activePolyline = osrmRoute[activeSection.index];

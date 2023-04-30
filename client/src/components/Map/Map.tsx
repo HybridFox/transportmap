@@ -47,7 +47,6 @@ export const MapComponent: FC = () => {
 	
 		function onReceiveTrips(value: Trip[]) {
 			setTrips(value);
-			console.log(JSON.stringify(value[0]))
 		}
 	
 		socket.on('connect', onConnect);
