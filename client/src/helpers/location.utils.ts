@@ -29,6 +29,11 @@ export const getVehicleLocation = (sections: Section[], osrmRoute: string[]): [n
 
     // Grab index
     const activePolyline = osrmRoute[activeSection.index];
+
+    if (!activePolyline) {
+        return [activeSection.startLocation.longitude, activeSection.startLocation.latitude]
+    }
+    
     const lineString = new olGeom.LineString(polyline.decode(activePolyline));
     const sectionLocation = lineString.getCoordinateAt(sectionProgress);
 
