@@ -176,20 +176,34 @@ const getOsrmRoute = async (coordinates: string): Promise<string[]> => {
 
 	// Grab the steps
 	const osrmRoute: any = await got
-		.get(`${process.env.OSRM_URL}/route/v1/train/${coordinates}`, {
+		.get(`${process.env.OSRM_URL}/match/v1/train/${coordinates}`, {
 			searchParams: {
 				steps: true,
-				generate_hints: false,
+				// generate_hints: false,
 				// geometries: 'geojson',
-				continue_straight: true,
+				// continue_straight: true,
+				radiuses: coordinates
+					.split(';')
+					.map(() => 100)
+					.join(';'),
+				timestamps: coordinates
+					.split(';')
+					.map((_, i) => i * 3600)
+					.join(';'),
 			},
 			resolveBodyOnly: true,
 			responseType: 'json',
 		})
 		.catch((e) => console.error(e.response));
 
+	// console.log(osrmRoute);
+
 	// TODO: check if [0] is correct here on the steps
-	const sectionCoordinates: string[] = osrmRoute.routes[0].legs.reduce((acc, leg) => [...acc, leg.steps[0].geometry], []);
+	const sectionCoordinates: string[] = osrmRoute.matchings[0].legs.reduce(
+		(acc, leg) => (leg?.steps?.[0]?.geometry ? [...acc, leg?.steps?.[0]?.geometry] : acc),
+		[],
+	);
+	console.log('!!! sectionCoordinates !!!', sectionCoordinates);
 
 	redis.set(`TRIPSECTIONCOORDINATES:${key}`, JSON.stringify(sectionCoordinates));
 	redis.expire(`TRIPSECTIONCOORDINATES:${key}`, 60 * 60 * 24 * 7);

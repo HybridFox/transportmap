@@ -87,11 +87,6 @@ export class TripsGateway {
 			.map((trip) => pick(['osrmRoute', 'route', 'sections', 'id'])(trip));
 		console.timeEnd('calc');
 
-		// console.time('gzip');
-		// const zippedTrips = await gzip(JSON.stringify(calculatedTrips));
-		// const zippedTripsCompressed = await gzip(JSON.stringify(compress(calculatedTrips)));
-		// console.timeEnd('gzip');
-
 		console.time('socket');
 		socket.compress(true).emit('RCVTRIPS', calculatedTrips);
 		console.timeEnd('socket');
