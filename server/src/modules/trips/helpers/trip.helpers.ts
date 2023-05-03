@@ -133,6 +133,10 @@ export const calculateTripPositions = async (trip: Trip, LineString: any): Promi
 	// Grab index
 	const activePolyline = osrmRoute[activeSection.index];
 
+	if (!activePolyline) {
+		return null;
+	}
+
 	// const sectionLocation = interpolatePoint(
 	// 	sectionCoordinates,
 	// 	0,
@@ -194,7 +198,17 @@ const getOsrmRoute = async (coordinates: string): Promise<string[]> => {
 			resolveBodyOnly: true,
 			responseType: 'json',
 		})
-		.catch((e) => console.error(e.response));
+		.catch((e) => {
+			console.error(e.response);
+
+			return {
+				matchings: [
+					{
+						legs: [],
+					},
+				],
+			};
+		});
 
 	// console.log(osrmRoute);
 
