@@ -3,7 +3,7 @@ import React, { FC } from 'react';
 import styled from 'styled-components';
 import { Scrollbars } from 'react-custom-scrollbars-2';
 
-import { Trip } from '../store/vehicles/trips.types';
+import { Trip } from '../store/search/search.types';
 
 export interface Composition {
 	hasReadingLights: boolean;

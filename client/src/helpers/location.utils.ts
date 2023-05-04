@@ -1,9 +1,10 @@
 import dayjs from "dayjs";
-import { OSRMLeg, Section } from "../store/vehicles/trips.types";
+import { OSRMLeg, Section } from "../store/trips/trips.types";
 import * as olGeom from 'ol/geom'
 import * as polyline from '@mapbox/polyline';
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
+import { clamp } from "ramda";
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -35,7 +36,7 @@ export const getVehicleLocation = (sections: Section[], osrmRoute: string[]): [n
     }
     
     const lineString = new olGeom.LineString(polyline.decode(activePolyline));
-    const sectionLocation = lineString.getCoordinateAt(sectionProgress);
+    const sectionLocation = lineString.getCoordinateAt(clamp(0, 1, sectionProgress));
 
     return [sectionLocation[1], sectionLocation[0]]
 }

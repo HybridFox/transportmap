@@ -18,9 +18,11 @@
     "@ngneat/react-rxjs": "^1.1.0",
     "dayjs": "^1.11.7",
     "ky": "^0.33.2",
+    "lodash.debounce": "^4.0.8",
     "node-gzip": "^1.1.2",
     "ol": "^7.3.0",
     "protobufjs": "^7.2.3",
+    "ramda": "^0.29.0",
     "react": "^18.2.0",
     "react-custom-scrollbars-2": "^4.5.0",
     "react-dom": "^18.2.0",
@@ -29,6 +31,7 @@
     "socket.io-client": "^4.6.1"
   },
   "devDependencies": {
+    "@types/lodash.debounce": "^4.0.7",
     "@types/mapbox__polyline": "^1.0.2",
     "@types/node-gzip": "^1.1.0",
     "@types/ramda": "^0.29.0",

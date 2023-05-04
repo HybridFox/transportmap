@@ -11,18 +11,24 @@ import * as olGeom from 'ol/geom';
 import { GeoJSON } from 'ol/format';
 
 import { MAP_ICON_STYLES } from './Map.const';
-import { tripsSelector } from '../../store/vehicles/trips.selectors';
+import { tripsSelector } from '../../store/trips/trips.selectors';
 import { useObservable } from '@ngneat/react-rxjs';
 // import { tripsRepository } from '../../store/vehicles/trips.repository';
-import { StopTime, Trip } from '../../store/vehicles/trips.types';
+import { StopTime, Trip } from '../../store/trips/trips.types';
 import { socket } from '../../modules/core/services/socket.service';
 import { routeStyleFunction } from '../../helpers/map.utils';
+import Geolocation from 'ol/Geolocation.js';
 import { SocketEvents } from '../../modules/map/const/socket.const';
 import * as polyline from '@mapbox/polyline';
-import { tripsRepository } from '../../store/vehicles/trips.repository';
+import { tripsRepository } from '../../store/trips/trips.repository';
 import { getVehicleLocation } from '../../helpers/location.utils';
 
-export const MapComponent: FC = () => {
+interface Props {
+	userLocation: number[] | null;
+	activeTrip?: Trip;
+}
+
+export const MapComponent: FC<Props> = ({ userLocation, activeTrip }: Props) => {
 	const mapElement = useRef<HTMLDivElement | null>(null);
 	const map = useRef<ol.Map | null>(null);
 
@@ -34,7 +40,32 @@ export const MapComponent: FC = () => {
 	const [lon, setLon] = useState(51.119221);
 	const [zoom, setZoom] = useState(13);
 	const [vectorSource, setVectorSource] = useState<VectorSource>();
+	const [userLocationVisible, setUserLocationVisible] = useState(false);
 
+	useEffect(() => {
+		if (!userLocation || !map.current) {
+			return;
+		}
+
+		console.log('update', userLocation)
+		map.current.getView().setCenter(olProj.transform(userLocation, 'EPSG:4326', 'EPSG:3857'))
+		map.current.getView().setZoom(16);
+	}, [userLocation]);
+
+	useEffect(() => {
+		if (!activeTrip || !map.current) {
+			return
+		}
+
+		const coordinates = getVehicleLocation(activeTrip.sections, activeTrip.osrmRoute);
+
+		if (!coordinates) {
+			return
+		}
+		
+		map.current.getView().setCenter(olProj.transform(coordinates, 'EPSG:4326', 'EPSG:3857'))
+		map.current.getView().setZoom(16);
+	}, [activeTrip])
 
 	useEffect(() => {
 		function onConnect() {
@@ -76,18 +107,10 @@ export const MapComponent: FC = () => {
 		const [east, south] = olExtent.getBottomRight(boundingBoxExtent);
 
 		socket.compress(true).emit(SocketEvents.SETBBOX, { west, north, east, south })
-
-		// fetchVehicles({
-		// 	north: north,
-		// 	west: west,
-		// 	east: east,
-		// 	south: south,
-		// });
 	};
 
 	/**
 	 * Animate markers
-	 * TODO: Move this on a line. Duh
 	 */
 	const moveMarkers = (source: VectorSource) => {
 		// TODO: clean this up

@@ -12,7 +12,7 @@ dayjs.extend(timezone)
 
 dayjs.extend(customParseFormat)
 
-import { StopTime, Trip } from '../store/vehicles/trips.types';
+import { StopTime, Trip } from '../store/search/search.types';
 
 interface PopupProps {
 	trip: Trip;

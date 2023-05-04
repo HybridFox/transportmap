@@ -4,7 +4,7 @@ import styled, { css } from 'styled-components';
 import { Badge } from './Badge';
 import { NextStops } from './NextStops';
 import { Composition } from './Composition';
-import { Trip } from '../store/vehicles/trips.types';
+import { Trip } from '../store/trips/trips.types';
 
 interface PopupProps {
 	trip: Trip;

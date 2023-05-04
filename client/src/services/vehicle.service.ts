@@ -1,9 +1,11 @@
 import ky from "ky";
-import { Trip } from "../store/vehicles/trips.types";
+import { Trip } from "../store/trips/trips.types";
 
 export class TripsService {
-    public async getAll(): Promise<Trip[]> {
-        return ky.get('/api/v1/trips').json()
+    public async get(searchParams: Record<string, string>): Promise<Trip[]> {
+        return ky.get('/api/v1/trips', {
+            searchParams
+        }).json()
     }
 
 

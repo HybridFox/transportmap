@@ -1,6 +1,6 @@
 import { updateRequestStatus } from '@ngneat/elf-requests';
 import { take, tap } from 'rxjs/operators';
-import { deleteEntities, removeActiveIds, resetActiveId, setActiveId, setEntities, updateEntities, upsertEntities } from '@ngneat/elf-entities';
+import { resetActiveId, setActiveId, setEntities, upsertEntities } from '@ngneat/elf-entities';
 import { Observable, map } from 'rxjs';
 
 import { tripsStore } from './trips.store';
@@ -14,14 +14,29 @@ export class TripRepository {
 
 	constructor(private readonly tripsService: TripsService) {}
 
-	public async getTrips(): Promise<Trip[]> {
+	public async getTrips(search: Record<string, string>): Promise<Trip[]> {
 		tripsStore.update(updateRequestStatus('get-trips', 'pending'));
 		return this.tripsService
-			.getAll()
+			.get(search)
 			.then((trips) => {
 					tripsStore.update(
-						upsertEntities(trips),
+						setEntities(trips),
 						updateRequestStatus('get-trips', 'success')
+					);
+
+					return trips;
+				}
+			)
+	}
+
+	public async searchTrips(search: Record<string, string>): Promise<Trip[]> {
+		tripsStore.update(updateRequestStatus('search-trips', 'pending'));
+		return this.tripsService
+			.get(search)
+			.then((trips) => {
+					tripsStore.update(
+						setEntities(trips),
+						updateRequestStatus('search-trips', 'success')
 					);
 
 					return trips;
