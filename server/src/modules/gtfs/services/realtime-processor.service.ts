@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Command } from 'nestjs-command';
 import got from 'got';
 import { load } from 'protobufjs';
+import fetch from 'node-fetch';
 import { TABLE_PROVIDERS } from 'core/providers/table.providers';
 import { Repository } from 'typeorm';
 import { GTFSProcessStatus, StopTime } from 'core/entities';
@@ -58,10 +59,12 @@ export class RealtimeProcessorService {
 			console.log(`[REALTIME_SEED] last timestamp was "${lastTimestamp}"`);
 
 			console.log('[REALTIME_SEED] grabbing protobuf');
-			const protobufFile = await got.get(sourceUrl, {
-				responseType: 'buffer',
-				resolveBodyOnly: true,
-			});
+			const protobufFile = await fetch(sourceUrl)
+				.then((response) => response.buffer())
+				.catch((e) => {
+					console.error(e);
+					throw e;
+				});
 
 			console.log('[REALTIME_SEED] decoding');
 			try {
