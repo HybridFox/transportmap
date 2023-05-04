@@ -38,6 +38,7 @@ const SearchBar = styled.input`
 	border: none;
 	color: white;
 	width: 100%;
+	border: none;
 	/* border: 3px solid rgb(220, 220, 220); */
 `;
 

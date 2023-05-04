@@ -64,7 +64,7 @@ export const MapComponent: FC<Props> = ({ userLocation, activeTrip }: Props) => 
 		}
 		
 		map.current.getView().setCenter(olProj.transform(coordinates, 'EPSG:4326', 'EPSG:3857'))
-		map.current.getView().setZoom(16);
+		// map.current.getView().setZoom(16);
 	}, [activeTrip])
 
 	useEffect(() => {
