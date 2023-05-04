@@ -97,6 +97,26 @@ export class TripsService {
 		return JSON.parse(rawTrips || '[]');
 	}
 
+	public async search(q: string): Promise<Trip[]> {
+		const LineString = (await import('ol/geom/LineString.js')).default;
+		const trips = await this.tripRepository
+			.createQueryBuilder('trip')
+			.leftJoinAndSelect('trip.stopTimes', 'stopTime')
+			.leftJoinAndSelect('stopTime.stop', 'stop')
+			.leftJoinAndSelect('trip.calendar', 'calendar')
+			.leftJoinAndSelect('trip.route', 'route')
+			.leftJoinAndSelect('trip.calendarDates', 'calendarDate')
+			.where('LOWER(trip.name) LIKE :q', { q: `%${q.toLowerCase()}%` })
+			.andWhere('calendar.startDate < :startDate', { startDate: dayjs().format('YYYYMMDD') })
+			.andWhere('calendar.endDate > :endDate', { endDate: dayjs().format('YYYYMMDD') })
+			.andWhere('calendarDate.date = :today', { today: dayjs().format('YYYYMMDD') })
+			.andWhere(`calendarDate.exceptionType = '1'`)
+			.limit(3)
+			.getMany();
+
+		return (await Promise.all(trips.map((trip) => calculateTripPositions(trip, LineString)))).filter((x) => !!x);
+	}
+
 	public async getOne(tripId: string): Promise<Trip> {
 		const cachedTrips: string = this.tripsCache.get(`trips:${tripId}`);
 		if (cachedTrips) {

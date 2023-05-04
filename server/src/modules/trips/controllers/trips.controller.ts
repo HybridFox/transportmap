@@ -1,8 +1,9 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { CompositionService } from '../services/composition.service';
 import { GeoService } from '../services/geo.service';
 import { TripsService } from '../services/trips.service';
 import { redis } from '../../../modules/core/instances/redis.instance';
+import { Trip } from 'core/entities';
 
 @Controller('v1/trips')
 export class TripsController {
@@ -12,24 +13,10 @@ export class TripsController {
 		private readonly geoService: GeoService,
 	) {}
 
-	// @Get()
-	// public async getAll(): Promise<Trip[]> {
-	// 	console.time('trips');
-	// 	const trips = await this.tripsService.getAll();
-	// 	console.timeEnd('trips');
-
-	// 	// Calculate the guessed progress of each trip.
-	// 	// TODO: is it possible to calculate this in a materialized view maybe?
-	// 	return trips.reduce((acc, trip) => {
-	// 		const calculatedTrip = calculateTripPositions(trip);
-
-	// 		if (!calculatedTrip) {
-	// 			return acc;
-	// 		}
-
-	// 		return [...acc, calculatedTrip];
-	// 	}, []);
-	// }
+	@Get()
+	public async getAll(@Query('q') q: string): Promise<Trip[]> {
+		return this.tripsService.search(q);
+	}
 
 	@Get(':tripId')
 	public async getOne(@Param('tripId') tripId: string): Promise<any> {
