@@ -33,7 +33,7 @@ export class RealtimeProcessorService {
 	})
 	@Cron('0 * * * * *')
 	public async seedRealtime() {
-		const Root = await load(`${__dirname}/../../../../../static/protobuf/gtfs-realtime.proto`);
+		const Root = await load(`${__dirname}/../../../../static/protobuf/gtfs-realtime.proto`);
 		const RealtimeGTFSMessage = Root.lookupType('FeedMessage');
 
 		console.log('[REALTIME_SEED] starting realtime seeding');

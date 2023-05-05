@@ -171,7 +171,7 @@ export const NextStops: FC<PopupProps> = ({ trip }: PopupProps) => {
 									)}
 								</StopTime>
 							</StopTimeWrapper>
-							{stopTime.departureTime < dayjs().tz('Europe/Brussels').format('HH:mm:ss') ? (
+							{(stopTime.realtimeDepartureTime || stopTime.departureTime) < dayjs().tz('Europe/Brussels').format('HH:mm:ss') ? (
 								<PassedLine />
 							) : (
 								<UpcomingLine isLastItem={i === (trip.stopTimes?.length || 0) - 1} />
