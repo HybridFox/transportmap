@@ -36,4 +36,4 @@ USER node
 
 RUN npm ci
 
-CMD ["node", "dist/src/main.js"]
+CMD ["node", "dist/main.js"]
