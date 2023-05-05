@@ -1,17 +1,20 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Command } from 'nestjs-command';
-import got from 'got';
 import { load } from 'protobufjs';
 import fetch from 'node-fetch';
-import { TABLE_PROVIDERS } from 'core/providers/table.providers';
 import { Repository } from 'typeorm';
-import { GTFSProcessStatus, StopTime } from 'core/entities';
-import { StopTimeUpdate } from '../gtfs.types';
 import * as dayjs from 'dayjs';
 import * as customParseFormat from 'dayjs/plugin/customParseFormat';
 import * as async from 'async';
 import { Cron } from '@nestjs/schedule';
 import * as cliProgress from 'cli-progress';
+
+import { GTFSProcessStatus, StopTime } from '~entities';
+import { TABLE_PROVIDERS } from '~core/providers/table.providers';
+import { SentryMessage, SentrySeverity } from '~core/enum/sentry.enum';
+import { LoggingService } from '~core/services/logging.service';
+
+import { StopTimeUpdate } from '../gtfs.types';
 
 dayjs.extend(customParseFormat);
 
@@ -21,6 +24,7 @@ export class RealtimeProcessorService {
 	constructor(
 		@Inject(TABLE_PROVIDERS.GTFS_PROCESS_STATUS) private gtfsProcessStatus: Repository<GTFSProcessStatus>,
 		@Inject(TABLE_PROVIDERS.STOP_TIME_REPOSITORY) private stopTimeRepository: Repository<StopTime>,
+		private readonly loggingService: LoggingService,
 	) {}
 
 	@Command({
@@ -62,7 +66,7 @@ export class RealtimeProcessorService {
 			const protobufFile = await fetch(sourceUrl)
 				.then((response) => response.buffer())
 				.catch((e) => {
-					console.error(e);
+					this.loggingService.captureException(e, SentryMessage.REALTIME_GTFS_INACCESSIBLE, SentrySeverity.WARNING, { key, sourceUrl });
 					throw e;
 				});
 
@@ -82,6 +86,16 @@ export class RealtimeProcessorService {
 					longs: Number,
 				});
 
+				if (!feedMessages) {
+					this.loggingService.captureMessage(SentryMessage.REALTIME_GTFS_FEED_EMPTY, SentrySeverity.WARNING, {
+						key,
+						sourceUrl,
+						protobufFile,
+					});
+
+					return;
+				}
+
 				const queue = async.queue(async ({ tripId, stopTimeUpdate }, callback) => {
 					await this.processStopTimeUpdate(tripId, stopTimeUpdate);
 					progressBar.increment();
@@ -89,6 +103,7 @@ export class RealtimeProcessorService {
 				}, 50);
 
 				console.log('[REALTIME_SEED] sending to queue');
+
 				feedMessages
 					.filter((feedMessage) => feedMessage.tripUpdate.timestamp > lastTimestamp)
 					.forEach((feedMessage) => {
@@ -119,6 +134,11 @@ export class RealtimeProcessorService {
 				);
 			} catch (e) {
 				console.error(e);
+
+				this.loggingService.captureException(e, SentryMessage.REALTIME_GTFS_GENERIC_FAIL, SentrySeverity.WARNING, {
+					key,
+					sourceUrl,
+				});
 			}
 		}, Promise.resolve());
 	}

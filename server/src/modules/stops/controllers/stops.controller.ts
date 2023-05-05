@@ -1,5 +1,7 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
-import { Route, Stop } from 'core/entities';
+import { Controller, Get, Param } from '@nestjs/common';
+
+import { Stop } from '~entities';
+
 import { StopsService } from '../services/stops.service';
 
 @Controller('v1/stops')

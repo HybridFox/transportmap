@@ -1,4 +1,5 @@
 import { Entity, Column, ManyToOne, JoinColumn, Index, PrimaryColumn } from 'typeorm';
+
 import { Stop } from './Stop.entity';
 import { Trip } from './Trip.entity';
 

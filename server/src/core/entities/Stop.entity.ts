@@ -1,4 +1,5 @@
 import { Entity, Column, PrimaryColumn, Index, OneToMany } from 'typeorm';
+
 import { StopTime } from './StopTime.entity';
 
 @Entity()

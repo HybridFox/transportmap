@@ -39,11 +39,7 @@ const dist2 = (v: { x: number; y: number }, w: { x: number; y: number }) => {
 	return sqr(v.x - w.x) + sqr(v.y - w.y);
 };
 
-const distToSegmentSquared = (
-	p: { x: number; y: number },
-	v: { x: number; y: number },
-	w: { x: number; y: number },
-) => {
+const distToSegmentSquared = (p: { x: number; y: number }, v: { x: number; y: number }, w: { x: number; y: number }) => {
 	const l2 = dist2(v, w);
 	if (l2 == 0) return dist2(p, v);
 	let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
@@ -51,19 +47,11 @@ const distToSegmentSquared = (
 	return dist2(p, { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) });
 };
 
-export const distToSegment = (
-	p: { x: number; y: number },
-	v: { x: number; y: number },
-	w: { x: number; y: number },
-) => {
+export const distToSegment = (p: { x: number; y: number }, v: { x: number; y: number }, w: { x: number; y: number }) => {
 	return Math.sqrt(distToSegmentSquared(p, v, w));
 };
 
-export const projectToLine = (
-	p: { x: number; y: number },
-	a: { x: number; y: number },
-	b: { x: number; y: number },
-) => {
+export const projectToLine = (p: { x: number; y: number }, a: { x: number; y: number }, b: { x: number; y: number }) => {
 	const atob = { x: b.x - a.x, y: b.y - a.y };
 	const atop = { x: p.x - a.x, y: p.y - a.y };
 	const len = atob.x * atob.x + atob.y * atob.y;

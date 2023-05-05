@@ -1,4 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn, Index, ManyToOne, JoinColumn } from 'typeorm';
+
 import { Trip } from './Trip.entity';
 
 @Entity()

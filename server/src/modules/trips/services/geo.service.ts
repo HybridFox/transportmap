@@ -1,11 +1,14 @@
+import * as fs from 'fs/promises';
+import * as path from 'path';
+
 import { Injectable } from '@nestjs/common';
 import PathFinder from 'geojson-path-finder';
 import * as NodeCache from 'node-cache';
+
+import { StopTime } from '~entities';
+
 import { gotInstance } from '../helpers/got';
-import * as fs from 'fs/promises';
-import * as path from 'path';
 import { tokenRepository } from '../helpers/tokenRepository';
-import { StopTime } from 'core/entities';
 import { distToSegment, projectToLine } from '../helpers/map-helpers';
 
 @Injectable()

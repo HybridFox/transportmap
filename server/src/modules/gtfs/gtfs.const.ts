@@ -1,5 +1,6 @@
-import { Agency, Calendar, CalendarDate, Route, Stop, StopTime, Trip } from 'core/entities';
 import { Repository } from 'typeorm';
+
+import { Agency, Calendar, CalendarDate, Route, Stop, StopTime, Trip } from '~core/entities';
 
 interface GTFSFileMapProps {
 	stopTimeRepository: Repository<StopTime>;

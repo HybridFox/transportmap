@@ -1,5 +1,7 @@
-import * as Entites from '../entities';
 import { DataSource } from 'typeorm';
+
+import * as Entites from '../entities';
+
 import { DATABASE_PROVIDERS } from './database.providers';
 
 export enum TABLE_PROVIDERS {

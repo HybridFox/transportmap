@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
-import { redis } from '../../core/instances/redis.instance';
 import { getCenter, getDistance } from 'geolib';
 import { pick } from 'ramda';
+
+import { redis } from '~core/instances/redis.instance';
 
 @Injectable()
 @WebSocketGateway(Number(process.env.PORT), { transports: ['websocket'] })

@@ -1,9 +1,11 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
+
+import { Trip } from '~entities';
+import { redis } from '~core/instances/redis.instance';
+
 import { CompositionService } from '../services/composition.service';
 import { GeoService } from '../services/geo.service';
 import { TripsService } from '../services/trips.service';
-import { redis } from '../../../modules/core/instances/redis.instance';
-import { Trip } from 'core/entities';
 
 @Controller('v1/trips')
 export class TripsController {

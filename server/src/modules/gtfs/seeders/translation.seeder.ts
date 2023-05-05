@@ -1,11 +1,13 @@
+import * as fs from 'fs';
+
 import { Inject, Injectable } from '@nestjs/common';
 import { parse } from 'csv-parse';
-import * as fs from 'fs';
-import { Translation } from 'core/entities';
 import { Repository } from 'typeorm';
-import { TABLE_PROVIDERS } from 'core/providers/table.providers';
 import * as async from 'async';
 import * as cliProgress from 'cli-progress';
+
+import { Translation } from '~entities';
+import { TABLE_PROVIDERS } from '~core/providers/table.providers';
 
 @Injectable()
 export class TranslationSeederService {

@@ -1,11 +1,13 @@
-import { StopTime, Trip } from 'core/entities';
+import { createHash } from 'crypto';
+
 import * as dayjs from 'dayjs';
 import { getDistance, getRhumbLineBearing, getSpeed } from 'geolib';
 import { omit, pick } from 'ramda';
-import { redis } from '../../../modules/core/instances/redis.instance';
 import got from 'got/dist/source';
-import { createHash } from 'crypto';
 import * as polyline from '@mapbox/polyline';
+
+import { StopTime, Trip } from '~entities';
+import { redis } from '~core/instances/redis.instance';
 
 // TODO: clean this up
 export interface Section {

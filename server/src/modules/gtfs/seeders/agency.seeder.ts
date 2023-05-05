@@ -1,9 +1,11 @@
+import * as fs from 'fs';
+
 import { Inject, Injectable } from '@nestjs/common';
 import { parse } from 'csv-parse/sync';
-import * as fs from 'fs';
-import { Agency } from 'core/entities';
 import { Repository } from 'typeorm';
-import { TABLE_PROVIDERS } from 'core/providers/table.providers';
+
+import { Agency } from '~core/entities';
+import { TABLE_PROVIDERS } from '~core/providers/table.providers';
 
 @Injectable()
 export class AgencySeederService {

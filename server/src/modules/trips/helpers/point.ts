@@ -22,9 +22,7 @@ export function interpolatePoint(flatCoordinates, offset, end, stride, fraction,
 		const target = fraction * length;
 		const index = binarySearch(cumulativeLengths, target);
 		if (index < 0) {
-			t =
-				(target - cumulativeLengths[-index - 2]) /
-				(cumulativeLengths[-index - 1] - cumulativeLengths[-index - 2]);
+			t = (target - cumulativeLengths[-index - 2]) / (cumulativeLengths[-index - 1] - cumulativeLengths[-index - 2]);
 			o = offset + (-index - 2) * stride;
 		} else {
 			o = offset + index * stride;
@@ -33,12 +31,7 @@ export function interpolatePoint(flatCoordinates, offset, end, stride, fraction,
 	dimension = dimension > 1 ? dimension : 2;
 	dest = dest ? dest : new Array(dimension);
 	for (let i = 0; i < dimension; ++i) {
-		dest[i] =
-			o === undefined
-				? NaN
-				: t === undefined
-				? flatCoordinates[o + i]
-				: lerp(flatCoordinates[o + i], flatCoordinates[o + stride + i], t);
+		dest[i] = o === undefined ? NaN : t === undefined ? flatCoordinates[o + i] : lerp(flatCoordinates[o + i], flatCoordinates[o + stride + i], t);
 	}
 	return dest;
 }

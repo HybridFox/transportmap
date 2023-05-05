@@ -1,12 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
-import { TABLE_PROVIDERS } from 'core/providers/table.providers';
-import { Agency, GTFSProcessStatus, Trip } from 'core/entities';
 import * as NodeCache from 'node-cache';
 import * as dayjs from 'dayjs';
-import { redis } from 'src/modules/core/instances/redis.instance';
-import { calculateTripPositions } from '../helpers/trip.helpers';
 import { Cron } from '@nestjs/schedule';
+
+import { Agency, GTFSProcessStatus, Trip } from '~entities';
+import { TABLE_PROVIDERS } from '~core/providers/table.providers';
+import { redis } from '~core/instances/redis.instance';
+
+import { calculateTripPositions } from '../helpers/trip.helpers';
 
 @Injectable()
 export class TripsService {

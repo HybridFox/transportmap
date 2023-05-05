@@ -1,11 +1,18 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Command } from 'nestjs-command';
 import * as fs from 'fs';
-import got from 'got/dist/source';
 import { randomBytes } from 'crypto';
 import { promisify } from 'node:util';
 import { pipeline } from 'stream';
+
+import got from 'got/dist/source';
+import { Command } from 'nestjs-command';
+import { Inject, Injectable } from '@nestjs/common';
 import * as AdmZip from 'adm-zip';
+import { Repository } from 'typeorm';
+import { Cron } from '@nestjs/schedule';
+
+import { GTFSProcessStatus } from '~entities';
+import { TABLE_PROVIDERS } from '~core/providers/table.providers';
+
 import {
 	AgencySeederService,
 	CalendarDateSeederService,
@@ -17,10 +24,6 @@ import {
 	TranslationSeederService,
 	TripSeederService,
 } from '../seeders';
-import { TABLE_PROVIDERS } from 'core/providers/table.providers';
-import { GTFSProcessStatus } from 'core/entities';
-import { Repository } from 'typeorm';
-import { Cron } from '@nestjs/schedule';
 
 // TODO: add realtime typings
 @Injectable()
