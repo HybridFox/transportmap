@@ -29,7 +29,6 @@
     "@nestjs/serve-static": "^3.0.1",
     "@nestjs/typeorm": "^9.0.1",
     "@nestjs/websockets": "^9.4.0",
-    "@ntegral/nestjs-sentry": "^4.0.0",
     "@sentry/node": "^7.51.0",
     "adm-zip": "^0.5.10",
     "async": "^3.2.4",

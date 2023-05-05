@@ -1,16 +1,13 @@
 import * as path from 'path';
 
-import { HttpException, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { CommandModule } from 'nestjs-command';
 import { ScheduleModule } from '@nestjs/schedule';
-import { SentryModule, SentryInterceptor } from '@ntegral/nestjs-sentry';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 
 import { CoreModule } from '~core/core.module';
-import { SentrySeverity } from '~core/enum/sentry.enum';
-
-import { version } from '../package.json';
+import { SentryInterceptor } from '~core/interceptors/sentry.interceptor';
 
 import { GTFSModule } from './modules/gtfs/gtfs.module';
 import { RoutesModule } from './modules/routes/routes.module';
@@ -29,29 +26,13 @@ import { TripsModule } from './modules/trips/trips.module';
 			rootPath: path.join(__dirname, '../..', 'src/modules/trips/static'),
 			serveRoot: '/static',
 		}),
-		SentryModule.forRoot({
-			dsn: 'https://ac6c52be3ace4786b56f808e949d7b36@sentry.ibs.sh/2',
-			debug: true,
-			environment: process.env.NODE_ENV,
-			release: version,
-			logLevels: ['log', 'error', 'warn', 'debug', 'verbose'],
-			tracesSampleRate: 1.0,
-		}),
 		ScheduleModule.forRoot(),
 	],
 	controllers: [],
 	providers: [
 		{
 			provide: APP_INTERCEPTOR,
-			useFactory: () =>
-				new SentryInterceptor({
-					filters: [
-						{
-							type: HttpException,
-							filter: (exception: HttpException) => 500 > exception.getStatus(), // Only report 500 errors
-						},
-					],
-				}),
+			useClass: SentryInterceptor,
 		},
 	],
 })

@@ -54,4 +54,4 @@ data
 
 .env
 tmp
-osm
+/osm/map-data/map.*

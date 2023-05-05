@@ -16,6 +16,7 @@
     "@ngneat/elf-persist-state": "^1.1.6",
     "@ngneat/elf-requests": "^1.6.0",
     "@ngneat/react-rxjs": "^1.1.0",
+    "@sentry/node": "^7.51.0",
     "dayjs": "^1.11.7",
     "ky": "^0.33.2",
     "lodash.debounce": "^4.0.8",

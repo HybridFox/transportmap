@@ -19,7 +19,7 @@ services:
             - 3001:3001
         volumes:
             - ./server:/app:delegated
-            - ./server/static:/app/static:delegated
+            - ./server/static:/static:delegated
             # - ../hafas-client:/app/node_modules/hafas-client
             # - ./api/src/modules/vehicle/static:/app/dist/modules/vehicle/static
             - /app/node_modules
@@ -70,7 +70,7 @@ services:
 
     osrm:
         image: "ghcr.io/project-osrm/osrm-backend:v5.27.1"
-        command: osrm-routed --algorithm mld /data/belgium-latest.osrm
+        command: osrm-routed --algorithm mld /data/map-data/map.osrm
         container_name: osrm
         ports:
             - 5000:5000
