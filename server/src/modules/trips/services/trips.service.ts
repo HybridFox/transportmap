@@ -7,6 +7,7 @@ import { Cron } from '@nestjs/schedule';
 import { Agency, GTFSProcessStatus, Trip } from '~entities';
 import { TABLE_PROVIDERS } from '~core/providers/table.providers';
 import { redis } from '~core/instances/redis.instance';
+import { LoggingService } from '~core/services/logging.service';
 
 import { calculateTripPositions } from '../helpers/trip.helpers';
 
@@ -18,6 +19,7 @@ export class TripsService {
 		@Inject(TABLE_PROVIDERS.TRIP_REPOSITORY) private tripRepository: Repository<Trip>,
 		@Inject(TABLE_PROVIDERS.AGENCY_REPOSITORY) private agencyRepository: Repository<Agency>,
 		@Inject(TABLE_PROVIDERS.GTFS_PROCESS_STATUS) private gtfsProcessStatus: Repository<GTFSProcessStatus>,
+		private readonly loggingService: LoggingService,
 	) {
 		this.tripsCache = new NodeCache({ stdTTL: 5 * 60, checkperiod: 5 });
 	}
@@ -46,7 +48,7 @@ export class TripsService {
 			const leftoverKeys = await trips.reduce(async (acc, trip) => {
 				const keys = await acc;
 
-				const calculatedTrip = await calculateTripPositions(trip, LineString).catch(console.error);
+				const calculatedTrip = await calculateTripPositions(trip, LineString, this.loggingService).catch(console.error);
 
 				if (!calculatedTrip || !calculatedTrip.sectionLocation.longitude || !calculatedTrip.sectionLocation.latitude) {
 					return keys;
@@ -116,7 +118,7 @@ export class TripsService {
 			.limit(3)
 			.getMany();
 
-		return (await Promise.all(trips.map((trip) => calculateTripPositions(trip, LineString)))).filter((x) => !!x);
+		return (await Promise.all(trips.map((trip) => calculateTripPositions(trip, LineString, this.loggingService)))).filter((x) => !!x);
 	}
 
 	public async getOne(tripId: string): Promise<Trip> {

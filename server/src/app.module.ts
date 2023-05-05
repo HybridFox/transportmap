@@ -8,6 +8,7 @@ import { SentryModule, SentryInterceptor } from '@ntegral/nestjs-sentry';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 
 import { CoreModule } from '~core/core.module';
+import { SentrySeverity } from '~core/enum/sentry.enum';
 
 import { version } from '../package.json';
 
@@ -30,10 +31,11 @@ import { TripsModule } from './modules/trips/trips.module';
 		}),
 		SentryModule.forRoot({
 			dsn: 'https://ac6c52be3ace4786b56f808e949d7b36@sentry.ibs.sh/2',
-			debug: false,
+			debug: true,
 			environment: process.env.NODE_ENV,
 			release: version,
-			logLevels: ['debug'],
+			logLevels: ['log', 'error', 'warn', 'debug', 'verbose'],
+			tracesSampleRate: 1.0,
 		}),
 		ScheduleModule.forRoot(),
 	],

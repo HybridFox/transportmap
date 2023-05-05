@@ -8,6 +8,8 @@ import * as polyline from '@mapbox/polyline';
 
 import { StopTime, Trip } from '~entities';
 import { redis } from '~core/instances/redis.instance';
+import { SentryMessage, SentrySeverity } from '~core/enum/sentry.enum';
+import { LoggingService } from '~core/services/logging.service';
 
 // TODO: clean this up
 export interface Section {
@@ -27,7 +29,7 @@ export interface Section {
 
 const clamp = (number: number, min: number, max: number) => Math.max(min, Math.min(number, max));
 
-export const calculateTripPositions = async (trip: Trip, LineString: any): Promise<any> => {
+export const calculateTripPositions = async (trip: Trip, LineString: any, loggingService: LoggingService): Promise<any> => {
 	const currentTime = dayjs().format('HH:mm:ss');
 	const sortedStopTimes: StopTime[] = trip.stopTimes.sort((a: any, b: any) => a.stopSequence - b.stopSequence);
 	const firstDepartureTime = sortedStopTimes[0].departureTime;
@@ -100,9 +102,10 @@ export const calculateTripPositions = async (trip: Trip, LineString: any): Promi
 		];
 	}, []);
 
-	const osrmRoute = await getOsrmRoute(sortedStopTimes.map((stopTime) => `${stopTime.stop.longitude},${stopTime.stop.latitude}`).join(';')).catch(
-		console.error,
-	);
+	const osrmRoute = await getOsrmRoute(
+		sortedStopTimes.map((stopTime) => `${stopTime.stop.longitude},${stopTime.stop.latitude}`, loggingService).join(';'),
+		loggingService,
+	).catch(console.error);
 
 	// Now that we have all the section, find the section we are currently in by the current time.
 	const activeSection = sections.find((calculation) => calculation.startTime <= currentTime && currentTime <= calculation.endTime);
@@ -172,7 +175,7 @@ export const calculateTripPositions = async (trip: Trip, LineString: any): Promi
 	};
 };
 
-const getOsrmRoute = async (coordinates: string): Promise<string[]> => {
+const getOsrmRoute = async (coordinates: string, loggingService: LoggingService): Promise<string[]> => {
 	const key = createHash('sha256').update(coordinates).digest('hex');
 	const cachedTripRoute = await redis.get(`TRIPSECTIONCOORDINATES:${key}`);
 
@@ -202,6 +205,16 @@ const getOsrmRoute = async (coordinates: string): Promise<string[]> => {
 		})
 		.catch((e) => {
 			console.error(e.response);
+			loggingService.captureException(e, SentryMessage.OSRM_ROUTE_FETCH_FAIL, SentrySeverity.WARNING, {
+				radiuses: coordinates
+					.split(';')
+					.map(() => 100)
+					.join(';'),
+				timestamps: coordinates
+					.split(';')
+					.map((_, i) => i * 3600)
+					.join(';'),
+			});
 
 			return {
 				matchings: [
@@ -215,11 +228,13 @@ const getOsrmRoute = async (coordinates: string): Promise<string[]> => {
 	// console.log(osrmRoute);
 
 	// TODO: check if [0] is correct here on the steps
-	const sectionCoordinates: string[] = osrmRoute.matchings[0].legs.reduce(
-		(acc, leg) => (leg?.steps?.[0]?.geometry ? [...acc, leg?.steps?.[0]?.geometry] : acc),
-		[],
-	);
-	console.log('!!! sectionCoordinates !!!', sectionCoordinates);
+	const sectionCoordinates: string[] = osrmRoute.matchings[0].legs.reduce((acc, leg) => {
+		if (leg?.steps?.[0]?.geometry) {
+			return [...acc, leg?.steps?.[0]?.geometry];
+		}
+
+		return acc;
+	}, []);
 
 	redis.set(`TRIPSECTIONCOORDINATES:${key}`, JSON.stringify(sectionCoordinates));
 	redis.expire(`TRIPSECTIONCOORDINATES:${key}`, 60 * 60 * 24 * 7);
