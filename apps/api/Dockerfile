@@ -12,7 +12,7 @@ COPY --chown=node:node . /home/node
 RUN ls
 
 RUN npm ci \
-    && npm run nx run api:build
+    && NX_DAEMON=false npm run nx run api:build -- --verbose
 
 # ---
 
