@@ -6,7 +6,7 @@ on:
 
 jobs:
   push_app_to_registry:
-    name: CLIENT - Build
+    name: build apps/transportmap
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
@@ -33,13 +33,14 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
-          context: client/.
+          context: .
+		  file: {context}/apps/transportmap/Dockerfile
           platforms: linux/amd64,linux/arm/v7,linux/arm64/v8
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
   push_api_to_registry:
-    name: SERVER - Build
+    name: build apps/api
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
@@ -66,7 +67,8 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
-          context: server/.
+          context: .
+		  file: {context}/apps/api/Dockerfile
           platforms: linux/amd64,linux/arm/v7,linux/arm64/v8
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

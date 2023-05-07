@@ -1,31 +1,36 @@
 version: "3"
 
 x-default-options: &default-options
-  tty: true
-  logging:
-    options:
-      max-size: '10m'
-      max-file: '3'
-      
+    tty: true
+    logging:
+        options:
+            max-size: '10m'
+            max-file: '3'
+    networks:
+        - transportmap
+    build:
+        context: .
+        dockerfile: Dockerfile.dev
+    volumes:
+        - ./:/app
+        - ./static:/static:delegated
+        - node-modules-data:/app/node_modules
+
 services:
     server:
-        build:
-            context: server
-            dockerfile: Dockerfile.dev
         container_name: transportmap-server
-        extra_hosts:
-            - "host.docker.internal:host-gateway"
+        command: npm run nx run api:serve -- --verbose
         ports:
             - 3001:3001
-        volumes:
-            - ./server:/app:delegated
-            - ./server/static:/app/static:delegated
-            # - ../hafas-client:/app/node_modules/hafas-client
-            # - ./api/src/modules/vehicle/static:/app/dist/modules/vehicle/static
-            - /app/node_modules
-            # - /app/data
         env_file:
-            - ./server/.env/local.env
+            - ./.env/local.env
+        <<: *default-options
+
+    app:
+        container_name: transportmap-app
+        command: npm run nx run transportmap:serve -- --verbose
+        ports:
+            - 3000:3000
         networks:
             - transportmap
         <<: *default-options
@@ -41,22 +46,6 @@ services:
             POSTGRES_USER: transportmap
             POSTGRES_PASSWORD: transportmap
             POSTGRES_DB: transportmap
-        networks:
-            - transportmap
-
-    app:
-        build:
-            context: client
-            dockerfile: Dockerfile.dev
-        extra_hosts:
-            - "host.docker.internal:host-gateway"
-        container_name: transportmap-app
-        volumes:
-            - ./client:/app:delegated
-            - /app/node_modules
-            - /app/dist
-        ports:
-            - 3000:3000
         networks:
             - transportmap
 
@@ -92,7 +81,7 @@ services:
 
 volumes:
     redis-data:
-    elastic-data:
+    node-modules-data:
 
 networks:
     transportmap:

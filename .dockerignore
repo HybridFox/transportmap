@@ -1,4 +1,4 @@
-node_modules
-npm-debug.log
-dist
-data
+/data
+/node_modules
+/osm
+/dist
