@@ -34,7 +34,7 @@ jobs:
         with:
           push: true
           context: .
-		  file: {context}/apps/transportmap/Dockerfile
+          file: {context}/apps/transportmap/Dockerfile
           platforms: linux/amd64,linux/arm/v7,linux/arm64/v8
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -68,7 +68,7 @@ jobs:
         with:
           push: true
           context: .
-		  file: {context}/apps/api/Dockerfile
+          file: {context}/apps/api/Dockerfile
           platforms: linux/amd64,linux/arm/v7,linux/arm64/v8
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
