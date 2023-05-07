@@ -9,19 +9,19 @@ import XYZ from 'ol/source/XYZ';
 import * as olExtent from 'ol/extent';
 import * as olGeom from 'ol/geom';
 import { GeoJSON } from 'ol/format';
-
-import { MAP_ICON_STYLES } from './Map.const';
-import { tripsSelector } from '../../store/trips/trips.selectors';
 import { useObservable } from '@ngneat/react-rxjs';
+import * as polyline from '@mapbox/polyline';
+
+import { tripsSelector } from '../../store/trips/trips.selectors';
 // import { tripsRepository } from '../../store/vehicles/trips.repository';
 import { StopTime, Trip } from '../../store/trips/trips.types';
 import { socket } from '../../modules/core/services/socket.service';
 import { routeStyleFunction } from '../../helpers/map.utils';
-import Geolocation from 'ol/Geolocation.js';
 import { SocketEvents } from '../../modules/map/const/socket.const';
-import * as polyline from '@mapbox/polyline';
 import { tripsRepository } from '../../store/trips/trips.repository';
 import { getVehicleLocation } from '../../helpers/location.utils';
+
+import { MAP_ICON_STYLES } from './Map.const';
 
 interface Props {
 	userLocation: number[] | null;
@@ -40,7 +40,6 @@ export const MapComponent: FC<Props> = ({ userLocation, activeTrip }: Props) => 
 	const [lon, setLon] = useState(51.119221);
 	const [zoom, setZoom] = useState(13);
 	const [vectorSource, setVectorSource] = useState<VectorSource>();
-	const [userLocationVisible, setUserLocationVisible] = useState(false);
 
 	useEffect(() => {
 		if (!userLocation || !map.current) {
@@ -48,8 +47,7 @@ export const MapComponent: FC<Props> = ({ userLocation, activeTrip }: Props) => 
 		}
 
 		console.log('update', userLocation)
-		map.current.getView().setCenter(olProj.transform(userLocation, 'EPSG:4326', 'EPSG:3857'))
-		map.current.getView().setZoom(16);
+		map.current.getView().animate({ center: olProj.transform(userLocation, 'EPSG:4326', 'EPSG:3857'), zoom: 13 })
 	}, [userLocation]);
 
 	useEffect(() => {
@@ -63,7 +61,7 @@ export const MapComponent: FC<Props> = ({ userLocation, activeTrip }: Props) => 
 			return
 		}
 		
-		map.current.getView().setCenter(olProj.transform(coordinates, 'EPSG:4326', 'EPSG:3857'))
+		map.current.getView().animate({ center: olProj.transform(coordinates, 'EPSG:4326', 'EPSG:3857'), zoom: 15 })
 		// map.current.getView().setZoom(16);
 	}, [activeTrip])
 
@@ -291,10 +289,6 @@ export const MapComponent: FC<Props> = ({ userLocation, activeTrip }: Props) => 
 			initialMap.setTarget(undefined);
 		};
 	}, []);
-
-	useEffect(() => {
-
-	}, [activeVehicle])
 
 	useEffect(() => {
 		if (!vectorSource) {

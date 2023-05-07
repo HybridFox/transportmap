@@ -143,7 +143,7 @@ export const NextStops: FC<PopupProps> = ({ trip }: PopupProps) => {
 						<Stop
 							key={i}
 							isPassed={
-								stopTime.departureTime < dayjs().format('HH:mm:ss')
+								(stopTime.realtimeDepartureTime || stopTime.departureTime) < dayjs().format('HH:mm:ss')
 							}>
 							<StopName>{stopTime?.stop?.name?.replace(/ ?\[.*?]/gi, '')}</StopName>
 							<StopTimeWrapper>
