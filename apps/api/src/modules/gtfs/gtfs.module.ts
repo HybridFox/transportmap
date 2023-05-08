@@ -6,10 +6,11 @@ import { columnProviders } from '~core/providers/table.providers';
 import { StaticSeederService } from './services/static-seeder.service';
 import { Seeders } from './seeders';
 import { RealtimeProcessorService } from './services/realtime-processor.service';
+import { GtfsController } from './controllers/gtfs.controller';
 
 @Module({
 	imports: [CoreModule],
-	controllers: [],
+	controllers: [GtfsController],
 	providers: [StaticSeederService, RealtimeProcessorService, ...Seeders, ...columnProviders],
 })
 export class GTFSModule {}

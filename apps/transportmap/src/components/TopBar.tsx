@@ -1,16 +1,17 @@
 import React, { FC, useEffect, useState } from 'react';
 import styled, { css } from 'styled-components';
-
-import { Badge } from './Badge';
-import { NextStops } from './NextStops';
-import { Composition } from './Composition';
-import { tripsService } from '../services/vehicle.service';
 import debounce from 'lodash.debounce';
 import { useObservable } from '@ngneat/react-rxjs';
+
+import { tripsService } from '../services/vehicle.service';
 import { tripsSelector } from '../store/trips/trips.selectors';
 import { tripsRepository } from '../store/trips/trips.repository';
 import { searchSelector } from '../store/search/search.selectors';
 import { searchRepository } from '../store/search/search.repository';
+
+import { Composition } from './Composition';
+import { NextStops } from './NextStops';
+import { Badge } from './Badge';
 
 const LocationIcon = styled.button`
 	padding: 1rem 1.5rem;
@@ -86,7 +87,7 @@ const RawTopBar: FC<Props> = ({ className, setUserLocation }: Props) => {
 				});
 			}}><span className="uil uil-location-arrow"></span></LocationIcon>
 			<SearchBarContainer>
-				<SearchBar type="text" onChange={debounce(doSearch, 100)} />
+				<SearchBar type="text" onChange={debounce(doSearch, 500)} />
 				<TripContainer>
 					{searchResults.map((trip) => (
 						<Trip onClick={() => {
@@ -97,7 +98,7 @@ const RawTopBar: FC<Props> = ({ className, setUserLocation }: Props) => {
 								color={trip?.extraData?.foregroundColor}
 								borderColor={trip?.extraData?.backgroundBorderColor}
 								backgroundColor={trip?.extraData?.backgroundColor}>
-								{trip.route.routeCode.replaceAll(/[0-9]/g, '')}{trip.name}
+								{trip.route.routeCode} {trip.name}
 							</Badge>
 							<p>
 								{trip.headsign}

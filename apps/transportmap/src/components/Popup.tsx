@@ -1,10 +1,11 @@
 import React, { FC, useState } from 'react';
 import styled, { css } from 'styled-components';
 
+import { Trip } from '../store/trips/trips.types';
+
 import { Badge } from './Badge';
 import { NextStops } from './NextStops';
 import { Composition } from './Composition';
-import { Trip } from '../store/trips/trips.types';
 
 interface PopupProps {
 	trip: Trip;
@@ -72,7 +73,7 @@ const RawPopup: FC<PopupProps> = ({ trip, className }: PopupProps) => {
 						color={trip?.extraData?.foregroundColor}
 						borderColor={trip?.extraData?.backgroundBorderColor}
 						backgroundColor={trip?.extraData?.backgroundColor}>
-						{trip.route.routeCode.replaceAll(/[0-9]/g, '')}{trip.name}
+						{trip.route.routeCode} {trip.name}
 					</Badge>
 					<h2>
 						{trip.headsign}

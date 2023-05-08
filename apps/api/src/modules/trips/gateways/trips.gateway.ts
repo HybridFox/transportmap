@@ -1,15 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
-import { getCenter, getDistance } from 'geolib';
 import { pick } from 'ramda';
+import { MongoRepository } from 'typeorm';
 
-import { redis } from '~core/instances/redis.instance';
+// import { redis } from '~core/instances/redis.instance';
+import { mongoDataSource } from '~core/providers/database.providers';
+import { CalculatedTrip } from '~core/entities';
 
 @Injectable()
 @WebSocketGateway(undefined, { transports: ['websocket'] })
 export class TripsGateway {
 	@WebSocketServer() private server: Server;
+	private tripCacheRepository: MongoRepository<CalculatedTrip>;
+
+	constructor() {
+		this.tripCacheRepository = mongoDataSource.getMongoRepository(CalculatedTrip);
+	}
 
 	// private async emitLocations(): Promise<void> {
 	// 	if (!this.server) {
@@ -30,61 +37,16 @@ export class TripsGateway {
 
 		const [north, east, south, west] = bbox.split(':').map((x) => Number(x));
 
-		const center = getCenter([
-			{
-				lat: north,
-				lon: east,
-			},
-			{
-				lat: south,
-				lon: west,
-			},
-		]);
-
-		if (!center) {
-			return;
-		}
-
-		const distance = getDistance(
-			{
-				lat: north,
-				lon: east,
-			},
-			{
-				lat: south,
-				lon: west,
-			},
-		);
-
-		console.time('geosearch');
-		const tripIds = await redis.geosearch(
-			'TRIPLOCATIONS',
-			'FROMLONLAT',
-			center.longitude,
-			center.latitude,
-			'BYBOX',
-			distance,
-			distance,
-			'm',
-			'ASC',
-			'WITHCOORD',
-			'WITHDIST',
-		);
-		console.timeEnd('geosearch');
-
-		if (tripIds.length === 0) {
-			return;
-		}
-
-		// TODO: fix
 		console.time('trips');
-		const trips = await redis.mget(...tripIds.map(([id]) => `TRIPS:NMBS/SNCB:${id}`));
+		const trips = await this.tripCacheRepository.find({
+			'sectionLocation': { $geoWithin: { $box:  [ [west, north], [east, south] ] } }
+		})
 		console.timeEnd('trips');
+		// console.log('b' trips.length)
 
 		console.time('calc');
 		const calculatedTrips = trips
 			.filter((trip) => !!trip)
-			.map((trip) => JSON.parse(trip))
 			.map((trip) => pick(['osrmRoute', 'route', 'sections', 'id'])(trip));
 		console.timeEnd('calc');
 
@@ -96,8 +58,8 @@ export class TripsGateway {
 
 	@SubscribeMessage('SETBBOX')
 	async handleEvent(@MessageBody() data: Record<string, number>, @ConnectedSocket() socket: Socket): Promise<void> {
-		await redis.set(`BBOX:${socket.id}`, `${data.north}:${data.east}:${data.south}:${data.west}`);
-		await redis.expire(`BBOX:${socket.id}`, 60 * 60);
+		// await redis.set(`BBOX:${socket.id}`, `${data.north}:${data.east}:${data.south}:${data.west}`);
+		// await redis.expire(`BBOX:${socket.id}`, 60 * 60);
 
 		// TODO: Return latest data when setting bbox
 		// TODO: Validate max zoom, so that scraping can be impossible i guess

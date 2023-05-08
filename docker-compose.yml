@@ -41,11 +41,25 @@ services:
         ports:
             - 5432:5432
         volumes:
-            - ./data:/var/lib/postgresql/data
+            - ./data/postgres:/var/lib/postgresql/data
         environment:
             POSTGRES_USER: transportmap
             POSTGRES_PASSWORD: transportmap
             POSTGRES_DB: transportmap
+        networks:
+            - transportmap
+
+    mongo:
+        image: "mongo:6.0"
+        container_name: transportmap-mongo
+        ports:
+            - 27017:27017
+        volumes:
+            - ./data/mongo:/data/db
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: transportmap
+            MONGO_INITDB_ROOT_PASSWORD: transportmap
+            MONGO_INITDB_DATABASE: transportmap
         networks:
             - transportmap
 

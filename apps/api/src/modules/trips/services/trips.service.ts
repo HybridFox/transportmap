@@ -1,27 +1,30 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { MongoRepository, Repository } from 'typeorm';
 import NodeCache from 'node-cache';
 import dayjs from 'dayjs';
 import { Cron } from '@nestjs/schedule';
 
-import { Agency, GTFSProcessStatus, Trip } from '~entities';
+import { Agency, CalculatedTrip, GTFSStaticStatus, Trip } from '~entities';
 import { TABLE_PROVIDERS } from '~core/providers/table.providers';
 import { redis } from '~core/instances/redis.instance';
 import { LoggingService } from '~core/services/logging.service';
 
 import { calculateTripPositions } from '../helpers/trip.helpers';
+import { mongoDataSource } from '~core/providers/database.providers';
 
 @Injectable()
 export class TripsService {
 	private tripsCache: NodeCache;
+	private tripCacheRepository: MongoRepository<CalculatedTrip>;
 
 	constructor(
 		@Inject(TABLE_PROVIDERS.TRIP_REPOSITORY) private tripRepository: Repository<Trip>,
 		@Inject(TABLE_PROVIDERS.AGENCY_REPOSITORY) private agencyRepository: Repository<Agency>,
-		@Inject(TABLE_PROVIDERS.GTFS_PROCESS_STATUS) private gtfsProcessStatus: Repository<GTFSProcessStatus>,
+		@Inject(TABLE_PROVIDERS.GTFS_STATIC_STATUS) private gtfsStaticStatus: Repository<GTFSStaticStatus>,
 		private readonly loggingService: LoggingService,
 	) {
 		this.tripsCache = new NodeCache({ stdTTL: 5 * 60, checkperiod: 5 });
+		this.tripCacheRepository = mongoDataSource.getMongoRepository(CalculatedTrip);
 	}
 
 	@Cron('*/15 * * * * *')
@@ -31,14 +34,16 @@ export class TripsService {
 
 		const agencies = await this.agencyRepository.find();
 
-		const allKeys = await redis.zrange('TRIPLOCATIONS', 0, -1);
+		const allKeys = (await this.tripCacheRepository.find({
+			select: ['id']
+		})).map(({ id }) => id);
 		agencies.forEach(async (agency) => {
-			const gtfsProcessStatus = await this.gtfsProcessStatus.findOneBy({ key: agency.id });
-			if (!gtfsProcessStatus) {
+			const gtfsStaticStatus = await this.gtfsStaticStatus.findOneBy({ key: agency.id });
+			if (!gtfsStaticStatus) {
 				return console.log(`[POSITIONS] cancelling calculating positions for ${agency.id} since a row is not found`);
 			}
 
-			if (gtfsProcessStatus.processingRealtimeData === true || gtfsProcessStatus.processingStaticData === true) {
+			if (gtfsStaticStatus.processingStaticData === true) {
 				return console.log(`[POSITIONS] cancelling calculating positions for ${agency.id} since there is a process running`);
 			}
 
@@ -55,15 +60,24 @@ export class TripsService {
 				}
 
 				i++;
-				redis.set(`TRIPS:${agency.id}:${trip.id}`, JSON.stringify(calculatedTrip));
-				redis.geoadd(`TRIPLOCATIONS`, calculatedTrip.sectionLocation.longitude, calculatedTrip.sectionLocation.latitude, trip.id);
-				redis.expire(`TRIPS:${agency.id}:${trip.id}`, 60);
+
+				await this.tripCacheRepository.findOneAndUpdate({ id: trip.id }, {
+					$set: {
+						...calculatedTrip
+					}
+				}, {
+					upsert: true
+				})
 
 				return keys.filter((key) => key !== trip.id);
 			}, Promise.resolve(allKeys));
 
 			if (leftoverKeys.length) {
-				await redis.zrem('TRIPLOCATIONS', ...leftoverKeys);
+				await this.tripCacheRepository.deleteMany({
+					id: {
+						$in: leftoverKeys
+					}
+				})
 			}
 
 			console.log(`[POSITIONS] {${agency.id}} calculation done, got ${i} trips rendered to redis, ${leftoverKeys.length} keys removed`);
@@ -101,24 +115,23 @@ export class TripsService {
 		return JSON.parse(rawTrips || '[]');
 	}
 
-	public async search(q: string): Promise<Trip[]> {
-		// const LineString = (await import('ol/geom/LineString.js')).default;
-		const trips = await this.tripRepository
-			.createQueryBuilder('trip')
-			.leftJoinAndSelect('trip.stopTimes', 'stopTime')
-			.leftJoinAndSelect('stopTime.stop', 'stop')
-			.leftJoinAndSelect('trip.calendar', 'calendar')
-			.leftJoinAndSelect('trip.route', 'route')
-			.leftJoinAndSelect('trip.calendarDates', 'calendarDate')
-			.where('LOWER(trip.name) LIKE :q', { q: `%${q.toLowerCase()}%` })
-			.andWhere('calendar.startDate < :startDate', { startDate: dayjs().format('YYYYMMDD') })
-			.andWhere('calendar.endDate > :endDate', { endDate: dayjs().format('YYYYMMDD') })
-			.andWhere('calendarDate.date = :today', { today: dayjs().format('YYYYMMDD') })
-			.andWhere(`calendarDate.exceptionType = '1'`)
-			.limit(3)
-			.getMany();
+	public async search(q: string): Promise<CalculatedTrip[]> {
+		if (q.length < 3) {
+			return []
+		}
 
-		return (await Promise.all(trips.map((trip) => calculateTripPositions(trip, this.loggingService)))).filter((x) => !!x);
+		const match = new RegExp(q, "i");
+		return this.tripCacheRepository.find({
+			limit: 10,
+			where: {
+				$or: [
+					{ name: { $regex: match } },
+					{ headsign: { $regex: match } },
+					{ 'route.name': { $regex: match } },
+					{ 'route.routeCode': { $regex: match } },
+				]
+			},
+		})
 	}
 
 	public async getOne(tripId: string): Promise<Trip> {

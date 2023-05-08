@@ -7,9 +7,12 @@ import { Trip } from './Trip.entity';
 import { StopTime } from './StopTime.entity';
 import { Transfer } from './Transfer.entity';
 import { Translation } from './Translation.entity';
-import { GTFSProcessStatus } from './GTFSProcessStatus.entity';
+import { GTFSStaticStatus } from './GTFSStaticStatus.entity';
+import { GTFSRealtimeStatus } from './GTFSRealtimeStatus.entity';
+import { CalculatedTrip } from './CalculatedTrip.entity';
 
-export const Entities = [Agency, Calendar, CalendarDate, Route, Stop, StopTime, Transfer, Translation, Trip, GTFSProcessStatus];
+export const PostgresEntities = [Agency, Calendar, CalendarDate, Route, Stop, StopTime, Transfer, Translation, Trip, GTFSStaticStatus, GTFSRealtimeStatus];
+export const MongoEntities = [CalculatedTrip]
 
 export { Agency } from './Agency.entity';
 export { Calendar } from './Calendar.entity';
@@ -20,4 +23,6 @@ export { StopTime } from './StopTime.entity';
 export { Transfer } from './Transfer.entity';
 export { Translation } from './Translation.entity';
 export { Trip } from './Trip.entity';
-export { GTFSProcessStatus } from './GTFSProcessStatus.entity';
+export { GTFSStaticStatus } from './GTFSStaticStatus.entity';
+export { GTFSRealtimeStatus } from './GTFSRealtimeStatus.entity';
+export { CalculatedTrip } from './CalculatedTrip.entity';

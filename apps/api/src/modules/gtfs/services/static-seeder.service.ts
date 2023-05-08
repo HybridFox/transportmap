@@ -10,7 +10,7 @@ import * as AdmZip from 'adm-zip';
 import { Repository } from 'typeorm';
 import { Cron } from '@nestjs/schedule';
 
-import { GTFSProcessStatus } from '~entities';
+import { GTFSStaticStatus } from '~entities';
 import { TABLE_PROVIDERS } from '~core/providers/table.providers';
 
 import {
@@ -38,7 +38,7 @@ export class StaticSeederService {
 		private readonly stopSeederService: StopSeederService,
 		private readonly translationSeederService: TranslationSeederService,
 		private readonly stopTimeOverrideSeederService: StopTimeOverrideSeederService,
-		@Inject(TABLE_PROVIDERS.GTFS_PROCESS_STATUS) private gtfsProcessStatus: Repository<GTFSProcessStatus>,
+		@Inject(TABLE_PROVIDERS.GTFS_STATIC_STATUS) private gtfsProcessStatus: Repository<GTFSStaticStatus>,
 	) {}
 
 	@Command({
@@ -93,6 +93,8 @@ export class StaticSeederService {
 			// TODO: Eventually add support for transfer.
 			// await this.transferService.seed(id, agencyId);
 
+			await this.stopTimeOverrideSeederService.seed(id, agencyId);
+
 			await this.gtfsProcessStatus.upsert(
 				{
 					key: agencyId,
@@ -100,8 +102,6 @@ export class StaticSeederService {
 				},
 				['key'],
 			);
-
-			await this.stopTimeOverrideSeederService.seed(id, agencyId);
 
 			fs.unlinkSync(`${__dirname}/../../../../tmp/rawdata_${id}.zip`);
 			fs.rmSync(`${__dirname}/../../../../tmp/${id}`, { recursive: true, force: true });

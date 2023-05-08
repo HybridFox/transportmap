@@ -9,7 +9,7 @@ import async from 'async';
 import { Cron } from '@nestjs/schedule';
 import * as cliProgress from 'cli-progress';
 
-import { GTFSProcessStatus, StopTime } from '~entities';
+import { GTFSRealtimeStatus, GTFSStaticStatus, StopTime } from '~entities';
 import { TABLE_PROVIDERS } from '~core/providers/table.providers';
 import { SentryMessage, SentrySeverity } from '~core/enum/sentry.enum';
 import { LoggingService } from '~core/services/logging.service';
@@ -22,7 +22,8 @@ dayjs.extend(customParseFormat);
 @Injectable()
 export class RealtimeProcessorService {
 	constructor(
-		@Inject(TABLE_PROVIDERS.GTFS_PROCESS_STATUS) private gtfsProcessStatus: Repository<GTFSProcessStatus>,
+		@Inject(TABLE_PROVIDERS.GTFS_STATIC_STATUS) private gtfsStaticStatus: Repository<GTFSStaticStatus>,
+		@Inject(TABLE_PROVIDERS.GTFS_REALTIME_STATUS) private gtfsRealtimeStatus: Repository<GTFSRealtimeStatus>,
 		@Inject(TABLE_PROVIDERS.STOP_TIME_REPOSITORY) private stopTimeRepository: Repository<StopTime>,
 		private readonly loggingService: LoggingService,
 	) {}
@@ -50,16 +51,18 @@ export class RealtimeProcessorService {
 
 			console.log(`[REALTIME_SEED] seeding ${key}`);
 
-			const gtfsProcessStatus = await this.gtfsProcessStatus.findOneBy({ key });
-			if (!gtfsProcessStatus) {
-				return console.log(`[REALTIME_SEED] cancelling seeding for ${key} since a row is not found`);
+			const gtfsStaticStatus = await this.gtfsStaticStatus.findOneBy({ key });
+			const gtfsRealtimeStatus = await this.gtfsRealtimeStatus.findOneBy({ key });
+
+			if (!gtfsStaticStatus) {
+				return console.log(`[REALTIME_SEED] cancelling static seeding for ${key} since a row is not found`);
 			}
 
-			if (gtfsProcessStatus.processingRealtimeData === true || gtfsProcessStatus.processingStaticData === true) {
-				return console.log(`[REALTIME_SEED] cancelling seeding for ${key} since there is a process running`);
+			if (gtfsStaticStatus.processingStaticData === true) {
+				return console.log(`[REALTIME_SEED] cancelling seeding for ${key} since there is a static import running`);
 			}
 
-			const lastTimestamp = gtfsProcessStatus?.lastRealtimeMessageTimestamp || 0;
+			const lastTimestamp = gtfsRealtimeStatus?.lastRealtimeMessageTimestamp || 0;
 			console.log(`[REALTIME_SEED] last timestamp was "${lastTimestamp}"`);
 
 			console.log('[REALTIME_SEED] grabbing protobuf');
@@ -127,7 +130,7 @@ export class RealtimeProcessorService {
 				progressBar.stop();
 				console.log('[REALTIME_SEED] updating realtime done');
 				const newTimestamp = Math.max(...feedMessages.map((feedMessage) => feedMessage.tripUpdate.timestamp));
-				await this.gtfsProcessStatus.upsert(
+				await this.gtfsRealtimeStatus.upsert(
 					{
 						key,
 						lastRealtimeMessageTimestamp: newTimestamp,

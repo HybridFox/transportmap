@@ -1,29 +1,35 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, Post, Query } from '@nestjs/common';
 
-import { Trip } from '~entities';
-import { redis } from '~core/instances/redis.instance';
+import { CalculatedTrip, Trip } from '~entities';
 
 import { CompositionService } from '../services/composition.service';
 import { TripsService } from '../services/trips.service';
+import { MongoRepository } from 'typeorm';
+import { mongoDataSource } from '~core/providers/database.providers';
 
 @Controller('v1/trips')
 export class TripsController {
+	private tripCacheRepository: MongoRepository<CalculatedTrip>;
+
 	constructor(
 		private readonly tripsService: TripsService,
-		private readonly compositionService: CompositionService,
-	) {}
+		private readonly compositionService: CompositionService
+	) {
+		this.tripCacheRepository = mongoDataSource.getMongoRepository(CalculatedTrip);
+	}
 
 	@Get()
-	public async getAll(@Query('q') q: string): Promise<Trip[]> {
+	public async getAll(@Query('q') q: string): Promise<CalculatedTrip[]> {
 		return this.tripsService.search(q);
 	}
 
 	@Get(':tripId')
 	public async getOne(@Param('tripId') tripId: string): Promise<any> {
 		// const trip = await this.tripsService.getOne(tripId);
-		const rawTrip = await redis.get(`TRIPS:NMBS/SNCB:${tripId}`);
-		const trip = JSON.parse(rawTrip);
-
+		const trip = await this.tripCacheRepository.findOne({ where: { 
+			id: tripId
+		} });
+		
 		const composition = await this.compositionService.getCachedComposition(trip.name);
 		// const preciseRoute = await this.geoService.getPreciseRoute(trip.stopTimes);
 
