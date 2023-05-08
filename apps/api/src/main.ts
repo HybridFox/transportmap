@@ -5,7 +5,14 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
-	
+
+	const httpServer = app.getHttpServer();
+	httpServer.use(Sentry.Handlers.requestHandler());
+	// TracingHandler creates a trace for every incoming request
+	httpServer.use(Sentry.Handlers.tracingHandler());
+
+	// the rest of your httpServer
+
 	const globalPrefix = 'api';
 	app.setGlobalPrefix(globalPrefix);
 	const port = process.env.PORT || 3000;
@@ -21,6 +28,7 @@ async function bootstrap() {
 	});
 
 	console.log(`🚀 Application is running on: http://localhost:${port}/${globalPrefix}`);
+	httpServer.use(Sentry.Handlers.errorHandler());
 }
 
 bootstrap();
