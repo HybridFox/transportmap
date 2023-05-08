@@ -66,11 +66,11 @@ export class StaticSeederService {
 
 			const id = randomBytes(20).toString('hex');
 			console.log(`[SEED] {${key}} saving file ${id}.zip`);
-			await promisePipeline(got.stream(staticSourceUrl), fs.createWriteStream(`${__dirname}/../../../../tmp/rawdata_${id}.zip`));
+			await promisePipeline(got.stream(staticSourceUrl), fs.createWriteStream(`${__dirname}/../../tmp/rawdata_${id}.zip`));
 
 			console.log(`[SEED] {${key}} unzipping file ${id}`);
 			const zipFile = new AdmZip(`${__dirname}/../../../../tmp/rawdata_${id}.zip`);
-			await new Promise((resolve) => zipFile.extractAllToAsync(`${__dirname}/../../../../tmp/${id}`, false, false, resolve));
+			await new Promise((resolve) => zipFile.extractAllToAsync(`${__dirname}/../../tmp/${id}`, false, false, resolve));
 
 			console.log(`[SEED] {${key}} passing files to seeders`);
 			const agencyId = await this.agencySeederService.seed(id);
@@ -103,8 +103,8 @@ export class StaticSeederService {
 				['key'],
 			);
 
-			fs.unlinkSync(`${__dirname}/../../../../tmp/rawdata_${id}.zip`);
-			fs.rmSync(`${__dirname}/../../../../tmp/${id}`, { recursive: true, force: true });
+			fs.unlinkSync(`${__dirname}/../../tmp/rawdata_${id}.zip`);
+			fs.rmSync(`${__dirname}/../../tmp/${id}`, { recursive: true, force: true });
 
 			console.log(`[SEED] {${key}} seeding done`);
 		}, Promise.resolve());
