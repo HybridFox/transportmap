@@ -47,7 +47,7 @@ export class TripsGateway {
 		console.time('calc');
 		const calculatedTrips = trips
 			.filter((trip) => !!trip)
-			.map((trip) => pick(['osrmRoute', 'route', 'sections', 'id'])(trip));
+			.map((trip) => pick(['osrmRoute', 'route', 'sections', 'id', 'name'])(trip));
 		console.timeEnd('calc');
 
 		console.time('socket');

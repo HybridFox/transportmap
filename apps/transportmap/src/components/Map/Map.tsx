@@ -323,7 +323,7 @@ export const MapComponent: FC<Props> = ({ userLocation, activeTrip }: Props) => 
 					osrmRoute: trip.osrmRoute
 				});
 
-				feature.setStyle(MAP_ICON_STYLES()['normal'][trip.route.routeCode.replaceAll(/[0-9]/g, '')]);
+				feature.setStyle(MAP_ICON_STYLES(trip)['normal'][trip.route.routeCode.replaceAll(/[0-9]/g, '')]);
 
 				return [...acc, feature];
 			}, [] as any[])
