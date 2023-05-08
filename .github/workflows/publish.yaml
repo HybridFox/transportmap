@@ -20,10 +20,10 @@ jobs:
             - name: Cache Docker layers
               uses: actions/cache@v2
               with:
-                path: /tmp/.buildx-cache
-                key: ${{ runner.os }}-multi-buildx-${{ github.sha }}
+                  path: /tmp/.buildx-cache
+                  key: ${{ runner.os }}-multi-buildx-${{ github.sha }}
                   restore-keys: |
-                    ${{ runner.os }}-multi-buildx
+                      ${{ runner.os }}-multi-buildx
             - name: Docker meta
               id: meta
               uses: docker/metadata-action@v4
@@ -67,10 +67,10 @@ jobs:
             - name: Cache Docker layers
               uses: actions/cache@v2
               with:
-                path: /tmp/.buildx-cache
-                key: ${{ runner.os }}-multi-buildx-${{ github.sha }}
+                  path: /tmp/.buildx-cache
+                  key: ${{ runner.os }}-multi-buildx-${{ github.sha }}
                   restore-keys: |
-                    ${{ runner.os }}-multi-buildx
+                      ${{ runner.os }}-multi-buildx
             - name: Docker meta
               id: meta
               uses: docker/metadata-action@v4
