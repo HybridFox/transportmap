@@ -7,7 +7,7 @@ async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
 
 	Sentry.init({
-		dsn: 'https://ac6c52be3ace4786b56f808e949d7b36@sentry.ibs.sh/2',
+		dsn: process.env.SENTRY_DSN,
 	});
 
 	const globalPrefix = 'api';
