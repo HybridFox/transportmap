@@ -22,7 +22,8 @@ async function bootstrap() {
 		tracesSampleRate: 1.0,
 		integrations: [
 			// enable HTTP calls tracing
-			new Sentry.Integrations.Http({ tracing: true })
+			new Sentry.Integrations.Http({ tracing: true }),
+			...Sentry.autoDiscoverNodePerformanceMonitoringIntegrations(),
 		],
 	});
 
