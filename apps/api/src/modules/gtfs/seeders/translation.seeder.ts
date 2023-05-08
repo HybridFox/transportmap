@@ -14,7 +14,7 @@ export class TranslationSeederService {
 	constructor(@Inject(TABLE_PROVIDERS.TRANSLATION_REPOSITORY) private translationRepository: Repository<Translation>) {}
 
 	public async seed(temporaryIdentifier: string, agencyId: string) {
-		const routeCsv = fs.readFileSync(`${__dirname}/../../../../tmp/${temporaryIdentifier}/translations.txt`, 'utf-8');
+		const routeCsv = fs.readFileSync(`${__dirname}/../../tmp/${temporaryIdentifier}/translations.txt`, 'utf-8');
 		const parser = parse(routeCsv, {
 			columns: true,
 			relax_column_count: true,

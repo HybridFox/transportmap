@@ -14,7 +14,7 @@ export class CalendarSeederService {
 	constructor(@Inject(TABLE_PROVIDERS.CALENDAR_REPOSITORY) private calendarRepository: Repository<Calendar>) {}
 
 	public async seed(temporaryIdentifier: string, agencyId: string) {
-		const routeCsv = fs.readFileSync(`${__dirname}/../../../../tmp/${temporaryIdentifier}/calendar.txt`, 'utf-8');
+		const routeCsv = fs.readFileSync(`${__dirname}/../../tmp/${temporaryIdentifier}/calendar.txt`, 'utf-8');
 		const parser = parse(routeCsv, {
 			columns: true,
 			relax_column_count: true,

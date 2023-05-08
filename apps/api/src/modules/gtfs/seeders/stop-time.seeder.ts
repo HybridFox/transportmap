@@ -14,7 +14,7 @@ export class StopTimeSeederService {
 	constructor(@Inject(TABLE_PROVIDERS.STOP_TIME_REPOSITORY) private stopTimeRepository: Repository<StopTime>) {}
 
 	public async seed(temporaryIdentifier: string, agencyId: string) {
-		const routeCsv = fs.readFileSync(`${__dirname}/../../../../tmp/${temporaryIdentifier}/stop_times.txt`, 'utf-8');
+		const routeCsv = fs.readFileSync(`${__dirname}/../../tmp/${temporaryIdentifier}/stop_times.txt`, 'utf-8');
 		const parser = parse(routeCsv, {
 			columns: true,
 			relax_column_count: true,

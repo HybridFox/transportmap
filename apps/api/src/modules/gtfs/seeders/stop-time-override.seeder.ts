@@ -14,7 +14,7 @@ export class StopTimeOverrideSeederService {
 	constructor(@Inject(TABLE_PROVIDERS.STOP_TIME_REPOSITORY) private stopTimeRepository: Repository<StopTime>) {}
 
 	public async seed(temporaryIdentifier: string, agencyId: string) {
-		const routeCsv = fs.readFileSync(`${__dirname}/../../../../tmp/${temporaryIdentifier}/stop_time_overrides.txt`, 'utf-8');
+		const routeCsv = fs.readFileSync(`${__dirname}/../../tmp/${temporaryIdentifier}/stop_time_overrides.txt`, 'utf-8');
 		const progressBar = new cliProgress.SingleBar(
 			{
 				fps: 30,

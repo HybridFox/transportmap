@@ -14,7 +14,7 @@ export class RouteSeederService {
 	constructor(@Inject(TABLE_PROVIDERS.ROUTE_REPOSITORY) private routeRepository: Repository<Route>) {}
 
 	public async seed(temporaryIdentifier: string, agencyId: string) {
-		const routeCsv = fs.readFileSync(`${__dirname}/../../../../tmp/${temporaryIdentifier}/routes.txt`, 'utf-8');
+		const routeCsv = fs.readFileSync(`${__dirname}/../../tmp/${temporaryIdentifier}/routes.txt`, 'utf-8');
 		const parser = parse(routeCsv, {
 			columns: true,
 			relax_column_count: true,

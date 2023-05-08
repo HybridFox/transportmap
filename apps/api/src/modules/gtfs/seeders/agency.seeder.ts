@@ -12,7 +12,7 @@ export class AgencySeederService {
 	constructor(@Inject(TABLE_PROVIDERS.AGENCY_REPOSITORY) private agencyRepository: Repository<Agency>) {}
 
 	public async seed(temporaryIdentifier: string): Promise<string> {
-		const routeCsv = fs.readFileSync(`${__dirname}/../../../../tmp/${temporaryIdentifier}/agency.txt`, 'utf-8');
+		const routeCsv = fs.readFileSync(`${__dirname}/../../tmp/${temporaryIdentifier}/agency.txt`, 'utf-8');
 		const records = parse(routeCsv, {
 			columns: true,
 			relax_column_count: true,
