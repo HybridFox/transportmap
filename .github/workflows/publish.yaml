@@ -38,6 +38,8 @@ jobs:
                   platforms: linux/amd64,linux/arm/v7,linux/arm64/v8
                   tags: ${{ steps.meta.outputs.tags }}
                   labels: ${{ steps.meta.outputs.labels }}
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
 
     push_api_to_registry:
         name: build apps/api
@@ -72,6 +74,8 @@ jobs:
                   platforms: linux/amd64,linux/arm/v7,linux/arm64/v8
                   tags: ${{ steps.meta.outputs.tags }}
                   labels: ${{ steps.meta.outputs.labels }}
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
 
     deploy:
         needs: [push_app_to_registry, push_api_to_registry]
