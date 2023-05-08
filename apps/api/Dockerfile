@@ -7,12 +7,10 @@ ENV NODE_ENV build
 USER node
 WORKDIR /home/node
 
-COPY package.json package-lock.json* /home/node/
+COPY --chown=node:node . /home/node
 
 RUN npm ci \
     && NX_DAEMON=false npm run nx run api:build -- --verbose
-
-COPY --chown=node:node . /home/node
 
 # ---
 
