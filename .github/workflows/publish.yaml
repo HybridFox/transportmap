@@ -21,7 +21,7 @@ jobs:
               uses: actions/cache@v2
               with:
                   path: /tmp/.buildx-cache
-                  key: ${{ runner.os }}-app-buildx-${{ github.sha }}
+                  key: ${{ runner.os }}-app-buildx
                   restore-keys: |
                       ${{ runner.os }}-app-buildx
             - name: Docker meta
@@ -42,7 +42,7 @@ jobs:
                   push: true
                   context: .
                   file: ./apps/transportmap/Dockerfile
-                  platforms: linux/amd64,linux/arm/v7,linux/arm64/v8
+                  platforms: linux/amd64
                   tags: ${{ steps.meta.outputs.tags }}
                   labels: ${{ steps.meta.outputs.labels }}
                   cache-from: type=local,src=/tmp/.buildx-cache
@@ -68,7 +68,7 @@ jobs:
               uses: actions/cache@v2
               with:
                   path: /tmp/.buildx-cache
-                  key: ${{ runner.os }}-api-buildx-${{ github.sha }}
+                  key: ${{ runner.os }}-api-buildx
                   restore-keys: |
                       ${{ runner.os }}-api-buildx
             - name: Docker meta
@@ -89,7 +89,7 @@ jobs:
                   push: true
                   context: .
                   file: ./apps/api/Dockerfile
-                  platforms: linux/amd64,linux/arm/v7,linux/arm64/v8
+                  platforms: linux/amd64
                   tags: ${{ steps.meta.outputs.tags }}
                   labels: ${{ steps.meta.outputs.labels }}
                   cache-from: type=local,src=/tmp/.buildx-cache
