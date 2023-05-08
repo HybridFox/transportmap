@@ -69,7 +69,7 @@ export class StaticSeederService {
 			await promisePipeline(got.stream(staticSourceUrl), fs.createWriteStream(`${__dirname}/../../tmp/rawdata_${id}.zip`));
 
 			console.log(`[SEED] {${key}} unzipping file ${id}`);
-			const zipFile = new AdmZip(`${__dirname}/../../../../tmp/rawdata_${id}.zip`);
+			const zipFile = new AdmZip(`${__dirname}/../../tmp/rawdata_${id}.zip`);
 			await new Promise((resolve) => zipFile.extractAllToAsync(`${__dirname}/../../tmp/${id}`, false, false, resolve));
 
 			console.log(`[SEED] {${key}} passing files to seeders`);
