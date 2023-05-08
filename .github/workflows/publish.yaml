@@ -21,9 +21,9 @@ jobs:
               uses: actions/cache@v2
               with:
                   path: /tmp/.buildx-cache
-                  key: ${{ runner.os }}-multi-buildx-${{ github.sha }}
+                  key: ${{ runner.os }}-app-buildx-${{ github.sha }}
                   restore-keys: |
-                      ${{ runner.os }}-multi-buildx
+                      ${{ runner.os }}-app-buildx
             - name: Docker meta
               id: meta
               uses: docker/metadata-action@v4
@@ -68,9 +68,9 @@ jobs:
               uses: actions/cache@v2
               with:
                   path: /tmp/.buildx-cache
-                  key: ${{ runner.os }}-multi-buildx-${{ github.sha }}
+                  key: ${{ runner.os }}-api-buildx-${{ github.sha }}
                   restore-keys: |
-                      ${{ runner.os }}-multi-buildx
+                      ${{ runner.os }}-api-buildx
             - name: Docker meta
               id: meta
               uses: docker/metadata-action@v4
