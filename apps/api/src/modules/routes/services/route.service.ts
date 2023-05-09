@@ -1,13 +1,6 @@
-import * as fs from 'fs';
-import { randomUUID } from 'crypto';
-
 import { Inject, Injectable } from '@nestjs/common';
-import { Command } from 'nestjs-command';
-import { parse } from 'csv-parse';
-import { Repository, SelectQueryBuilder } from 'typeorm';
-
-import { Agency, Calendar, CalendarDate, Route, Stop, StopTime, Transfer, Translation, Trip } from '~entities';
-import { TABLE_PROVIDERS } from '~core/providers/table.providers';
+import { Repository } from 'typeorm';
+import { Route, TABLE_PROVIDERS } from '@transportmap/database';
 
 type FileMap = Record<
 	string,

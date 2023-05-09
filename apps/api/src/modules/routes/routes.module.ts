@@ -1,8 +1,7 @@
 import { Module } from '@nestjs/common';
+import { columnProviders } from '@transportmap/database';
 
 import { CoreModule } from '~core/core.module';
-
-import { columnProviders } from '../../core/providers/table.providers';
 
 import { RouteController } from './controllers/route.controller';
 import { RouteService } from './services/route.service';

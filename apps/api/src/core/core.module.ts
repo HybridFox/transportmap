@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
+import { databaseProviders } from '@transportmap/database';
 
-import { databaseProviders } from './providers/database.providers';
 import { LoggingService } from './services/logging.service';
 import { SentryInterceptor } from './interceptors/sentry.interceptor';
 

@@ -6,7 +6,7 @@ import { omit, pick } from 'ramda';
 import got from 'got';
 import polyline from '@mapbox/polyline';
 
-import { StopTime, Trip } from '~entities';
+import { StopTime, Trip } from '@transportmap/database';
 import { redis } from '~core/instances/redis.instance';
 import { SentryMessage, SentrySeverity } from '~core/enum/sentry.enum';
 import { LoggingService } from '~core/services/logging.service';

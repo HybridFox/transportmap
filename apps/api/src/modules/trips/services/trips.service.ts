@@ -3,14 +3,12 @@ import { MongoRepository, Repository } from 'typeorm';
 import NodeCache from 'node-cache';
 import dayjs from 'dayjs';
 import { Cron } from '@nestjs/schedule';
+import { Agency, CalculatedTrip, GTFSStaticStatus, Trip, TABLE_PROVIDERS, mongoDataSource } from '@transportmap/database';
 
-import { Agency, CalculatedTrip, GTFSStaticStatus, Trip } from '~entities';
-import { TABLE_PROVIDERS } from '~core/providers/table.providers';
 import { redis } from '~core/instances/redis.instance';
 import { LoggingService } from '~core/services/logging.service';
 
 import { calculateTripPositions } from '../helpers/trip.helpers';
-import { mongoDataSource } from '~core/providers/database.providers';
 
 @Injectable()
 export class TripsService {
@@ -102,7 +100,6 @@ export class TripsService {
 				.leftJoinAndSelect('trip.calendar', 'calendar')
 				.leftJoinAndSelect('trip.route', 'route')
 				.leftJoinAndSelect('trip.calendarDates', 'calendarDate')
-				.andWhere('trip.agencyId = :agencyId', { agencyId })
 				.andWhere('calendar.startDate < :startDate', { startDate: dayjs().format('YYYYMMDD') })
 				.andWhere('calendar.endDate > :endDate', { endDate: dayjs().format('YYYYMMDD') })
 				.andWhere('calendarDate.date = :today', { today: dayjs().format('YYYYMMDD') })

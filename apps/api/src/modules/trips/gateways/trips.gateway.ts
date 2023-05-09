@@ -5,8 +5,7 @@ import { pick } from 'ramda';
 import { MongoRepository } from 'typeorm';
 
 // import { redis } from '~core/instances/redis.instance';
-import { mongoDataSource } from '~core/providers/database.providers';
-import { CalculatedTrip } from '~core/entities';
+import { CalculatedTrip, mongoDataSource } from '@transportmap/database';
 
 @Injectable()
 @WebSocketGateway(undefined, { transports: ['websocket'] })

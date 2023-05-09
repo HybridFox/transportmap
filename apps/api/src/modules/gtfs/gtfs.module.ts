@@ -1,16 +1,16 @@
 import { Module } from '@nestjs/common';
+import { columnProviders } from '@transportmap/database';
 
-import { CoreModule } from '~core/core.module';
-import { columnProviders } from '~core/providers/table.providers';
+import { CoreModule } from '../../core/core.module';
 
-import { StaticSeederService } from './services/static-seeder.service';
-import { Seeders } from './seeders';
+import { StaticStaticProducerService } from './services/static-producer.service';
+import { StaticProducers } from './static-producers';
 import { RealtimeProcessorService } from './services/realtime-processor.service';
 import { GtfsController } from './controllers/gtfs.controller';
 
 @Module({
 	imports: [CoreModule],
 	controllers: [GtfsController],
-	providers: [StaticSeederService, RealtimeProcessorService, ...Seeders, ...columnProviders],
+	providers: [StaticStaticProducerService, RealtimeProcessorService, ...StaticProducers, ...columnProviders],
 })
 export class GTFSModule {}

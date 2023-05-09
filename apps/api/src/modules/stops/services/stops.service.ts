@@ -1,9 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import dayjs from 'dayjs';
-
-import { TABLE_PROVIDERS } from '~core/providers/table.providers';
-import { Calendar, Stop } from '~entities';
+import { Stop, TABLE_PROVIDERS } from '@transportmap/database';
 
 @Injectable()
 export class StopsService {

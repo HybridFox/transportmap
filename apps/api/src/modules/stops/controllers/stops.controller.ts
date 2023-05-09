@@ -1,6 +1,6 @@
 import { Controller, Get, Param } from '@nestjs/common';
 
-import { Stop } from '~entities';
+import { Stop } from '@transportmap/database';
 
 import { StopsService } from '../services/stops.service';
 

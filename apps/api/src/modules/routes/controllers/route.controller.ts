@@ -1,6 +1,6 @@
 import { Controller, Get, Param } from '@nestjs/common';
 
-import { Route } from '~entities';
+import { Route } from '@transportmap/database';
 
 import { RouteService } from '../services/route.service';
 

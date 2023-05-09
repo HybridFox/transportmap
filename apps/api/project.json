@@ -26,6 +26,7 @@
 			"executor": "@nx/js:node",
 			"defaultConfiguration": "development",
 			"options": {
+				"host": "0.0.0.0",
 				"buildTarget": "api:build"
 			},
 			"configurations": {

@@ -1,11 +1,9 @@
 import { Controller, Get, Param, Post, Query } from '@nestjs/common';
-
-import { CalculatedTrip, Trip } from '~entities';
+import { CalculatedTrip, mongoDataSource } from '@transportmap/database';
+import { MongoRepository } from 'typeorm';
 
 import { CompositionService } from '../services/composition.service';
 import { TripsService } from '../services/trips.service';
-import { MongoRepository } from 'typeorm';
-import { mongoDataSource } from '~core/providers/database.providers';
 
 @Controller('v1/trips')
 export class TripsController {

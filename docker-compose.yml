@@ -1,4 +1,4 @@
-version: "3"
+version: '3'
 
 x-default-options: &default-options
     tty: true
@@ -17,11 +17,32 @@ x-default-options: &default-options
         - node-modules-data:/app/node_modules
 
 services:
-    server:
-        container_name: transportmap-server
+    api:
+        container_name: transportmap-api
         command: npm run nx run api:serve -- --verbose
         ports:
-            - 3001:3001
+            - 3001:3000
+            - 9229:9229
+        depends_on:
+            - kafka
+            - zookeeper
+            - postgres
+            - mongo
+        env_file:
+            - ./.env/local.env
+        <<: *default-options
+
+    static-processor:
+        container_name: transportmap-sp
+        command: npm run nx run static-processor:serve -- --verbose
+        ports:
+            - 3002:3000
+            - 4002:9229
+        depends_on:
+            - kafka
+            - zookeeper
+            - postgres
+            - mongo
         env_file:
             - ./.env/local.env
         <<: *default-options
@@ -36,7 +57,7 @@ services:
         <<: *default-options
 
     postgres:
-        image: "postgres:15.2-alpine"
+        image: 'postgres:15.2-alpine'
         container_name: transportmap-postgres
         ports:
             - 5432:5432
@@ -50,7 +71,7 @@ services:
             - transportmap
 
     mongo:
-        image: "mongo:6.0"
+        image: 'mongo:6.0'
         container_name: transportmap-mongo
         ports:
             - 27017:27017
@@ -64,7 +85,7 @@ services:
             - transportmap
 
     redis:
-        image: "redis:7.0.3-alpine"
+        image: 'redis:7.0.3-alpine'
         container_name: transportmap-redis
         ports:
             - 6379:6379
@@ -72,7 +93,7 @@ services:
             - transportmap
 
     osrm:
-        image: "ghcr.io/project-osrm/osrm-backend:v5.27.1"
+        image: 'ghcr.io/project-osrm/osrm-backend:v5.27.1'
         command: osrm-routed --algorithm mld /data/map-data/map.osrm
         container_name: osrm
         ports:
@@ -82,16 +103,61 @@ services:
         networks:
             - transportmap
 
-    redis-commander:
-        container_name: transportmap-redis-commander
-        image: ghcr.io/joeferner/redis-commander:latest
-        restart: always
-        environment:
-            - REDIS_HOSTS=local:redis:6379
-        ports:
-            - 8081:8081
+    # redis-commander:
+    #     container_name: transportmap-redis-commander
+    #     image: ghcr.io/joeferner/redis-commander:latest
+    #     restart: always
+    #     environment:
+    #         - REDIS_HOSTS=local:redis:6379
+    #     ports:
+    #         - 8081:8081
+    #     networks:
+    #         - transportmap
+
+    zookeeper:
+        image: wurstmeister/zookeeper
+        container_name: transportmap-zookeeper
         networks:
             - transportmap
+        ports:
+            - 2181:2181
+
+    kafka:
+        image: wurstmeister/kafka
+        container_name: transportmap-kafka
+        depends_on:
+            - zookeeper
+        networks:
+            - transportmap
+        environment:
+            KAFKA_PORT: 9092
+            KAFKA_BROKER_ID: 0
+            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'DOCKER:PLAINTEXT,EXTERNAL:PLAINTEXT,CLIENT:PLAINTEXT'
+            KAFKA_LISTENERS: 'DOCKER://:9092,EXTERNAL://:29092,CLIENT://:29093'
+            KAFKA_ADVERTISED_LISTENERS: 'DOCKER://host.docker.internal:9092,EXTERNAL://localhost:29092,CLIENT://kafka:29092'
+            KAFKA_CREATE_TOPICS: 'transportmap.static-import.stop-time.json:1:1,transportmap.static-import.stop.json:1:1,transportmap.static-import.agency.json:1:1,transportmap.static-import.calendar-date.json:1:1,transportmap.static-import.calendar.json:1:1,transportmap.static-import.route.json:1:1,transportmap.static-import.translation.json:1:1,transportmap.static-import.trip.json:1:1'
+            KAFKA_ZOOKEEPER_CONNECT: 'transportmap-zookeeper:2181'
+            KAFKA_INTER_BROKER_LISTENER_NAME: 'CLIENT'
+        ports:
+            - 29092:29092
+            - 29093:29093
+            - 9092:9092
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+
+    kafka-ui:
+        container_name: kafka-ui
+        image: provectuslabs/kafka-ui:latest
+        ports:
+            - 8080:8080
+        depends_on:
+            - kafka
+            - zookeeper
+        networks:
+            - transportmap
+        environment:
+            KAFKA_CLUSTERS_0_NAME: local
+            KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: transportmap-kafka:9092
 
 volumes:
     redis-data:

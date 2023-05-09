@@ -6,11 +6,10 @@ import { Repository } from 'typeorm';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import async from 'async';
-import { Cron } from '@nestjs/schedule';
 import * as cliProgress from 'cli-progress';
+import { GTFSRealtimeStatus, GTFSStaticStatus, StopTime, TABLE_PROVIDERS } from '@transportmap/database';
+import { Cron } from '@nestjs/schedule';
 
-import { GTFSRealtimeStatus, GTFSStaticStatus, StopTime } from '~entities';
-import { TABLE_PROVIDERS } from '~core/providers/table.providers';
 import { SentryMessage, SentrySeverity } from '~core/enum/sentry.enum';
 import { LoggingService } from '~core/services/logging.service';
 

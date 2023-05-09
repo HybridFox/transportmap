@@ -1,4 +1,4 @@
-import * as path from 'path';
+// import * as path from 'path';
 
 import { Module } from '@nestjs/common';
 import { CommandModule } from 'nestjs-command';
@@ -25,7 +25,7 @@ import { TripsModule } from './modules/trips/trips.module';
 		// 	rootPath: path.join(__dirname, '../..', 'src/modules/trips/static'),
 		// 	serveRoot: '/static',
 		// }),
-		ScheduleModule.forRoot(),
+		ScheduleModule.forRoot()
 	],
 	controllers: [],
 	providers: [
