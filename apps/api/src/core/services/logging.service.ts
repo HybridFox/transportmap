@@ -11,7 +11,7 @@ export class LoggingService {
 		try {
 			const eventId = Sentry.captureMessage(message, {
 				level: severity,
-				contexts: debugInfo,
+				extra: debugInfo,
 				tags: {
 					message,
 				},
@@ -25,7 +25,7 @@ export class LoggingService {
 	public captureException(exception: Exception, message: SentryMessage, severity: SentrySeverity, debugInfo: any): void {
 		Sentry.captureException(exception, {
 			level: severity,
-			contexts: debugInfo,
+			extra: debugInfo,
 			tags: {
 				message,
 			},
