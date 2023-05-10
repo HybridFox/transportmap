@@ -146,7 +146,7 @@ jobs:
                   rm -rf /tmp/.buildx-cache
                   mv /tmp/.buildx-cache-new /tmp/.buildx-cache
     deploy:
-        needs: [push_app_to_registry, push_api_to_registry]
+        needs: [push_app_to_registry, push_api_to_registry, push_sp_to_registry]
         runs-on: ubuntu-latest
         steps:
             - name: curl

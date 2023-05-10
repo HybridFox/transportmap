@@ -4,6 +4,7 @@ import NodeCache from 'node-cache';
 import dayjs from 'dayjs';
 import { Cron } from '@nestjs/schedule';
 import { Agency, CalculatedTrip, GTFSStaticStatus, Trip, TABLE_PROVIDERS, mongoDataSource } from '@transportmap/database';
+import { pick } from 'ramda';
 
 import { redis } from '~core/instances/redis.instance';
 import { LoggingService } from '~core/services/logging.service';
@@ -112,23 +113,30 @@ export class TripsService {
 		return JSON.parse(rawTrips || '[]');
 	}
 
-	public async search(q: string): Promise<CalculatedTrip[]> {
-		if (q.length < 3) {
+	public async search(query: Record<string, string>): Promise<Partial<CalculatedTrip>[]> {
+		if (query.q && query.q.length < 3) {
 			return []
 		}
-
-		const match = new RegExp(q, "i");
-		return this.tripCacheRepository.find({
+		
+		const match = new RegExp(query.q, "i");
+		const trips = await this.tripCacheRepository.find({
 			limit: 10,
 			where: {
-				$or: [
-					{ name: { $regex: match } },
-					{ headsign: { $regex: match } },
-					{ 'route.name': { $regex: match } },
-					{ 'route.routeCode': { $regex: match } },
-				]
+				...(query.q && {
+					$or: [
+						{ name: { $regex: match } },
+						{ headsign: { $regex: match } },
+						{ 'route.name': { $regex: match } },
+						{ 'route.routeCode': { $regex: match } },
+					]
+				}),
+				...(query.west && query.north && query.east && query.south && {
+					'sectionLocation': { $geoWithin: { $box:  [ [Number(query.west), Number(query.north)], [Number(query.east), Number(query.south)] ] } }
+				})
 			},
 		})
+
+		return trips.map((trip) => pick(['osrmRoute', 'route', 'sections', 'id', 'name'])(trip))
 	}
 
 	public async getOne(tripId: string): Promise<Trip> {

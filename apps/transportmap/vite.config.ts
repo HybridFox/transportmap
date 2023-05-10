@@ -16,9 +16,10 @@ export default defineConfig({
 			'/static': {
 				target: 'http://host.docker.internal:3001',
 			},
-			'/socket.io': {
+			'/ws': {
 				target: 'http://host.docker.internal:3001',
 				ws: true,
+				rewrite: (path) => path.replace(/^\/ws/, ''),
 			},
 		},
 	},

@@ -1,5 +1,1 @@
-import { io } from 'socket.io-client';
-
-export const socket = io({
-    transports: ['websocket', 'polling']
-});
+export const ws = new WebSocket('ws://localhost:3000/ws');

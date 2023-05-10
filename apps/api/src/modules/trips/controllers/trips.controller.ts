@@ -17,8 +17,8 @@ export class TripsController {
 	}
 
 	@Get()
-	public async getAll(@Query('q') q: string): Promise<CalculatedTrip[]> {
-		return this.tripsService.search(q);
+	public async getAll(@Query() query: Record<string, string>): Promise<Partial<CalculatedTrip>[]> {
+		return this.tripsService.search(query);
 	}
 
 	@Get(':tripId')

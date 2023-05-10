@@ -5,12 +5,12 @@ import { getDistance, getRhumbLineBearing, getSpeed } from 'geolib';
 import { omit, pick } from 'ramda';
 import got from 'got';
 import polyline from '@mapbox/polyline';
-
 import { StopTime, Trip } from '@transportmap/database';
+import LineString from 'ol/geom/LineString.js';
+
 import { redis } from '~core/instances/redis.instance';
 import { SentryMessage, SentrySeverity } from '~core/enum/sentry.enum';
 import { LoggingService } from '~core/services/logging.service';
-import LineString from 'ol/geom/LineString.js';
 
 console.log(LineString)
 
@@ -35,6 +35,11 @@ const clamp = (number: number, min: number, max: number) => Math.max(min, Math.m
 export const calculateTripPositions = async (trip: Trip, loggingService: LoggingService): Promise<any> => {
 	const currentTime = dayjs().format('HH:mm:ss');
 	const sortedStopTimes: StopTime[] = trip.stopTimes.sort((a: any, b: any) => a.stopSequence - b.stopSequence);
+
+	if (!sortedStopTimes[0]) {
+		return;
+	}
+
 	const firstDepartureTime = sortedStopTimes[0].departureTime;
 	const lastDepartureTime = sortedStopTimes[sortedStopTimes.length - 1].arrivalTime;
 

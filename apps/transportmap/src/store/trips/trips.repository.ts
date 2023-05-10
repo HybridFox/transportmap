@@ -3,10 +3,11 @@ import { take, tap } from 'rxjs/operators';
 import { resetActiveId, setActiveId, setEntities, upsertEntities } from '@ngneat/elf-entities';
 import { Observable, map } from 'rxjs';
 
+import { TripsService, tripsService } from '../../services/vehicle.service';
+
 import { tripsStore } from './trips.store';
 import { tripsSelector } from './trips.selectors';
 import { Trip } from './trips.types';
-import { TripsService, tripsService } from '../../services/vehicle.service';
 
 export class TripRepository {
 	public trips$ = tripsSelector.trips$;
@@ -14,7 +15,7 @@ export class TripRepository {
 
 	constructor(private readonly tripsService: TripsService) {}
 
-	public async getTrips(search: Record<string, string>): Promise<Trip[]> {
+	public async getTrips(search: Record<string, string | number>): Promise<Trip[]> {
 		tripsStore.update(updateRequestStatus('get-trips', 'pending'));
 		return this.tripsService
 			.get(search)

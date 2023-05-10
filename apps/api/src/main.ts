@@ -1,11 +1,12 @@
 import { NestFactory } from '@nestjs/core';
+import { WsAdapter } from '@nestjs/platform-ws'
 import * as Sentry from '@sentry/node';
 
 import { AppModule } from './app.module';
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
-
+	app.useWebSocketAdapter(new WsAdapter(app));
 	app.use(Sentry.Handlers.requestHandler());
 	// TracingHandler creates a trace for every incoming request
 	app.use(Sentry.Handlers.tracingHandler());

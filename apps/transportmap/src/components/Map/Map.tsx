@@ -15,7 +15,7 @@ import * as polyline from '@mapbox/polyline';
 import { tripsSelector } from '../../store/trips/trips.selectors';
 // import { tripsRepository } from '../../store/vehicles/trips.repository';
 import { StopTime, Trip } from '../../store/trips/trips.types';
-import { socket } from '../../modules/core/services/socket.service';
+import { ws } from '../../modules/core/services/socket.service';
 import { routeStyleFunction } from '../../helpers/map.utils';
 import { SocketEvents } from '../../modules/map/const/socket.const';
 import { tripsRepository } from '../../store/trips/trips.repository';
@@ -32,8 +32,9 @@ export const MapComponent: FC<Props> = ({ userLocation, activeTrip }: Props) => 
 	const mapElement = useRef<HTMLDivElement | null>(null);
 	const map = useRef<ol.Map | null>(null);
 
-	// const [vehicles] = useObservable(tripsSelector.trips$);
-	const [trips, setTrips] = useState<Trip[]>([]);
+	const [trips] = useObservable(tripsSelector.trips$);
+	console.log(trips)
+	// const [trips, setTrips] = useState<Trip[]>([]);
 	const [activeVehicle] = useObservable(tripsSelector.activeTrip$);
 
 	const [lat, setLat] = useState(4.5394187);
@@ -67,6 +68,7 @@ export const MapComponent: FC<Props> = ({ userLocation, activeTrip }: Props) => 
 
 	useEffect(() => {
 		function onConnect() {
+			loadTrainData()
 		//   setIsConnected(true);
 		}
 	
@@ -78,14 +80,14 @@ export const MapComponent: FC<Props> = ({ userLocation, activeTrip }: Props) => 
 			setTrips(value);
 		}
 	
-		socket.on('connect', onConnect);
-		socket.on('disconnect', onDisconnect);
-		socket.on(SocketEvents.RCVTRIPS, onReceiveTrips);
+		ws.addEventListener('open', onConnect);
+		ws.addEventListener('close', onDisconnect);
+		// ws.on(SocketEvents.RCVTRIPS, onReceiveTrips);
 	
 		return () => {
-		  socket.off('connect', onConnect);
-		  socket.off('disconnect', onDisconnect);
-		  socket.off(SocketEvents.RCVTRIPS, onReceiveTrips);
+		  ws.removeEventListener('open', onConnect);
+		  ws.removeEventListener('close', onDisconnect);
+		//   ws.off(SocketEvents.RCVTRIPS, onReceiveTrips);
 		};
 	}, []);
 
@@ -104,7 +106,11 @@ export const MapComponent: FC<Props> = ({ userLocation, activeTrip }: Props) => 
 		const [west, north] = olExtent.getTopLeft(boundingBoxExtent);
 		const [east, south] = olExtent.getBottomRight(boundingBoxExtent);
 
-		socket.compress(true).emit(SocketEvents.SETBBOX, { west, north, east, south })
+		tripsRepository.getTrips({ west, north, east, south })
+		// ws.send(JSON.stringify({
+		// 	event: SocketEvents.SETBBOX,
+		// 	data: { west, north, east, south }
+		// }))
 	};
 
 	/**
@@ -283,7 +289,6 @@ export const MapComponent: FC<Props> = ({ userLocation, activeTrip }: Props) => 
 		});
 
 		// setInterval(loadTripData, 5000);
-		loadTrainData();
 
 		return () => {
 			initialMap.setTarget(undefined);
