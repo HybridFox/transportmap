@@ -10,11 +10,12 @@ import { kafka } from '~core/instances/kafka.instance';
 
 @Injectable()
 export class AgencyStaticProducerService {
-	public async seed(temporaryIdentifier: string): Promise<void> {
+	public async seed(temporaryIdentifier: string, importId: string): Promise<void> {
 		if (!fs.existsSync(`${__dirname}/../../tmp/${temporaryIdentifier}/agency.txt`)) {
 			return;
 		}
 
+		console.log(`[SEED] {${importId}} seeding agency`);
 		const readStream = fs.createReadStream(`${__dirname}/../../tmp/${temporaryIdentifier}/agency.txt`, 'utf-8');
 
 		const parser = parse({

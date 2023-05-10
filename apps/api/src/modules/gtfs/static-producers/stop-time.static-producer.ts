@@ -21,6 +21,7 @@ export class StopTimeStaticProducerService {
 			return;
 		}
 		
+		console.log(`[SEED] {${importId}} seeding stop_times`);
 		const readStream = fs.createReadStream(`${__dirname}/../../tmp/${temporaryIdentifier}/stop_times.txt`, 'utf-8');
 
 		const parser = parse({

@@ -19,6 +19,7 @@ export class RouteStaticProducerService {
 			return;
 		}
 		
+		console.log(`[SEED] {${importId}} seeding routes`);
 		const readStream = fs.createReadStream(`${__dirname}/../../tmp/${temporaryIdentifier}/routes.txt`, 'utf-8');
 
 		const parser = parse({

@@ -19,6 +19,7 @@ export class CalendarStaticProducerService {
 			return;
 		}
 		
+		console.log(`[SEED] {${importId}} seeding calendar`);
 		const readStream = fs.createReadStream(`${__dirname}/../../tmp/${temporaryIdentifier}/calendar.txt`, 'utf-8');
 
 		const parser = parse({

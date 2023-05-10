@@ -3,7 +3,6 @@ import { randomBytes } from 'crypto';
 import { promisify } from 'node:util';
 import { pipeline } from 'stream';
 
-import csvStream from 'csv-stream';
 import got from 'got';
 import { Command } from 'nestjs-command';
 import { Inject, Injectable } from '@nestjs/common';
@@ -76,7 +75,7 @@ export class StaticStaticProducerService {
 			await new Promise((resolve) => zipFile.extractAllToAsync(`${__dirname}/../../tmp/${id}`, false, false, resolve));
 
 			console.log(`[SEED] {${key}} passing files to seeders`);
-			await this.agencyStaticProducerService.seed(id);
+			await this.agencyStaticProducerService.seed(id, key);
 
 			await this.gtfsProcessStatus.upsert(
 				{
@@ -96,7 +95,7 @@ export class StaticStaticProducerService {
 			// TODO: Eventually add support for transfer.
 			// await this.transferService.seed(id, key);
 
-			await this.stopTimeOverrideStaticProducerService.seed(id, key);
+			setTimeout(() => this.stopTimeOverrideStaticProducerService.seed(id, key), 5 * 60 * 1000);
 
 			await this.gtfsProcessStatus.upsert(
 				{

@@ -19,6 +19,7 @@ export class StopTimeOverrideStaticProducerService {
 			return;
 		}
 		
+		console.log(`[SEED] {${importId}} seeding stop_time_overrides`);
 		const readStream = fs.createReadStream(`${__dirname}/../../tmp/${temporaryIdentifier}/stop_time_overrides.txt`, 'utf-8');
 
 		const parser = parse({

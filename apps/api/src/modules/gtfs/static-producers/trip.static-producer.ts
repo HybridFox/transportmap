@@ -19,6 +19,7 @@ export class TripStaticProducerService {
 			return;
 		}
 		
+		console.log(`[SEED] {${importId}} seeding trips`);
 		const readStream = fs.createReadStream(`${__dirname}/../../tmp/${temporaryIdentifier}/trips.txt`, 'utf-8');
 
 		const parser = parse({

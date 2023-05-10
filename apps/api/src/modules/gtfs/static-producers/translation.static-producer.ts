@@ -19,6 +19,7 @@ export class TranslationStaticProducerService {
 			return;
 		}
 		
+		console.log(`[SEED] {${importId}} seeding translations`);
 		const readStream = fs.createReadStream(`${__dirname}/../../tmp/${temporaryIdentifier}/translations.txt`, 'utf-8');
 
 		const parser = parse({

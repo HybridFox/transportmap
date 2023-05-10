@@ -6,7 +6,7 @@ import { StopTimeSeederService } from './stop-time.seeder';
 import { StopSeederService } from './stop.seeder';
 import { TripSeederService } from './trip.seeder';
 import { TranslationSeederService } from './translation.seeder';
-// import { StopTimeOverrideSeederService } from './stop-time-override.seeder';
+import { StopTimeOverrideSeederService } from './stop-time-override.seeder';
 
 export const Seeders = [
 	AgencySeederService,
@@ -17,7 +17,7 @@ export const Seeders = [
 	StopSeederService,
 	TripSeederService,
 	TranslationSeederService,
-	// StopTimeOverrideSeederService,
+	StopTimeOverrideSeederService,
 ];
 
 export { AgencySeederService } from './agency.seeder';
@@ -28,4 +28,4 @@ export { StopTimeSeederService } from './stop-time.seeder';
 export { StopSeederService } from './stop.seeder';
 export { TripSeederService } from './trip.seeder';
 export { TranslationSeederService } from './translation.seeder';
-// export { StopTimeOverrideSeederService } from './stop-time-override.seeder';
+export { StopTimeOverrideSeederService } from './stop-time-override.seeder';
