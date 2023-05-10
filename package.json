@@ -1,6 +1,6 @@
 {
   "name": "transportmap",
-  "version": "0.1.25",
+  "version": "0.1.26",
   "description": "## 1. Setup OSRM data ### download OSRM data from Geofabrik. _We are using the belgium map here, feel free to switch out to any version._ ```bash curl http://download.geofabrik.de/europe/belgium-latest.osm.pbf --output ./osm/map-data/map.osm.pbf ```",
   "main": "jest.preset.js",
   "scripts": {
