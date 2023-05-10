@@ -26,18 +26,21 @@ const TopBarWrapper = styled.div`
 
 export const App: FC<any> = () => {
 	// const [vehicleLoading] = useObservable(vehicleQuery.selectLoading());
-	const [trip] = useObservable(tripsSelector.activeTrip$);
+	const [highlightedTrip] = useObservable(tripsSelector.highlightedTrip$);
 	const [userLocation, setUserLocation] = useState<null | number[]>(null);
+	const [tripLoading] = useObservable(tripsSelector.tripLoading$);
+
+	console.log(tripLoading)
 
 	return (
 		<div className="App">
 			<TopBarWrapper>
 				<TopBar setUserLocation={setUserLocation} />
 			</TopBarWrapper>
-			<MapComponent userLocation={userLocation} activeTrip={trip} />
-			{trip && (
+			<MapComponent userLocation={userLocation} highlightedTrip={highlightedTrip} />
+			{(highlightedTrip || tripLoading) && (
 				<PopupWrapper>
-					<Popup trip={trip}></Popup>
+					<Popup trip={highlightedTrip} loading={tripLoading.value === 'pending'}></Popup>
 				</PopupWrapper>
 			)}
 		</div>

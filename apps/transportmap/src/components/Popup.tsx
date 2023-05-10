@@ -8,7 +8,8 @@ import { NextStops } from './NextStops';
 import { Composition } from './Composition';
 
 interface PopupProps {
-	trip: Trip;
+	trip?: Trip;
+	loading?: boolean;
 	className?: string;
 }
 
@@ -62,8 +63,32 @@ const Tab = styled.button<{
 		`}
 `;
 
-const RawPopup: FC<PopupProps> = ({ trip, className }: PopupProps) => {
+const PopupLoading = styled.div`
+	color: #bdbdbd;
+	box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+	max-width: 1280px;
+	background-color: #0e0e0e;
+	margin: 0 auto;
+	border-radius: 20px;
+	overflow: hidden;
+	min-height: 240px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+`
+
+const RawPopup: FC<PopupProps> = ({ trip, className, loading }: PopupProps) => {
 	const [selectedTab, setSelectedTab] = useState<string>('next-stops');
+
+	if (loading) {
+		return (<PopupLoading>
+			<span className="uil uil-sync animate spin-reverse"></span>
+		</PopupLoading>)
+	}
+
+	if (!trip) {
+		return <></>
+	}
 
 	return (
 		<div className={className}>
@@ -107,4 +132,5 @@ export const Popup = styled(RawPopup)`
 	margin: 0 auto;
 	border-radius: 20px;
 	overflow: hidden;
+	min-height: 240px;
 `;

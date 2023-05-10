@@ -87,7 +87,7 @@ const RawTopBar: FC<Props> = ({ className, setUserLocation }: Props) => {
 				});
 			}}><span className="uil uil-location-arrow"></span></LocationIcon>
 			<SearchBarContainer>
-				<SearchBar type="text" onChange={debounce(doSearch, 500)} />
+				<SearchBar type="text" onChange={debounce(doSearch, 500)} placeholder='Search for a trip' />
 				<TripContainer>
 					{searchResults.map((trip) => (
 						<Trip onClick={() => {

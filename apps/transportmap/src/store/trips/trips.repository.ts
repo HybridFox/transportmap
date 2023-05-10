@@ -2,6 +2,7 @@ import { updateRequestStatus } from '@ngneat/elf-requests';
 import { take, tap } from 'rxjs/operators';
 import { resetActiveId, setActiveId, setEntities, upsertEntities } from '@ngneat/elf-entities';
 import { Observable, map } from 'rxjs';
+import { setProps } from '@ngneat/elf';
 
 import { TripsService, tripsService } from '../../services/vehicle.service';
 
@@ -11,7 +12,7 @@ import { Trip } from './trips.types';
 
 export class TripRepository {
 	public trips$ = tripsSelector.trips$;
-	public activeTrip$ = tripsSelector.activeTrip$;
+	public trip$ = tripsSelector.trip$;
 
 	constructor(private readonly tripsService: TripsService) {}
 
@@ -23,21 +24,6 @@ export class TripRepository {
 					tripsStore.update(
 						setEntities(trips),
 						updateRequestStatus('get-trips', 'success')
-					);
-
-					return trips;
-				}
-			)
-	}
-
-	public async searchTrips(search: Record<string, string>): Promise<Trip[]> {
-		tripsStore.update(updateRequestStatus('search-trips', 'pending'));
-		return this.tripsService
-			.get(search)
-			.then((trips) => {
-					tripsStore.update(
-						setEntities(trips),
-						updateRequestStatus('search-trips', 'success')
 					);
 
 					return trips;
@@ -61,6 +47,23 @@ export class TripRepository {
 			)
 	}
 
+	public async highlightTrip(tripId: string): Promise<Trip> {
+		tripsStore.update(updateRequestStatus('get-trip', 'pending'));
+		return this.tripsService
+			.getOne(tripId)
+			.then((trip) => {
+					tripsStore.update(
+						setProps({
+							highlightedTrip: trip,
+						}),
+						updateRequestStatus('get-trip', 'success'),
+					);
+
+					return trip;
+				}
+			)
+	}
+
 	public async clearActive(): Promise<void> {
 		// tripsStore.update(updateRequestStatus('get-trips', 'pending'));
 		// return this.tripsService
@@ -73,6 +76,12 @@ export class TripRepository {
 			// 		return trips;
 			// 	}
 			// )
+	}
+
+	public async clearHighlight(): Promise<void> {
+		tripsStore.update(
+			setProps({ highlightedTrip: null })
+		);
 	}
 }
 

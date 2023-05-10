@@ -8,5 +8,8 @@ export const tripsStore = createStore(
 	{ name: 'trips' },
 	withEntities<Trip>(),
 	withActiveId(),
-	withRequestsStatus<string>()
+	withRequestsStatus<string>(),
+	withProps<{
+		highlightedTrip?: Trip;
+	}>({})
 );

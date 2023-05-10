@@ -10,32 +10,26 @@ import * as olExtent from 'ol/extent';
 import * as olGeom from 'ol/geom';
 import { GeoJSON } from 'ol/format';
 import { useObservable } from '@ngneat/react-rxjs';
-import * as polyline from '@mapbox/polyline';
 
 import { tripsSelector } from '../../store/trips/trips.selectors';
 // import { tripsRepository } from '../../store/vehicles/trips.repository';
-import { StopTime, Trip } from '../../store/trips/trips.types';
-import { ws } from '../../modules/core/services/socket.service';
-import { routeStyleFunction } from '../../helpers/map.utils';
-import { SocketEvents } from '../../modules/map/const/socket.const';
+import { Trip } from '../../store/trips/trips.types';
 import { tripsRepository } from '../../store/trips/trips.repository';
 import { getVehicleLocation } from '../../helpers/location.utils';
+import { highlightPolyline } from '../../helpers/highlight.utils';
 
 import { MAP_ICON_STYLES } from './Map.const';
 
 interface Props {
 	userLocation: number[] | null;
-	activeTrip?: Trip;
+	highlightedTrip?: Trip;
 }
 
-export const MapComponent: FC<Props> = ({ userLocation, activeTrip }: Props) => {
+export const MapComponent: FC<Props> = ({ userLocation, highlightedTrip }: Props) => {
 	const mapElement = useRef<HTMLDivElement | null>(null);
 	const map = useRef<ol.Map | null>(null);
 
 	const [trips] = useObservable(tripsSelector.trips$);
-	console.log(trips)
-	// const [trips, setTrips] = useState<Trip[]>([]);
-	const [activeVehicle] = useObservable(tripsSelector.activeTrip$);
 
 	const [lat, setLat] = useState(4.5394187);
 	const [lon, setLon] = useState(51.119221);
@@ -47,49 +41,27 @@ export const MapComponent: FC<Props> = ({ userLocation, activeTrip }: Props) => 
 			return;
 		}
 
-		console.log('update', userLocation)
 		map.current.getView().animate({ center: olProj.transform(userLocation, 'EPSG:4326', 'EPSG:3857'), zoom: 13 })
 	}, [userLocation]);
 
+	/**
+	 * Handle a trip being selected
+	 */
 	useEffect(() => {
-		if (!activeTrip || !map.current) {
+		if (!highlightedTrip || !map.current) {
 			return
 		}
 
-		const coordinates = getVehicleLocation(activeTrip.sections, activeTrip.osrmRoute);
+		const coordinates = getVehicleLocation(highlightedTrip.sections, highlightedTrip.osrmRoute);
+		const vectorLayer = highlightPolyline(highlightedTrip);
 
 		if (!coordinates) {
 			return
 		}
 		
-		map.current.getView().animate({ center: olProj.transform(coordinates, 'EPSG:4326', 'EPSG:3857'), zoom: 15 })
-		// map.current.getView().setZoom(16);
-	}, [activeTrip])
-
-	useEffect(() => {
-		function onConnect() {
-			loadTrainData()
-		//   setIsConnected(true);
-		}
-	
-		function onDisconnect() {
-		//   setIsConnected(false);
-		}
-	
-		function onReceiveTrips(value: Trip[]) {
-			setTrips(value);
-		}
-	
-		ws.addEventListener('open', onConnect);
-		ws.addEventListener('close', onDisconnect);
-		// ws.on(SocketEvents.RCVTRIPS, onReceiveTrips);
-	
-		return () => {
-		  ws.removeEventListener('open', onConnect);
-		  ws.removeEventListener('close', onDisconnect);
-		//   ws.off(SocketEvents.RCVTRIPS, onReceiveTrips);
-		};
-	}, []);
+		map.current.addLayer(vectorLayer);
+		map.current.getView().animate({ center: olProj.transform(coordinates, 'EPSG:4326', 'EPSG:3857'), zoom: 13.5 })
+	}, [highlightedTrip])
 
 	const loadTrainData = () => {
 		if (!map.current) {
@@ -106,18 +78,13 @@ export const MapComponent: FC<Props> = ({ userLocation, activeTrip }: Props) => 
 		const [west, north] = olExtent.getTopLeft(boundingBoxExtent);
 		const [east, south] = olExtent.getBottomRight(boundingBoxExtent);
 
-		tripsRepository.getTrips({ west, north, east, south })
-		// ws.send(JSON.stringify({
-		// 	event: SocketEvents.SETBBOX,
-		// 	data: { west, north, east, south }
-		// }))
+		tripsRepository.getTrips({ west, north, east, south });
 	};
 
 	/**
 	 * Animate markers
 	 */
 	const moveMarkers = (source: VectorSource) => {
-		// TODO: clean this up
 		source?.forEachFeature((feature) => {
 			const sections = feature.get('sections');
 			const osrmRoute = feature.get('osrmRoute');
@@ -146,27 +113,6 @@ export const MapComponent: FC<Props> = ({ userLocation, activeTrip }: Props) => 
 			layer.dispose();
 		});
 	};
-
-	/**
-	 * Load GeoJSON
-	 * TODO: maybe we want this, but in a simpler style tho. And we don't want to use `lijnsecties`. Maybe we can look at something like mapbox? Expensive tho.
-	 */
-	// useEffect(() => {
-	// 	(async () => {
-	// 		const geojson: any = await ky.get('/static/lijnsecties.geojson').json();
-			
-	// 		const vectorSource = new VectorSource({
-	// 			features: new GeoJSON().readFeatures(geojson, { featureProjection: 'EPSG:3857' }), 
-	// 		});
-	
-	// 		const vectorLayer = new VectorLayer({
-	// 			source: vectorSource,
-	// 			style: railStyleFunction,
-	// 		});
-	
-	// 		map.current?.addLayer(vectorLayer);
-	// 	})();
-	// }, []);
 
 	/**
 	 * Initialise map
@@ -207,8 +153,6 @@ export const MapComponent: FC<Props> = ({ userLocation, activeTrip }: Props) => 
 		setVectorSource(source);
 		moveMarkers(source);
 
-		// initialMap.addEventListener('moveend', loadTrainData);
-
 		/**
 		 * Make mouse a pointer when hovering over clickable stuff
 		 */
@@ -232,63 +176,12 @@ export const MapComponent: FC<Props> = ({ userLocation, activeTrip }: Props) => 
 				clearTempLayers();
 
 				if (!feature) {
-					return tripsRepository.clearActive();
+					return tripsRepository.clearHighlight();
 				}
 
-				tripsRepository.getTrip(feature.get('id'))
-					.then((activeTrip) => {
-						const coordinates = activeTrip.osrmRoute.reduce((acc, leg) => {
-							return [
-								...acc,
-								...polyline.decode(leg).map(([latitude, longitude]) => [longitude, latitude])
-							]
-						}, [] as number[][]);
-
-						const tempSource = new VectorSource({
-							features: new GeoJSON().readFeatures({
-								type: 'FeatureCollection',
-								features: [
-									{
-										type: 'Feature',
-										geometry: {
-											type: 'LineString',
-											coordinates: coordinates,
-										},
-									},
-									...activeTrip.stopTimes.map((stopTime) => ({
-										type: 'Feature',
-										geometry: {
-											type: 'Point',
-											coordinates: [
-												stopTime.stop.longitude,
-												stopTime.stop.latitude,
-											],
-										},
-										properties: {
-											name: stopTime.stop.name,
-										},
-									})),
-								],
-							}, {
-								dataProjection: 'EPSG:4326',
-								featureProjection: 'EPSG:3857',
-							}),
-						});
-
-						const tempLayer = new VectorLayer({
-							source: tempSource,
-							style: routeStyleFunction,
-							properties: {
-								tempLayer: true,
-							},
-						});
-
-						initialMap.addLayer(tempLayer);
-					})
+				tripsRepository.highlightTrip(feature.get('id'))
 			});
 		});
-
-		// setInterval(loadTripData, 5000);
 
 		return () => {
 			initialMap.setTarget(undefined);
