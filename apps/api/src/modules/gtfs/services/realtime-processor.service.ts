@@ -158,15 +158,6 @@ export class RealtimeProcessorService {
 				const newTime = dayjs(currentStopTime.arrivalTime, 'HH:mm:ss').add(stopTimeUpdate.arrival.delay, 'seconds').format('HH:mm:ss');
 				await this.stopTimeRepository.update({ tripId, stopId: stopTimeUpdate.stopId }, { realtimeArrivalTime: newTime });
 			} else {
-				console.log('CAPTURE');
-				try {
-					this.loggingService.captureMessage(SentryMessage.REALTIME_GTFS_STOP_NOT_FOUND, SentrySeverity.INFO, {
-						tripId,
-						stopId: stopTimeUpdate.stopId,
-					});
-				} catch (e) {
-					console.error(e);
-				}
 				console.error('stop not found', tripId, stopTimeUpdate.stopId);
 			}
 		}
@@ -181,15 +172,6 @@ export class RealtimeProcessorService {
 				const newTime = dayjs(currentStopTime.departureTime, 'HH:mm:ss').add(stopTimeUpdate.departure.delay, 'seconds').format('HH:mm:ss');
 				await this.stopTimeRepository.update({ tripId, stopId: stopTimeUpdate.stopId }, { realtimeDepartureTime: newTime });
 			} else {
-				console.log('CAPTURE');
-				try {
-					this.loggingService.captureMessage(SentryMessage.REALTIME_GTFS_STOP_NOT_FOUND, SentrySeverity.INFO, {
-						tripId,
-						stopId: stopTimeUpdate.stopId,
-					});
-				} catch (e) {
-					console.error(e);
-				}
 				console.error('stop not found', tripId, stopTimeUpdate.stopId);
 			}
 		}
