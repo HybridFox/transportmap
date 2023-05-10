@@ -34,7 +34,7 @@ export const MapComponent: FC<Props> = ({ userLocation, highlightedTrip }: Props
 	const [lat, setLat] = useState(4.5394187);
 	const [lon, setLon] = useState(51.119221);
 	const [zoom, setZoom] = useState(13);
-	const [vectorSource, setVectorSource] = useState<VectorSource>();
+	const [markerSource, setMarkerSource] = useState<VectorSource>();
 
 	useEffect(() => {
 		if (!userLocation || !map.current) {
@@ -123,8 +123,9 @@ export const MapComponent: FC<Props> = ({ userLocation, highlightedTrip }: Props
 		});
 
 		// create and add vector source layer
-		const initialFeaturesLayer = new VectorLayer({
+		const markerLayer = new VectorLayer({
 			source,
+			zIndex: 5,
 		});
 
 		// create map
@@ -137,7 +138,7 @@ export const MapComponent: FC<Props> = ({ userLocation, highlightedTrip }: Props
 					}),
 				}),
 
-				initialFeaturesLayer,
+				markerLayer,
 			],
 			view: new ol.View({
 				center: olProj.fromLonLat([lat, lon]),
@@ -150,7 +151,7 @@ export const MapComponent: FC<Props> = ({ userLocation, highlightedTrip }: Props
 
 		// save map and vector layer references to state
 		map.current = initialMap;
-		setVectorSource(source);
+		setMarkerSource(source);
 		moveMarkers(source);
 
 		/**
@@ -162,7 +163,7 @@ export const MapComponent: FC<Props> = ({ userLocation, highlightedTrip }: Props
 			}
 
 			const pixel = initialMap.getEventPixel(evt.originalEvent);
-			initialFeaturesLayer.getFeatures(pixel).then((features: any) => {
+			markerLayer.getFeatures(pixel).then((features: any) => {
 				const feature = features.length ? features[0] : undefined;
 				initialMap.getTargetElement().style.cursor = feature ? 'pointer' : '';
 			});
@@ -171,7 +172,7 @@ export const MapComponent: FC<Props> = ({ userLocation, highlightedTrip }: Props
 		initialMap.on('click', function (evt) {
 			const pixel = initialMap.getEventPixel(evt.originalEvent);
 
-			initialFeaturesLayer.getFeatures(pixel).then((features: any) => {
+			markerLayer.getFeatures(pixel).then((features: any) => {
 				const feature = features.length ? features[0] : undefined;
 				clearTempLayers();
 
@@ -189,14 +190,14 @@ export const MapComponent: FC<Props> = ({ userLocation, highlightedTrip }: Props
 	}, []);
 
 	useEffect(() => {
-		if (!vectorSource) {
+		if (!markerSource) {
 			return;
 		}
 
 		// TODO: find a way to prevent flicker. Maybe just updating stuff?
-		vectorSource.clear();
+		markerSource.clear();
 
-		vectorSource.addFeatures(
+		markerSource.addFeatures(
 			(trips || [])?.reduce((acc, trip) => {
 				// TODO: calculate sectionProgress here? 
 				// This would prevent needing to refresh every 5 seconds

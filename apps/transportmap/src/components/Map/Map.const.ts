@@ -3,7 +3,7 @@ import * as olStyle from 'ol/style';
 import { Trip } from '../../store/trips/trips.types';
 
 const defaultIconProps: any = {
-	anchor: [0.13, 46],
+	anchor: [0.1, 46],
 	anchorXUnits: 'fraction',
 	anchorYUnits: 'pixels',
 	size: [200, 50],

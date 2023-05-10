@@ -1,7 +1,5 @@
 import { updateRequestStatus } from '@ngneat/elf-requests';
-import { take, tap } from 'rxjs/operators';
 import { resetActiveId, setActiveId, setEntities, upsertEntities } from '@ngneat/elf-entities';
-import { Observable, map } from 'rxjs';
 import { setProps } from '@ngneat/elf';
 
 import { TripsService, tripsService } from '../../services/vehicle.service';
@@ -65,22 +63,14 @@ export class TripRepository {
 	}
 
 	public async clearActive(): Promise<void> {
-		// tripsStore.update(updateRequestStatus('get-trips', 'pending'));
-		// return this.tripsService
-		// 	.getAll()
-		// 	.then((trips) => {
-					tripsStore.update(
-						resetActiveId()
-					);
-
-			// 		return trips;
-			// 	}
-			// )
+		tripsStore.update(
+			resetActiveId()
+		);
 	}
 
 	public async clearHighlight(): Promise<void> {
 		tripsStore.update(
-			setProps({ highlightedTrip: null })
+			setProps({ highlightedTrip: undefined })
 		);
 	}
 }
