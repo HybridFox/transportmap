@@ -37,6 +37,7 @@ export class TripsService {
 			select: ['id']
 		})).map(({ id }) => id);
 		agencies.forEach(async (agency) => {
+			console.log(`[POSITIONS] {${agency}} start calculation`);
 			const gtfsStaticStatus = await this.gtfsStaticStatus.findOneBy({ key: agency.id });
 			if (!gtfsStaticStatus) {
 				return console.log(`[POSITIONS] cancelling calculating positions for ${agency.id} since a row is not found`);
@@ -47,6 +48,7 @@ export class TripsService {
 			}
 
 			const trips = await this.getAll(agency.id);
+			console.log(`[POSITIONS] {${agency}} got trips. ${trips.length}`);
 
 			let i = 0;
 			const leftoverKeys = await trips.reduce(async (acc, trip) => {
@@ -55,6 +57,7 @@ export class TripsService {
 				const calculatedTrip = await calculateTripPositions(trip, this.loggingService).catch(console.error);
 
 				if (!calculatedTrip || !calculatedTrip.sectionLocation.longitude || !calculatedTrip.sectionLocation.latitude) {
+					console.log(`[POSITIONS] {${agency}} trip ${calculatedTrip.length} has no position or is empty`);
 					return keys;
 				}
 
