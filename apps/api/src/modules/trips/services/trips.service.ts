@@ -57,7 +57,7 @@ export class TripsService {
 				const calculatedTrip = await calculateTripPositions(trip, this.loggingService).catch(console.error);
 
 				if (!calculatedTrip || !calculatedTrip.sectionLocation.longitude || !calculatedTrip.sectionLocation.latitude) {
-					console.log(`[POSITIONS] {${agency}} trip ${calculatedTrip.length} has no position or is empty`);
+					console.log(`[POSITIONS] {${agency}} trip ${calculatedTrip.id} has no position or is empty`);
 					return keys;
 				}
 
