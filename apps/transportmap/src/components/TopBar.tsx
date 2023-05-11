@@ -1,27 +1,23 @@
-import React, { FC, useEffect, useState } from 'react';
-import styled, { css } from 'styled-components';
+import React, { FC } from 'react';
+import styled from 'styled-components';
 import debounce from 'lodash.debounce';
 import { useObservable } from '@ngneat/react-rxjs';
 
-import { tripsService } from '../services/vehicle.service';
-import { tripsSelector } from '../store/trips/trips.selectors';
 import { tripsRepository } from '../store/trips/trips.repository';
-import { searchSelector } from '../store/search/search.selectors';
 import { searchRepository } from '../store/search/search.repository';
+import { uiRepository } from '../store/ui/ui.repository';
 
-import { Composition } from './Composition';
-import { NextStops } from './NextStops';
 import { Badge } from './Badge';
 
-const LocationIcon = styled.button`
+const LocationIcon = styled.button<{ enabled: boolean }>`
 	padding: 1rem 1.5rem;
 	border-radius: 20px;
-	background-color: #161616;
+	background-color: ${(props) => props.enabled ? '#98D8AA' : '#161616'};
 	box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
 	border: none;
 	color: white;
 	align-self: flex-start;
-	/* border: 3px solid rgb(220, 220, 220); */
+	cursor: pointer;
 `;
 
 const SearchBarContainer = styled.div`
@@ -40,7 +36,6 @@ const SearchBar = styled.input`
 	color: white;
 	width: 100%;
 	border: none;
-	/* border: 3px solid rgb(220, 220, 220); */
 `;
 
 const TripContainer = styled.div`
@@ -60,18 +55,12 @@ const Trip = styled.div`
 `;
 
 interface Props {
-	setUserLocation: (location: number[]) => void;
 	className?: string;
 }
 
-const RawTopBar: FC<Props> = ({ className, setUserLocation }: Props) => {
-	const [searchValue, setSearchValue] = useState<string>();
+const RawTopBar: FC<Props> = ({ className }: Props) => {
 	const [searchResults] = useObservable(searchRepository.searchResults$);
-	
-	// useEffect(() => {
-	// 	console.log('get', searchValue)
-	// 	// tripsService.get({})
-	// }, [searchValue]);
+	const [userLocationEnabled] = useObservable(uiRepository.userLocationEnabled$)
 
 	const doSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
 		searchRepository.searchTrips({ q: e.target.value })
@@ -79,13 +68,9 @@ const RawTopBar: FC<Props> = ({ className, setUserLocation }: Props) => {
 
 	return (
 		<div className={className}>
-			<LocationIcon onClick={() => {
-				navigator.geolocation && navigator.geolocation.getCurrentPosition((position) => {
-					setUserLocation([position.coords.longitude, position.coords.latitude])
-				}, (err) => {
-					console.error(err)
-				});
-			}}><span className="uil uil-location-arrow"></span></LocationIcon>
+			<LocationIcon enabled={userLocationEnabled} onClick={() => uiRepository.setUserLocationEnabled(!userLocationEnabled)}>
+				<span className="uil uil-location-arrow"></span>
+			</LocationIcon>
 			<SearchBarContainer>
 				<SearchBar type="text" onChange={debounce(doSearch, 500)} placeholder='Search for a trip' />
 				<TripContainer>

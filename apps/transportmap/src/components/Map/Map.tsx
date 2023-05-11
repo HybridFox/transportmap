@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import React, { FC, useEffect, useRef, useState } from 'react';
+import React, { FC, useContext, useEffect, useRef, useState } from 'react';
 import * as ol from 'ol';
 import * as olProj from 'ol/proj';
 import VectorLayer from 'ol/layer/Vector';
@@ -10,6 +10,8 @@ import * as olExtent from 'ol/extent';
 import * as olGeom from 'ol/geom';
 import { GeoJSON } from 'ol/format';
 import { useObservable } from '@ngneat/react-rxjs';
+import * as olStyle from 'ol/style';
+import CircleStyle from 'ol/style/Circle';
 
 import { tripsSelector } from '../../store/trips/trips.selectors';
 // import { tripsRepository } from '../../store/vehicles/trips.repository';
@@ -17,32 +19,41 @@ import { Trip } from '../../store/trips/trips.types';
 import { tripsRepository } from '../../store/trips/trips.repository';
 import { getVehicleLocation } from '../../helpers/location.utils';
 import { highlightPolyline } from '../../helpers/highlight.utils';
+import { uiRepository } from '../../store/ui/ui.repository';
 
 import { MAP_ICON_STYLES } from './Map.const';
 
 interface Props {
-	userLocation: number[] | null;
 	highlightedTrip?: Trip;
 }
 
-export const MapComponent: FC<Props> = ({ userLocation, highlightedTrip }: Props) => {
+enum FocusObjects {
+	USER_LOCATION,
+	TRIP
+}
+
+export const MapComponent: FC<Props> = ({ highlightedTrip }: Props) => {
 	const mapElement = useRef<HTMLDivElement | null>(null);
 	const map = useRef<ol.Map | null>(null);
+	const focusedObject = useRef<FocusObjects | null>(null);
 
 	const [trips] = useObservable(tripsSelector.trips$);
+	const [userLocationEnabled] = useObservable(uiRepository.userLocationEnabled$);
 
-	const [lat, setLat] = useState(4.5394187);
-	const [lon, setLon] = useState(51.119221);
-	const [zoom, setZoom] = useState(13);
 	const [markerSource, setMarkerSource] = useState<VectorSource>();
+	const [geolocation, setGeolocation] = useState<ol.Geolocation>();
 
 	useEffect(() => {
-		if (!userLocation || !map.current) {
+		if (!map.current || !geolocation) {
 			return;
 		}
 
-		map.current.getView().animate({ center: olProj.transform(userLocation, 'EPSG:4326', 'EPSG:3857'), zoom: 13 })
-	}, [userLocation]);
+		geolocation.setTracking(userLocationEnabled);
+		map.current
+			.getLayers()
+			.forEach((layer) => layer.getProperties().userLocationLayer && layer.setVisible(userLocationEnabled));
+		focusedObject.current = FocusObjects.USER_LOCATION;
+	}, [userLocationEnabled])
 
 	/**
 	 * Handle a trip being selected
@@ -60,7 +71,8 @@ export const MapComponent: FC<Props> = ({ userLocation, highlightedTrip }: Props
 		}
 		
 		map.current.addLayer(vectorLayer);
-		map.current.getView().animate({ center: olProj.transform(coordinates, 'EPSG:4326', 'EPSG:3857'), zoom: 13.5 })
+		map.current.getView().animate({ center: olProj.transform(coordinates, 'EPSG:4326', 'EPSG:3857'), zoom: 13.5 });
+		focusedObject.current = FocusObjects.TRIP;
 	}, [highlightedTrip])
 
 	const loadTrainData = () => {
@@ -78,7 +90,12 @@ export const MapComponent: FC<Props> = ({ userLocation, highlightedTrip }: Props
 		const [west, north] = olExtent.getTopLeft(boundingBoxExtent);
 		const [east, south] = olExtent.getBottomRight(boundingBoxExtent);
 
-		tripsRepository.getTrips({ west, north, east, south });
+		tripsRepository.getTrips({
+			west: west - 0.1,
+			north: north + 0.1,
+			east: east + 0.1,
+			south: south - 0.1,
+		});
 	};
 
 	/**
@@ -128,6 +145,70 @@ export const MapComponent: FC<Props> = ({ userLocation, highlightedTrip }: Props
 			zIndex: 5,
 		});
 
+		const view = new ol.View({
+			center: olProj.fromLonLat([4.4004697, 51.2132694]),
+			zoom: 13,
+		})
+
+		const geo = new ol.Geolocation({
+			// enableHighAccuracy must be set to true to have the heading value.
+			trackingOptions: {
+				enableHighAccuracy: true,
+			},
+			projection: view.getProjection(),
+		});
+		setGeolocation(geo);
+
+		const accuracyFeature = new ol.Feature();
+		geo.on('change:accuracyGeometry', () => {
+			accuracyFeature.setGeometry(geo.getAccuracyGeometry()!);
+		});
+
+
+		geo.on('error', (err) => {
+			uiRepository.setUserLocationEnabled(false);
+			alert(err.message)
+		});
+
+		const positionFeature = new ol.Feature();
+		positionFeature.setStyle(
+			new olStyle.Style({
+				image: new CircleStyle({
+					radius: 6,
+					fill: new olStyle.Fill({
+						color: '#3399CC',
+					}),
+					stroke: new olStyle.Stroke({
+						color: '#fff',
+						width: 2,
+					}),
+				}),
+			})
+		);
+
+		geo.on('change:position', () => {
+			const coordinates = geo.getPosition();
+
+			if (!coordinates) {
+				return;
+			}
+
+			if (focusedObject.current === FocusObjects.USER_LOCATION) {
+				initialMap.getView().animate({ center: coordinates, zoom: 13.5 });
+			}
+
+			positionFeature.setGeometry(new olGeom.Point(coordinates));
+		});
+
+		const positionLayer = new VectorLayer({
+			properties: {
+				userLocationLayer: true
+			},
+			source: new VectorSource({
+				features: [accuracyFeature, positionFeature]
+			})
+		})
+
 		// create map
 		const initialMap = new ol.Map({
 			target: mapElement.current!,
@@ -137,17 +218,17 @@ export const MapComponent: FC<Props> = ({ userLocation, highlightedTrip }: Props
 						url: 'https://{1-5}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
 					}),
 				}),
-
 				markerLayer,
+				positionLayer,
 			],
-			view: new ol.View({
-				center: olProj.fromLonLat([lat, lon]),
-				zoom: zoom,
-			}),
+			view,
 			controls: [],
 		});
 
 		initialMap.addEventListener('moveend', loadTrainData);
+		initialMap.addEventListener('pointerdrag', () => {
+			focusedObject.current = null;
+		});
 
 		// save map and vector layer references to state
 		map.current = initialMap;
@@ -171,6 +252,7 @@ export const MapComponent: FC<Props> = ({ userLocation, highlightedTrip }: Props
 
 		initialMap.on('click', function (evt) {
 			const pixel = initialMap.getEventPixel(evt.originalEvent);
+			focusedObject.current = null;
 
 			markerLayer.getFeatures(pixel).then((features: any) => {
 				const feature = features.length ? features[0] : undefined;

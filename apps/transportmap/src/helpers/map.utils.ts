@@ -20,7 +20,7 @@ export const railStyles = (feature: ol.Feature) => ({
 		}),
 		text: new Text({
 			text: feature.get('name'),
-			font: '20px bold sansserif',
+			font: 'bold 15px Prompt',
 			offsetY: -20,
 			overflow: true,
 			fill: new Fill({ color: '#e6e6e6' }),
@@ -35,27 +35,27 @@ export const railStyles = (feature: ol.Feature) => ({
 export const routeStyles = (feature: ol.Feature) => ({
 	LineString: new Style({
 		stroke: new Stroke({
-			color: '#FF0000',
+			color: 'rgba(0, 0, 0, 0.5)',
 			width: 5,
 		}),
 	}),
 	Point: new Style({
 		image: new Circle({
 			radius: 7,
-			fill: new Fill({ color: '#e6e6e6' }),
-			stroke: new Stroke({
-				color: '#212121',
-				width: 5,
-			}),
+			fill: new Fill({ color: 'rgba(0, 0, 0, 1)' }),
+			// stroke: new Stroke({
+			// 	color: '#212121',
+			// 	width: 5,
+			// }),
 		}),
 		text: new Text({
 			text: feature.get('name'),
-			font: '20px bold sansserif',
+			font: 'bold 20px Prompt',
 			offsetY: -20,
 			overflow: true,
-			fill: new Fill({ color: '#e6e6e6' }),
+			fill: new Fill({ color: 'rgba(0, 0, 0, 1)' }),
 			stroke: new Stroke({
-				color: '#212121',
+				color: 'rgba(255, 255, 255, 1)',
 				width: 5,
 			}),
 		}),

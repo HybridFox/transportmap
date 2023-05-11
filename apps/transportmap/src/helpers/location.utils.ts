@@ -1,10 +1,11 @@
 import dayjs from "dayjs";
-import { OSRMLeg, Section } from "../store/trips/trips.types";
 import * as olGeom from 'ol/geom'
 import * as polyline from '@mapbox/polyline';
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { clamp } from "ramda";
+
+import { OSRMLeg, Section } from "../store/trips/trips.types";
 
 dayjs.extend(utc)
 dayjs.extend(timezone)

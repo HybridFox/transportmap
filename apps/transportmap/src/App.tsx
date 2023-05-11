@@ -1,6 +1,5 @@
 import { useObservable } from '@ngneat/react-rxjs';
-import React, { FC, useState } from 'react';
-import { Observable } from 'rxjs';
+import React, { FC } from 'react';
 import styled from 'styled-components';
 
 import { MapComponent } from './components/Map/Map';
@@ -24,20 +23,16 @@ const TopBarWrapper = styled.div`
 	z-index: 1000000;
 `;
 
-export const App: FC<any> = () => {
-	// const [vehicleLoading] = useObservable(vehicleQuery.selectLoading());
+export const App: FC = () => {
 	const [highlightedTrip] = useObservable(tripsSelector.highlightedTrip$);
-	const [userLocation, setUserLocation] = useState<null | number[]>(null);
 	const [tripLoading] = useObservable(tripsSelector.tripLoading$);
-
-	console.log(tripLoading)
 
 	return (
 		<div className="App">
 			<TopBarWrapper>
-				<TopBar setUserLocation={setUserLocation} />
+				<TopBar />
 			</TopBarWrapper>
-			<MapComponent userLocation={userLocation} highlightedTrip={highlightedTrip} />
+			<MapComponent highlightedTrip={highlightedTrip} />
 			{(highlightedTrip || tripLoading) && (
 				<PopupWrapper>
 					<Popup trip={highlightedTrip} loading={tripLoading.value === 'pending'}></Popup>

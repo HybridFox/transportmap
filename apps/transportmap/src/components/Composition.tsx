@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import React, { FC } from 'react';
 import styled from 'styled-components';
 import { Scrollbars } from 'react-custom-scrollbars-2';
@@ -121,12 +120,11 @@ export const Composition: FC<CompositionProps> = ({ trip }: CompositionProps) =>
 
 		return <div style={{ ...style, ...thumbStyle }} {...props} />
 	}
-
-	console.log(trip?.composition)
+	
 	return (
 		<Scrollbars style={{ height: "110px" }} renderThumbHorizontal={renderThumb}>
 			<Vehicles>
-				{(trip?.composition?.[0]?.materialUnits || []).filter((x: any) => x.materialSubTypeName).map((composition: Composition, i: number) => (
+				{(trip?.composition?.[0]?.materialUnits || []).filter((x: Composition) => x.materialSubTypeName).map((composition: Composition, i: number) => (
 					<Vehicle key={i}>
 						<img
 							src={`/assets/img/vehicles/${composition.materialSubTypeName}${composition.isFirstClass ? '_p' : ''}.gif`}

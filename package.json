@@ -79,6 +79,7 @@
     "@testing-library/react": "^14.0.0",
     "@types/batch-stream": "^0.1.32",
     "@types/jest": "^29.5.1",
+    "@types/lodash.debounce": "^4.0.7",
     "@types/mapbox__polyline": "^1.0.2",
     "@types/node": "^20.1.0",
     "@types/ramda": "^0.29.1",

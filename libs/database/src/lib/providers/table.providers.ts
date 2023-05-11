@@ -17,6 +17,7 @@ export enum TABLE_PROVIDERS {
 	GTFS_STATIC_STATUS = 'GTFS_STATIC_STATUS',
 	GTFS_REALTIME_STATUS = 'GTFS_REALTIME_STATUS',
 	CALCULATED_TRIP_REPOSITORY = 'CALCULATED_TRIP_REPOSITORY',
+	COMPOSITION_REPOSITORY = 'COMPOSITION_REPOSITORY',
 }
 
 export const columnProviders = [
@@ -78,6 +79,11 @@ export const columnProviders = [
 	{
 		provide: TABLE_PROVIDERS.CALCULATED_TRIP_REPOSITORY,
 		useFactory: (dataSource: DataSource) => dataSource.getRepository(Entites.CalculatedTrip),
+		inject: [DATABASE_PROVIDERS.MONGODB],
+	},
+	{
+		provide: TABLE_PROVIDERS.COMPOSITION_REPOSITORY,
+		useFactory: (dataSource: DataSource) => dataSource.getRepository(Entites.Composition),
 		inject: [DATABASE_PROVIDERS.MONGODB],
 	},
 ];

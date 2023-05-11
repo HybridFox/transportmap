@@ -14,8 +14,8 @@ const defaultTextProps = {
 	fill: new olStyle.Fill({
 	  color: "#fff"
 	}),
-	offsetX: 50,
-	offsetY: -20
+	offsetX: 55,
+	offsetY: -20,
 };
 
 export const MAP_ICON_STYLES = (trip: Trip): Record<string, Record<string, olStyle.Style>> => ({
