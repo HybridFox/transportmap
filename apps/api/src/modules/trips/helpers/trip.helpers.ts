@@ -37,7 +37,6 @@ export const calculateTripPositions = async (trip: Trip, loggingService: Logging
 	const sortedStopTimes: StopTime[] = trip.stopTimes.sort((a: any, b: any) => a.stopSequence - b.stopSequence);
 
 	if (!sortedStopTimes[0]) {
-		console.log(`[POSITIONS] trip ${trip.id} has no stopTimes`);
 		return;
 	}
 
@@ -45,7 +44,6 @@ export const calculateTripPositions = async (trip: Trip, loggingService: Logging
 	const lastDepartureTime = sortedStopTimes[sortedStopTimes.length - 1].arrivalTime;
 
 	if (firstDepartureTime > currentTime || currentTime > lastDepartureTime) {
-		console.log(`[POSITIONS] trip ${trip.id} should not be checked because it is out`);
 		return null;
 	}
 
