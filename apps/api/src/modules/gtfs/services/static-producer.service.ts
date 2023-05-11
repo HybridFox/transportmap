@@ -95,12 +95,12 @@ export class StaticStaticProducerService {
 			// TODO: Eventually add support for transfer.
 			// await this.transferService.seed(id, key);
 
-			await new Promise<void>((resolve) => {
-				setTimeout(async () => {
-					await this.stopTimeOverrideStaticProducerService.seed(id, key);
-					resolve();
-				}, 3 * 60 * 1000);
-			})
+			// await new Promise<void>((resolve) => {
+			// 	setTimeout(async () => {
+			// 		await this.stopTimeOverrideStaticProducerService.seed(id, key);
+			// 		resolve();
+			// 	}, 3 * 60 * 1000);
+			// })
 
 			await this.gtfsProcessStatus.upsert(
 				{
