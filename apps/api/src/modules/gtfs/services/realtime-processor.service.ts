@@ -100,7 +100,7 @@ export class RealtimeProcessorService {
 					return;
 				}
 
-				if (feedMessages.length) {
+				if (!feedMessages.length) {
 					return;
 				}
 
