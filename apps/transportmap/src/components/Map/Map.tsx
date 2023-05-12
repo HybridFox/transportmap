@@ -25,6 +25,7 @@ import { MAP_ICON_STYLES } from './Map.const';
 
 interface Props {
 	highlightedTrip?: Trip;
+	map: React.MutableRefObject<ol.Map | null>;
 }
 
 enum FocusObjects {
@@ -32,9 +33,8 @@ enum FocusObjects {
 	TRIP
 }
 
-export const MapComponent: FC<Props> = ({ highlightedTrip }: Props) => {
+export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 	const mapElement = useRef<HTMLDivElement | null>(null);
-	const map = useRef<ol.Map | null>(null);
 	const focusedObject = useRef<FocusObjects | null>(null);
 
 	const [trips] = useObservable(tripsSelector.trips$);
@@ -53,7 +53,9 @@ export const MapComponent: FC<Props> = ({ highlightedTrip }: Props) => {
 			.getLayers()
 			.forEach((layer) => layer.getProperties().userLocationLayer && layer.setVisible(userLocationEnabled));
 		focusedObject.current = FocusObjects.USER_LOCATION;
-	}, [userLocationEnabled])
+	}, [userLocationEnabled]);
+
+	console.log(highlightedTrip)
 
 	/**
 	 * Handle a trip being selected
@@ -69,9 +71,10 @@ export const MapComponent: FC<Props> = ({ highlightedTrip }: Props) => {
 		if (!coordinates) {
 			return
 		}
+
+		console.log('highlighted')
 		
 		map.current.addLayer(vectorLayer);
-		map.current.getView().animate({ center: olProj.transform(coordinates, 'EPSG:4326', 'EPSG:3857'), zoom: 13.5 });
 		focusedObject.current = FocusObjects.TRIP;
 	}, [highlightedTrip])
 

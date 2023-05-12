@@ -1,11 +1,11 @@
 version: '3'
 
 x-default-options: &default-options
-    tty: true
-    logging:
-        options:
-            max-size: '10m'
-            max-file: '3'
+    # tty: true
+    # logging:
+    #     options:
+    #         max-size: '10m'
+    #         max-file: '3'
     networks:
         - transportmap
     build:

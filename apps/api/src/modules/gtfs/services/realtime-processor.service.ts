@@ -100,6 +100,10 @@ export class RealtimeProcessorService {
 					return;
 				}
 
+				if (feedMessages.length) {
+					return;
+				}
+
 				const queue = async.queue(async ({ tripId, stopTimeUpdate }, callback) => {
 					await this.processStopTimeUpdate(tripId, stopTimeUpdate);
 					progressBar.increment();

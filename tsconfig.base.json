@@ -17,6 +17,7 @@
 		"paths": {
 			"@transportmap/database": ["libs/database/src/index.ts"],
 			"@transportmap/kafka-connector": ["libs/kafka-connector/src/index.ts"],
+			"@transportmap/types": ["libs/types/src/index.ts"],
 			"~core/*": ["./apps/api/src/core/*"],
 			"~shared/*": ["./apps/api/src/modules/shared/*"]
 		}

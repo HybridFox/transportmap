@@ -1,4 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, Index, ManyToOne, JoinColumn } from 'typeorm';
+
+import { Stop } from './Stop.entity';
 
 @Entity()
 export class Translation {
@@ -19,4 +21,8 @@ export class Translation {
 
 	@Column()
 	translation: string;
+
+	@ManyToOne(() => Stop, (stop) => stop.id, { createForeignKeyConstraints: false })
+	@JoinColumn({ name: 'translationKey', referencedColumnName: 'name' })
+	stop: any;
 }

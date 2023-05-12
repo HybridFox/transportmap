@@ -1,6 +1,7 @@
 import { Entity, Column, PrimaryColumn, Index, OneToMany } from 'typeorm';
 
 import { StopTime } from './StopTime.entity';
+import { Translation } from './Translation.entity';
 
 @Entity()
 export class Stop {
@@ -45,4 +46,7 @@ export class Stop {
 
 	@OneToMany(() => StopTime, (stop) => stop.stop, { createForeignKeyConstraints: false })
 	stopTimes: StopTime[];
+
+	@OneToMany(() => Translation, (translation) => translation.stop, { createForeignKeyConstraints: false })
+	translations: Translation[];
 }

@@ -12,6 +12,7 @@ import { GTFSModule } from './modules/gtfs/gtfs.module';
 import { RoutesModule } from './modules/routes/routes.module';
 import { StopsModule } from './modules/stops/stops.module';
 import { TripsModule } from './modules/trips/trips.module';
+import { SearchModule } from './modules/search/search.module';
 
 @Module({
 	imports: [
@@ -21,6 +22,7 @@ import { TripsModule } from './modules/trips/trips.module';
 		RoutesModule,
 		StopsModule,
 		TripsModule,
+		SearchModule,
 		// ServeStaticModule.forRoot({
 		// 	rootPath: path.join(__dirname, '../..', 'src/modules/trips/static'),
 		// 	serveRoot: '/static',

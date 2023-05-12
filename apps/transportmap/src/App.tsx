@@ -1,6 +1,7 @@
 import { useObservable } from '@ngneat/react-rxjs';
-import React, { FC } from 'react';
+import React, { FC, useRef } from 'react';
 import styled from 'styled-components';
+import * as ol from 'ol';
 
 import { MapComponent } from './components/Map/Map';
 import { Popup } from './components/Popup';
@@ -27,12 +28,14 @@ export const App: FC = () => {
 	const [highlightedTrip] = useObservable(tripsSelector.highlightedTrip$);
 	const [tripLoading] = useObservable(tripsSelector.tripLoading$);
 
+	const map = useRef<ol.Map | null>(null);
+
 	return (
 		<div className="App">
 			<TopBarWrapper>
-				<TopBar />
+				<TopBar map={map} />
 			</TopBarWrapper>
-			<MapComponent highlightedTrip={highlightedTrip} />
+			<MapComponent highlightedTrip={highlightedTrip} map={map} />
 			{(highlightedTrip || tripLoading) && (
 				<PopupWrapper>
 					<Popup trip={highlightedTrip} loading={tripLoading.value === 'pending'}></Popup>

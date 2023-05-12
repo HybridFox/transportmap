@@ -1,38 +1,37 @@
 import { updateRequestStatus } from '@ngneat/elf-requests';
-import { take, tap } from 'rxjs/operators';
-import { deleteAllEntities, resetActiveId, setActiveId, setEntities, upsertEntities } from '@ngneat/elf-entities';
-import { Observable, map } from 'rxjs';
+import { deleteAllEntities, setEntities } from '@ngneat/elf-entities';
+import { setProp } from '@ngneat/elf';
+
+import { SearchService, searchService } from '../../services/search.service';
 
 import { searchStore } from './search.store';
 import { searchSelector } from './search.selectors';
-import { Trip } from '../trips/trips.types';
-import { TripsService, tripsService } from '../../services/vehicle.service';
 
 export class SearchRepository {
 	public searchResults$ = searchSelector.searchResults$;
 
-	constructor(private readonly tripsService: TripsService) {}
+	constructor(private readonly searchService: SearchService) {}
 
-	public async searchTrips(search: Record<string, string>): Promise<Trip[]> {
-		searchStore.update(updateRequestStatus('search-trips', 'pending'));
-		return this.tripsService
-			.get(search)
-			.then((trips) => {
+	public async searchTrips(search: Record<string, string>): Promise<any> {
+		searchStore.update(updateRequestStatus('search', 'pending'));
+		return this.searchService
+			.search(search)
+			.then((results) => {
 					searchStore.update(
-						setEntities(trips),
-						updateRequestStatus('search-trips', 'success')
+						setProp('results', results),
+						updateRequestStatus('search', 'success')
 					);
 
-					return trips;
+					return results;
 				}
 			)
 	}
 
 	public clear(): void {
 		searchStore.update(
-			deleteAllEntities(),
+			setProp('results', undefined),
 		);
 	}
 }
 
-export const searchRepository = new SearchRepository(tripsService)
+export const searchRepository = new SearchRepository(searchService)

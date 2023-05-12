@@ -2,6 +2,8 @@ import React, { FC } from 'react';
 import styled from 'styled-components';
 import debounce from 'lodash.debounce';
 import { useObservable } from '@ngneat/react-rxjs';
+import * as ol from 'ol';
+import * as olProj from 'ol/proj';
 
 import { tripsRepository } from '../store/trips/trips.repository';
 import { searchRepository } from '../store/search/search.repository';
@@ -56,9 +58,10 @@ const Trip = styled.div`
 
 interface Props {
 	className?: string;
+	map: React.MutableRefObject<ol.Map | null>;
 }
 
-const RawTopBar: FC<Props> = ({ className }: Props) => {
+const RawTopBar: FC<Props> = ({ className, map }: Props) => {
 	const [searchResults] = useObservable(searchRepository.searchResults$);
 	const [userLocationEnabled] = useObservable(uiRepository.userLocationEnabled$)
 
@@ -72,9 +75,34 @@ const RawTopBar: FC<Props> = ({ className }: Props) => {
 				<span className="uil uil-location-arrow"></span>
 			</LocationIcon>
 			<SearchBarContainer>
-				<SearchBar type="text" onChange={debounce(doSearch, 500)} placeholder='Search for a trip' />
+				<SearchBar type="text" onChange={debounce(doSearch, 300)} placeholder='Search for a trip' />
 				<TripContainer>
-					{searchResults.map((trip) => (
+					{searchResults?.trips.map((trip: any) => (
+						<Trip onClick={() => {
+							searchRepository.clear()
+							tripsRepository.highlightTrip(trip.id)
+								.then((trip) => {
+									map.current!
+										.getView()
+										.animate({ center: olProj.transform([
+											trip.sectionLocation.longitude,
+											trip.sectionLocation.latitude
+										], 'EPSG:4326', 'EPSG:3857'), zoom: 13.5 });
+								});
+							
+						}}>
+							<Badge
+								color={trip?.extraData?.foregroundColor}
+								borderColor={trip?.extraData?.backgroundBorderColor}
+								backgroundColor={trip?.extraData?.backgroundColor}>
+								{trip.route.routeCode} {trip.name}
+							</Badge>
+							<p>
+								{trip.headsign}
+							</p>
+						</Trip>
+					))}
+					{/* {searchResults?.stops.map((stop: any) => (
 						<Trip onClick={() => {
 							searchRepository.clear()
 							tripsRepository.getTrip(trip.id);
@@ -89,7 +117,7 @@ const RawTopBar: FC<Props> = ({ className }: Props) => {
 								{trip.headsign}
 							</p>
 						</Trip>
-					))}
+					))} */}
 				</TripContainer>
 			</SearchBarContainer>
 		</div>
