@@ -110,6 +110,18 @@ const Class = styled.span`
 	display: inline-block;
 `
 
+const NoCompositionFound = styled.div`
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+	height: 110px;
+	justify-content: center;
+
+	p {
+		margin: 0;
+	}
+`;
+
 export const Composition: FC<CompositionProps> = ({ trip }: CompositionProps) => {
 	const renderThumb = ({ style, ...props }: { style: any }) => {
 		const thumbStyle = {
@@ -119,6 +131,13 @@ export const Composition: FC<CompositionProps> = ({ trip }: CompositionProps) =>
 		};
 
 		return <div style={{ ...style, ...thumbStyle }} {...props} />
+	}
+
+	if (!trip.composition || !trip.composition.length) {
+		return <NoCompositionFound>
+			<span className='uil uil-exclamation-triangle'></span>
+			<p>No composition found</p>
+		</NoCompositionFound>
 	}
 	
 	return (
