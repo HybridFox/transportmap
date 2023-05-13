@@ -25,14 +25,13 @@ const LocationIcon = styled.button<{ enabled: boolean }>`
 const SearchBarContainer = styled.div`
 	flex: 1;
 	margin-left: 1rem;
-	background: rgb(84, 84, 84);
 	border-radius: 20px;
 `;
 
 const SearchBar = styled.input`
 	padding: 1rem 1.5rem;
 	border-radius: 20px;
-	background-color: #161616;
+	background-color: rgb(22, 22, 22);
 	box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
 	border: none;
 	color: white;
@@ -40,20 +39,31 @@ const SearchBar = styled.input`
 	border: none;
 `;
 
-const TripContainer = styled.div`
-	background: rgb(84, 84, 84);
+const SearchResultsContainer = styled.div`
+	margin-top: 0.5rem;
+	background: rgb(33, 33, 33);
 	border-radius: 20px;
 `;
 
-const Trip = styled.div`
+const SearchResult = styled.div`
 	display: flex;
-	padding: 1rem;
+	padding: 0 1rem 1rem 1rem;
 	cursor: pointer;
 	
 	p {
 		margin: 0;
 		padding: 0;
 	}
+`;
+
+const SearchResultName = styled.p`
+	display: flex;
+	padding: 0.5rem 1rem;
+	text-transform: uppercase;
+	font-weight: bold;
+	font-size: .8rem;
+	margin: 0;
+	cursor: pointer;
 `;
 
 interface Props {
@@ -76,49 +86,53 @@ const RawTopBar: FC<Props> = ({ className, map }: Props) => {
 			</LocationIcon>
 			<SearchBarContainer>
 				<SearchBar type="text" onChange={debounce(doSearch, 300)} placeholder='Search for a trip' />
-				<TripContainer>
-					{searchResults?.trips.map((trip: any) => (
-						<Trip onClick={() => {
-							searchRepository.clear()
-							tripsRepository.highlightTrip(trip.id)
-								.then((trip) => {
-									map.current!
-										.getView()
-										.animate({ center: olProj.transform([
-											trip.sectionLocation.longitude,
-											trip.sectionLocation.latitude
-										], 'EPSG:4326', 'EPSG:3857'), zoom: 13.5 });
-								});
-							
-						}}>
-							<Badge
-								color={trip?.extraData?.foregroundColor}
-								borderColor={trip?.extraData?.backgroundBorderColor}
-								backgroundColor={trip?.extraData?.backgroundColor}>
-								{trip.route.routeCode} {trip.name}
-							</Badge>
-							<p>
-								{trip.headsign}
-							</p>
-						</Trip>
-					))}
-					{/* {searchResults?.stops.map((stop: any) => (
-						<Trip onClick={() => {
-							searchRepository.clear()
-							tripsRepository.getTrip(trip.id);
-						}}>
-							<Badge
-								color={trip?.extraData?.foregroundColor}
-								borderColor={trip?.extraData?.backgroundBorderColor}
-								backgroundColor={trip?.extraData?.backgroundColor}>
-								{trip.route.routeCode} {trip.name}
-							</Badge>
-							<p>
-								{trip.headsign}
-							</p>
-						</Trip>
-					))} */}
-				</TripContainer>
+				{!!searchResults?.trips.length && (
+					<SearchResultsContainer>
+						<SearchResultName>Trips</SearchResultName>
+						{searchResults?.trips.map((trip) => console.log(trip) as any || (
+							<SearchResult onClick={() => {
+								searchRepository.clear()
+								tripsRepository.highlightTrip(trip.id)
+									.then((trip) => {
+										map.current!
+											.getView()
+											.animate({ center: olProj.transform([
+												trip.sectionLocation.longitude,
+												trip.sectionLocation.latitude
+											], 'EPSG:4326', 'EPSG:3857'), zoom: 13.5 });
+									});
+								
+							}}>
+								<Badge>
+									{trip.route.routeCode} {trip.name}
+								</Badge>
+								<p>
+									{trip.route.name}
+								</p>
+							</SearchResult>
+						))}
+					</SearchResultsContainer>
+				)}
+				{!!searchResults?.stops.length && (
+					<SearchResultsContainer>
+					<SearchResultName>Stops</SearchResultName>
+						{searchResults?.stops.map((stop) => (
+							<SearchResult onClick={() => {
+								searchRepository.clear()
+								map.current!
+									.getView()
+									.animate({ center: olProj.transform([
+										stop.longitude,
+										stop.latitude
+									], 'EPSG:4326', 'EPSG:3857'), zoom: 15 });
+							}}>
+								<p>
+									{stop.name}
+								</p>
+							</SearchResult>
+						))}
+					</SearchResultsContainer>
+				)}
 			</SearchBarContainer>
 		</div>
 	);

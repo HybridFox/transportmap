@@ -17,7 +17,7 @@ export class SearchService {
 		trips: Partial<CalculatedTrip>[],
 		stops: Partial<Stop>[]
 	}> {
-		if (query.q && query.q.length < 3) {
+		if (!query.q || query.q.length < 3) {
 			return {
 				trips: [],
 				stops: []
@@ -27,7 +27,7 @@ export class SearchService {
 		const match = new RegExp(query.q, "i");
 		const [trips, stops] = await Promise.all([
 			this.tripCacheRepository.find({
-				limit: 10,
+				limit: 3,
 				where: {
 					...(query.q && {
 						$or: [
@@ -48,10 +48,11 @@ export class SearchService {
 				// TODO: find a fix for this double join
 				.leftJoinAndSelect('stop.translations', 'translations')
 				.andWhere(`stop.id NOT LIKE '%\\_%'`)
+				.take(3)
 				.getMany()
 		]);
 
-		console.log(stops);
+		console.log(trips)
 
 		return {
 			trips: trips

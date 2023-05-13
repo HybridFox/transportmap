@@ -1,5 +1,4 @@
 import { updateRequestStatus } from '@ngneat/elf-requests';
-import { deleteAllEntities, setEntities } from '@ngneat/elf-entities';
 import { setProp } from '@ngneat/elf';
 
 import { SearchService, searchService } from '../../services/search.service';

@@ -7,32 +7,15 @@ import got from 'got';
 import polyline from '@mapbox/polyline';
 import { StopTime, Trip } from '@transportmap/database';
 import LineString from 'ol/geom/LineString.js';
+import { CalculatedTrip, TripSection } from '@transportmap/types';
 
 import { redis } from '~core/instances/redis.instance';
 import { SentryMessage, SentrySeverity } from '~core/enum/sentry.enum';
 import { LoggingService } from '~core/services/logging.service';
 
-console.log(LineString)
-
-// TODO: clean this up
-export interface Section {
-	type: string;
-	startTime: string;
-	endTime: string;
-	realtimeStartTime: string | null;
-	realtimeEndTime: string | null;
-	startLocation: { longitude: number; latitude: number };
-	endLocation: { longitude: number; latitude: number };
-	distance: number;
-	activeGeometry: number[][];
-	bearing: number;
-	speed: number;
-	index: number;
-}
-
 const clamp = (number: number, min: number, max: number) => Math.max(min, Math.min(number, max));
 
-export const calculateTripPositions = async (trip: Trip, loggingService: LoggingService): Promise<any> => {
+export const calculateTripPositions = async (trip: Trip, loggingService: LoggingService): Promise<CalculatedTrip> => {
 	const currentTime = dayjs().format('HH:mm:ss');
 	const sortedStopTimes: StopTime[] = trip.stopTimes.sort((a: any, b: any) => a.stopSequence - b.stopSequence);
 
@@ -48,7 +31,7 @@ export const calculateTripPositions = async (trip: Trip, loggingService: Logging
 	}
 
 	// Push all the stopTimes into an array with their "between" sections (type = travel)
-	const sections: Section[] = sortedStopTimes.reduce((acc, currentStopTime, i) => {
+	const sections: TripSection[] = sortedStopTimes.reduce((acc, currentStopTime, i) => {
 		const nextStopTime: StopTime = sortedStopTimes[i + 1];
 
 		return [
@@ -113,7 +96,7 @@ export const calculateTripPositions = async (trip: Trip, loggingService: Logging
 	const osrmRoute = await getOsrmRoute(
 		sortedStopTimes.map((stopTime) => `${stopTime.stop.longitude},${stopTime.stop.latitude}`, loggingService).join(';'),
 		loggingService,
-	).catch(console.error);
+	);
 
 	// Now that we have all the section, find the section we are currently in by the current time.
 	const activeSection = sections.find((calculation) => calculation.startTime <= currentTime && currentTime <= calculation.endTime);
@@ -121,13 +104,10 @@ export const calculateTripPositions = async (trip: Trip, loggingService: Logging
 	if (activeSection.index === -1) {
 		return {
 			...omit(['calendar', 'calendarDates'])(trip),
-			firstDepartureTime,
-			lastDepartureTime,
 			sectionLocation: {
 				latitude: activeSection.startLocation.latitude,
 				longitude: activeSection.startLocation.longitude,
 			},
-			sectionCoordinates: [[activeSection.startLocation.longitude, activeSection.startLocation.latitude]],
 			sectionProgress: 0,
 			bearing: activeSection.bearing,
 			speed: activeSection.speed,
@@ -169,8 +149,6 @@ export const calculateTripPositions = async (trip: Trip, loggingService: Logging
 
 	return {
 		...omit(['calendar', 'calendarDates'])(trip),
-		firstDepartureTime,
-		lastDepartureTime,
 		sectionLocation: {
 			longitude: sectionLocation[1],
 			latitude: sectionLocation[0],

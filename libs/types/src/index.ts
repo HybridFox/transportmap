@@ -1,1 +1,2 @@
-export * from './lib/types';
+export * from './lib/search';
+export * from './lib/calculated-trip';
