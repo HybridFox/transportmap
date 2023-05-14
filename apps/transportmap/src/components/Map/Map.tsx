@@ -13,6 +13,7 @@ import { useObservable } from '@ngneat/react-rxjs';
 import * as olStyle from 'ol/style';
 import CircleStyle from 'ol/style/Circle';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import { tripsSelector } from '../../store/trips/trips.selectors';
 // import { tripsRepository } from '../../store/vehicles/trips.repository';
@@ -37,7 +38,7 @@ enum FocusObjects {
 export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 	const mapElement = useRef<HTMLDivElement | null>(null);
 	const focusedObject = useRef<FocusObjects | null>(null);
-	const navigate = useNavigate()
+	const [t, i18n] = useTranslation()
 
 	const [trips] = useObservable(tripsSelector.trips$);
 	const [userLocationEnabled] = useObservable(uiRepository.userLocationEnabled$);
@@ -57,8 +58,6 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 		focusedObject.current = FocusObjects.USER_LOCATION;
 	}, [userLocationEnabled]);
 
-	console.log(highlightedTrip)
-
 	/**
 	 * Handle a trip being selected
 	 */
@@ -68,7 +67,7 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 		}
 
 		const coordinates = getVehicleLocation(highlightedTrip.sections, highlightedTrip.osrmRoute);
-		const vectorLayer = highlightPolyline(highlightedTrip);
+		const vectorLayer = highlightPolyline(highlightedTrip, i18n.language);
 
 		if (!coordinates) {
 			return

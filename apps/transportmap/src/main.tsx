@@ -1,7 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
 import * as Sentry from '@sentry/react';
+import './services/i18n.service';
 
 import App from './App';
 import './assets/scss/index.scss';
@@ -16,13 +17,18 @@ Sentry.init({
 	replaysOnErrorSampleRate: 1.0, // If you're not already sampling the entire session, change the sample rate to 100% when sampling sessions where errors occur.
 });
 
+const ROUTE = "/:locale"
 const router = createBrowserRouter([
 	{
 		path: '/',
+		element: <Navigate replace to="nl"/>
+	},
+	{
+		path: `${ROUTE}/`,
 		element: <App />,
 	},
 	{
-		path: '/trips/:tripId',
+		path: `${ROUTE}/trips/:tripId`,
 		element: <App />,
 	},
 ]);

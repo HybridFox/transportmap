@@ -4,5 +4,5 @@ import { CalculatedTrip } from "./calculated-trip";
 
 export interface SearchResults {
 	trips: CalculatedTrip[];
-	stops: Stop[]
+	stops: (Stop & { translations: Record<string, string> })[]
 }

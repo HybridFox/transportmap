@@ -10,6 +10,7 @@ import { redis } from '~core/instances/redis.instance';
 import { LoggingService } from '~core/services/logging.service';
 
 import { calculateTripPositions } from '../helpers/trip.helpers';
+import { parseTripTranslations } from '../helpers/translations';
 
 @Injectable()
 export class TripsService {
@@ -98,6 +99,7 @@ export class TripsService {
 				.createQueryBuilder('trip')
 				.leftJoinAndSelect('trip.stopTimes', 'stopTime')
 				.leftJoinAndSelect('stopTime.stop', 'stop')
+				.leftJoinAndSelect('stop.translations', 'translations')
 				.leftJoinAndSelect('trip.calendar', 'calendar')
 				.leftJoinAndSelect('trip.route', 'route')
 				.leftJoinAndSelect('trip.calendarDates', 'calendarDate')
@@ -107,7 +109,7 @@ export class TripsService {
 				.andWhere(`calendarDate.exceptionType = '1'`)
 				.getMany();
 
-			redis.set(`RAWTRIPS:${agencyId}`, JSON.stringify(trips));
+			redis.set(`RAWTRIPS:${agencyId}`, JSON.stringify(trips.map((trip) => parseTripTranslations(trip))));
 		})();
 
 		return JSON.parse(rawTrips || '[]');
@@ -149,6 +151,7 @@ export class TripsService {
 			.createQueryBuilder('trip')
 			.leftJoinAndSelect('trip.stopTimes', 'stopTime')
 			.leftJoinAndSelect('stopTime.stop', 'stop')
+			.leftJoinAndSelect('stop.translations', 'translations')
 			.leftJoinAndSelect('trip.calendar', 'calendar')
 			.leftJoinAndSelect('trip.route', 'route')
 			.leftJoinAndSelect('trip.calendarDates', 'calendarDate')

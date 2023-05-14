@@ -21,6 +21,7 @@ export interface Stop {
 	longitude: number;
 	projectedLatitude: number;
 	projectedLongitude: number;
+	translations: Record<string, string>;
 }
 
 export interface StopTime {

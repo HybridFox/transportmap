@@ -1,13 +1,16 @@
-import React, { FC } from 'react';
+import React, { FC, useState } from 'react';
 import styled from 'styled-components';
 import debounce from 'lodash.debounce';
 import { useObservable } from '@ngneat/react-rxjs';
 import * as ol from 'ol';
 import * as olProj from 'ol/proj';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 import { tripsRepository } from '../store/trips/trips.repository';
 import { searchRepository } from '../store/search/search.repository';
 import { uiRepository } from '../store/ui/ui.repository';
+import { getTranslation } from '../helpers/translation.util';
 
 import { Badge } from './Badge';
 
@@ -19,12 +22,55 @@ const LocationIcon = styled.button<{ enabled: boolean }>`
 	border: none;
 	color: white;
 	align-self: flex-start;
+	margin-right: 0.5rem;
 	cursor: pointer;
+`;
+
+const LanguageIcon = styled.button<{ visible: boolean }>`
+	padding: 1rem 1.5rem;
+	border-radius: 20px;
+	background-color: ${(props) => props.visible ? '#98D8AA' : '#161616'};
+	box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+	border: none;
+	color: white;
+	align-self: flex-start;
+	text-transform: uppercase;
+	font-weight: bold;
+	margin-right: 0.5rem;
+	cursor: pointer;
+`;
+
+const LanguageWrapper = styled.div`
+	position: relative;
+`;
+
+const LanguageContainer = styled.div`
+	margin-top: 0.5rem;
+	background: rgb(33, 33, 33);
+	border-radius: 20px;
+	margin-right: 0.5rem;
+
+	ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		display: flex;
+		align-items: center;
+		flex-direction: column;
+		padding: 0.5rem 0;
+
+		li {
+			padding: 0.25rem 0;
+			font-weight: bold;
+			color: #FFF;
+			text-transform: uppercase;
+			cursor: pointer;
+		}
+	}
 `;
 
 const SearchBarContainer = styled.div`
 	flex: 1;
-	margin-left: 1rem;
 	border-radius: 20px;
 `;
 
@@ -71,16 +117,41 @@ interface Props {
 	map: React.MutableRefObject<ol.Map | null>;
 }
 
+const availableLanguages = ['nl', 'fr', 'en', 'de'];
+
 const RawTopBar: FC<Props> = ({ className, map }: Props) => {
 	const [searchResults] = useObservable(searchRepository.searchResults$);
-	const [userLocationEnabled] = useObservable(uiRepository.userLocationEnabled$)
+	const [userLocationEnabled] = useObservable(uiRepository.userLocationEnabled$);
+	const [t, i18n] = useTranslation();
+	const navigate = useNavigate();
+	const [languageDropdownVisible, setLanguageDropdownVisible] = useState(false);
 
 	const doSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
 		searchRepository.searchTrips({ q: e.target.value })
 	}
 
+	const changeLanguage = (lang: string) => {
+		setLanguageDropdownVisible(false);
+		i18n.changeLanguage(lang);
+		navigate(`/${lang}`)
+	}
+
 	return (
 		<div className={className}>
+			<LanguageWrapper>
+				<LanguageIcon visible={languageDropdownVisible} onClick={() => setLanguageDropdownVisible(!languageDropdownVisible)}>
+					{i18n.language}
+				</LanguageIcon>
+				{languageDropdownVisible && (
+					<LanguageContainer>
+						<ul>
+							{availableLanguages.map((langKey) => (
+								<li key={langKey} onClick={() => changeLanguage(langKey)}>{langKey}</li>
+							))}
+						</ul>
+					</LanguageContainer>
+				)}
+			</LanguageWrapper>
 			<LocationIcon enabled={userLocationEnabled} onClick={() => uiRepository.setUserLocationEnabled(!userLocationEnabled)}>
 				<span className="uil uil-location-arrow"></span>
 			</LocationIcon>
@@ -127,7 +198,7 @@ const RawTopBar: FC<Props> = ({ className, map }: Props) => {
 									], 'EPSG:4326', 'EPSG:3857'), zoom: 15 });
 							}}>
 								<p>
-									{stop.name}
+									{getTranslation(stop.translations, i18n.language)}
 								</p>
 							</SearchResult>
 						))}

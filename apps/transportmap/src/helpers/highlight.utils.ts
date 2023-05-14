@@ -6,8 +6,9 @@ import VectorLayer from 'ol/layer/Vector';
 import { Trip } from "../store/trips/trips.types";
 
 import { routeStyleFunction } from './map.utils';
+import { getTranslation } from './translation.util';
 
-export const highlightPolyline = (trip: Trip): VectorLayer<VectorSource> => {
+export const highlightPolyline = (trip: Trip, locale: string): VectorLayer<VectorSource> => {
 	const coordinates = trip.osrmRoute.reduce((acc, leg) => {
 		return [
 			...acc,
@@ -36,7 +37,7 @@ export const highlightPolyline = (trip: Trip): VectorLayer<VectorSource> => {
 						],
 					},
 					properties: {
-						name: stopTime.stop.name,
+						name: getTranslation(stopTime.stop.translations, locale),
 					},
 				})),
 			],

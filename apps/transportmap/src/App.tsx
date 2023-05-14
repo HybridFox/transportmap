@@ -1,12 +1,15 @@
 import { useObservable } from '@ngneat/react-rxjs';
-import React, { FC, useRef } from 'react';
+import React, { FC, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import * as ol from 'ol';
+import { useParams } from 'react-router-dom';
 
+import { i18n } from './services/i18n.service';
 import { MapComponent } from './components/Map/Map';
 import { Popup } from './components/Popup';
 import { tripsSelector } from './store/trips/trips.selectors';
 import { TopBar } from './components/TopBar';
+import { Head } from './components/Head';
 
 const PopupWrapper = styled.div`
 	width: 100%;
@@ -27,11 +30,18 @@ const TopBarWrapper = styled.div`
 export const App: FC = () => {
 	const [highlightedTrip] = useObservable(tripsSelector.highlightedTrip$);
 	const [tripLoading] = useObservable(tripsSelector.tripLoading$);
+	const { locale } = useParams();
 
 	const map = useRef<ol.Map | null>(null);
 
+	useEffect(() => {
+		i18n.changeLanguage(locale);
+	}, [locale])
+	
+
 	return (
 		<div className="App">
+			<Head />
 			<TopBarWrapper>
 				<TopBar map={map} />
 			</TopBarWrapper>

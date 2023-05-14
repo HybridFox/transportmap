@@ -3,6 +3,8 @@ import { Like, MongoRepository, Repository } from 'typeorm';
 import { CalculatedTrip, Stop, TABLE_PROVIDERS, Translation, mongoDataSource } from '@transportmap/database';
 import { pick } from 'ramda';
 
+import { parseStopTranslations } from '../../trips/helpers/translations';
+
 @Injectable()
 export class SearchService {
 	private tripCacheRepository: MongoRepository<CalculatedTrip>;
@@ -27,7 +29,7 @@ export class SearchService {
 		const match = new RegExp(query.q, "i");
 		const [trips, stops] = await Promise.all([
 			this.tripCacheRepository.find({
-				limit: 3,
+				take: 3,
 				where: {
 					...(query.q && {
 						$or: [
@@ -61,7 +63,7 @@ export class SearchService {
 					sections: trip.sections.map((section) => pick(['startTime', 'realStartTime', 'endTime', 'realEndTime'])(section))
 				})),
 			stops: stops
-				.map((trip) => pick(['id', 'name', 'translations', 'latitude', 'longitude'])(trip))
+				.map((trip) => parseStopTranslations(pick(['id', 'name', 'translations', 'latitude', 'longitude'])(trip)))
 		}
 	}
 }
