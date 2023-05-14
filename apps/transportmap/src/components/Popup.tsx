@@ -1,5 +1,6 @@
 import React, { FC, useState } from 'react';
 import styled, { css } from 'styled-components';
+import { useTranslation } from 'react-i18next';
 
 import { Trip } from '../store/trips/trips.types';
 
@@ -79,6 +80,7 @@ const PopupLoading = styled.div`
 
 const RawPopup: FC<PopupProps> = ({ trip, className, loading }: PopupProps) => {
 	const [selectedTab, setSelectedTab] = useState<string>('next-stops');
+	const [t] = useTranslation()
 
 	if (loading) {
 		return (<PopupLoading>
@@ -109,10 +111,10 @@ const RawPopup: FC<PopupProps> = ({ trip, className, loading }: PopupProps) => {
 						Info
 					</Tab> */}
 					<Tab onClick={() => setSelectedTab('next-stops')} selected={selectedTab === 'next-stops'}>
-						Next stops
+						{t('GENERAL.NEXT_STOPS')}
 					</Tab>
 					<Tab onClick={() => setSelectedTab('composition')} selected={selectedTab === 'composition'}>
-						Composition
+						{t('GENERAL.COMPOSITION')}
 					</Tab>
 				</Tabs>
 			</PopupHeader>

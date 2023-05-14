@@ -2,8 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
 import * as Sentry from '@sentry/react';
-import './services/i18n.service';
 
+import { i18n } from './services/i18n.service';
 import App from './App';
 import './assets/scss/index.scss';
 
@@ -21,7 +21,7 @@ const ROUTE = "/:locale"
 const router = createBrowserRouter([
 	{
 		path: '/',
-		element: <Navigate replace to="nl"/>
+		element: <Navigate replace to={i18n.languages[0]}/>
 	},
 	{
 		path: `${ROUTE}/`,

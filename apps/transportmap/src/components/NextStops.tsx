@@ -6,8 +6,10 @@ import customParseFormat from 'dayjs/plugin/customParseFormat'
 import Scrollbars from 'react-custom-scrollbars-2';
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
+import { useTranslation } from 'react-i18next';
 
 import { Trip } from '../store/trips/trips.types';
+import { getTranslation } from '../helpers/translation.util';
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -125,6 +127,8 @@ const OnTime = styled.span`
 `
 
 export const NextStops: FC<PopupProps> = ({ trip }: PopupProps) => {
+	const [t, i18n] = useTranslation()
+
 	const renderThumb = ({ style, ...props }: { style: any }) => {
 		const thumbStyle = {
 			backgroundColor: '#FFF',
@@ -145,10 +149,10 @@ export const NextStops: FC<PopupProps> = ({ trip }: PopupProps) => {
 							isPassed={
 								(stopTime.realtimeDepartureTime || stopTime.departureTime) < dayjs().format('HH:mm:ss')
 							}>
-							<StopName>{stopTime?.stop?.name?.replace(/ ?\[.*?]/gi, '')}</StopName>
+							<StopName>{getTranslation(stopTime?.stop?.translations, i18n.language)}</StopName>
 							<StopTimeWrapper>
 								<StopTime>
-									<StopTimeTitle>Arrival</StopTimeTitle>
+									<StopTimeTitle>{t('GENERAL.ARRIVAL')}</StopTimeTitle>
 									{stopTime.realtimeArrivalTime ? (
 										<>
 											<Strikethrough>{dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${stopTime.arrivalTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</Strikethrough>{' '}
@@ -160,7 +164,7 @@ export const NextStops: FC<PopupProps> = ({ trip }: PopupProps) => {
 								</StopTime>
 								<StopTimeSeparator>-</StopTimeSeparator>
 								<StopTime>
-									<StopTimeTitle>Departure</StopTimeTitle>
+									<StopTimeTitle>{t('GENERAL.DEPARTURE')}</StopTimeTitle>
 									{stopTime.realtimeDepartureTime ? (
 										<>
 											<Strikethrough>{dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${stopTime.departureTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</Strikethrough>{' '}

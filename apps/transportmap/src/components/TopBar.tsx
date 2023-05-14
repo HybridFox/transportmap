@@ -156,10 +156,10 @@ const RawTopBar: FC<Props> = ({ className, map }: Props) => {
 				<span className="uil uil-location-arrow"></span>
 			</LocationIcon>
 			<SearchBarContainer>
-				<SearchBar type="text" onChange={debounce(doSearch, 300)} placeholder='Search for a trip' />
+				<SearchBar type="text" onChange={debounce(doSearch, 300)} placeholder={t('GENERAL.SEARCH_TRIP_OR_STOP')!} />
 				{!!searchResults?.trips.length && (
 					<SearchResultsContainer>
-						<SearchResultName>Trips</SearchResultName>
+						<SearchResultName>{t('GENERAL.TRIPS')}</SearchResultName>
 						{searchResults?.trips.map((trip) => console.log(trip) as any || (
 							<SearchResult onClick={() => {
 								searchRepository.clear()
@@ -186,7 +186,7 @@ const RawTopBar: FC<Props> = ({ className, map }: Props) => {
 				)}
 				{!!searchResults?.stops.length && (
 					<SearchResultsContainer>
-					<SearchResultName>Stops</SearchResultName>
+					<SearchResultName>{t('GENERAL.STOPS')}</SearchResultName>
 						{searchResults?.stops.map((stop) => (
 							<SearchResult onClick={() => {
 								searchRepository.clear()
