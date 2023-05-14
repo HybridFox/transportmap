@@ -12,6 +12,7 @@ import { GeoJSON } from 'ol/format';
 import { useObservable } from '@ngneat/react-rxjs';
 import * as olStyle from 'ol/style';
 import CircleStyle from 'ol/style/Circle';
+import { useNavigate } from 'react-router-dom';
 
 import { tripsSelector } from '../../store/trips/trips.selectors';
 // import { tripsRepository } from '../../store/vehicles/trips.repository';
@@ -36,6 +37,7 @@ enum FocusObjects {
 export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 	const mapElement = useRef<HTMLDivElement | null>(null);
 	const focusedObject = useRef<FocusObjects | null>(null);
+	const navigate = useNavigate()
 
 	const [trips] = useObservable(tripsSelector.trips$);
 	const [userLocationEnabled] = useObservable(uiRepository.userLocationEnabled$);
@@ -279,39 +281,39 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 			return;
 		}
 
-		// TODO: find a way to prevent flicker. Maybe just updating stuff?
-		markerSource.clear();
+		const leftOverFeatures = (trips || []).reduce((existingFeatures, trip) => {
+			const existingFeature = existingFeatures.find((feature) => feature.get('id') === trip.id)
 
-		markerSource.addFeatures(
-			(trips || [])?.reduce((acc, trip) => {
-				// TODO: calculate sectionProgress here? 
-				// This would prevent needing to refresh every 5 seconds
-				// BUT. We would need to pass all sections. Tho it won't be hard to copy pasta the code from the backend.
-				const coordinates = getVehicleLocation(trip.sections, trip.osrmRoute);
+			if (existingFeature) {
+				existingFeature.set('sections', trip.sections);
+				return existingFeatures.filter((feature) => feature.get('id') !== trip.id)
+			}
 
-				if (!coordinates) {
-					return acc;
-				}
+			const coordinates = getVehicleLocation(trip.sections, trip.osrmRoute);
 
-				const feature = new ol.Feature({
-					id: trip.id,
-					product: 'vehicle.line?.product',
-					mode: trip.route.routeCode.replaceAll(/[0-9]/g, ''),
-					lineId: trip.id,
-					bearing: trip.bearing,
-					speed: trip.speed,
-					geometry: new olGeom.Point(
-						olProj.fromLonLat(coordinates),
-					),
-					sections: trip.sections,
-					osrmRoute: trip.osrmRoute
-				});
+			if (!coordinates) {
+				return existingFeatures;
+			}
 
-				feature.setStyle(MAP_ICON_STYLES(trip)['normal'][trip.route.routeCode.replaceAll(/[0-9]/g, '')]);
+			const feature = new ol.Feature({
+				id: trip.id,
+				mode: trip.route.routeCode.replaceAll(/[0-9]/g, ''),
+				lineId: trip.id,
+				geometry: new olGeom.Point(
+					olProj.fromLonLat(coordinates),
+				),
+				sections: trip.sections,
+				osrmRoute: trip.osrmRoute
+			});
 
-				return [...acc, feature];
-			}, [] as any[])
-		);
+			feature.setStyle(MAP_ICON_STYLES(trip)['normal'][trip.route.routeCode.replaceAll(/[0-9]/g, '')]);
+
+			markerSource.addFeature(feature);
+			return existingFeatures;
+		}, markerSource.getFeatures());
+
+		console.log('l', leftOverFeatures.length)
+		leftOverFeatures.forEach((feature) => feature.dispose())
 	}, [trips]);
 
 	return <div ref={mapElement} className="map-container" style={{ height: '100%' }}></div>;
