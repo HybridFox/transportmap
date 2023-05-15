@@ -56,28 +56,28 @@ const Stop = styled.div<{
 const PassedLine = styled.div`
 	content: '';
 	position: absolute;
-	top: 6px;
+	top: 5px;
 	left: 0;
 	width: 100%;
-	border-bottom: 3px solid ${(props) => props.theme.main.primary};
+	border-bottom: 5px solid ${(props) => props.theme.main.primary};
 `;
 
 const UpcomingLine = styled.div`
 	content: '';
 	position: absolute;
-	top: 6px;
+	top: 5px;
 	left: 0;
 	width: 100%;
-		border-bottom: 3px solid #fff;
+		border-bottom: 5px solid #fff;
 `;
 
 const ActiveLine = styled.div<{ vehicleProgress: number }>`
 	content: '';
 	position: absolute;
-	top: 6px;
+	top: 5px;
 	left: 0;
 	width: 100%;
-	border-bottom: 3px solid #fff;
+	border-bottom: 5px solid #fff;
 
 	&::before {
 		content: '';
@@ -85,14 +85,14 @@ const ActiveLine = styled.div<{ vehicleProgress: number }>`
 		top: 0;
 		left: 0;
 		width: ${(props) => props.vehicleProgress * 100}%;
-		border-bottom: 3px solid ${(props) => props.theme.main.primary};
+		border-bottom: 5px solid ${(props) => props.theme.main.primary};
 	}
 `;
 
 const ActiveLineIndicator = styled.div<{ vehicleProgress: number }>`
 	left: ${(props) => props.vehicleProgress * 100}%;
 	position: absolute;
-	transform: translate(-50%, -50%);
+	transform: translate(-50%, -40%);
 	background-color: white;
 	height: 30px;
 	width: 30px;
