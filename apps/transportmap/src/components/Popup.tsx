@@ -135,4 +135,5 @@ export const Popup = styled(RawPopup)`
 	border-radius: 20px;
 	overflow: hidden;
 	min-height: 240px;
+	pointer-events: all;
 `;

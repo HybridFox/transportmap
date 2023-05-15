@@ -5,6 +5,10 @@
   box-sizing: border-box;
 }
 
+.ol-zoom, .ol-rotate {
+	display: none;
+}
+
 body {
   margin: 0;
   font-family: 'Prompt', sans-serif;

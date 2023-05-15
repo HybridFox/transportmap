@@ -17,6 +17,7 @@ const PopupWrapper = styled.div`
 	bottom: 0;
 	padding: 1rem;
 	z-index: 1000000;
+	pointer-events: none;
 `;
 
 const TopBarWrapper = styled.div`

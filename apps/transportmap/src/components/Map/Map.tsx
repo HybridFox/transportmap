@@ -12,7 +12,6 @@ import { GeoJSON } from 'ol/format';
 import { useObservable } from '@ngneat/react-rxjs';
 import * as olStyle from 'ol/style';
 import CircleStyle from 'ol/style/Circle';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 import { tripsSelector } from '../../store/trips/trips.selectors';
@@ -32,13 +31,13 @@ interface Props {
 
 enum FocusObjects {
 	USER_LOCATION,
-	TRIP
+	TRIP,
 }
 
 export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 	const mapElement = useRef<HTMLDivElement | null>(null);
 	const focusedObject = useRef<FocusObjects | null>(null);
-	const [t, i18n] = useTranslation()
+	const [t, i18n] = useTranslation();
 
 	const [trips] = useObservable(tripsSelector.trips$);
 	const [userLocationEnabled] = useObservable(uiRepository.userLocationEnabled$);
@@ -52,9 +51,7 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 		}
 
 		geolocation.setTracking(userLocationEnabled);
-		map.current
-			.getLayers()
-			.forEach((layer) => layer.getProperties().userLocationLayer && layer.setVisible(userLocationEnabled));
+		map.current.getLayers().forEach((layer) => layer.getProperties().userLocationLayer && layer.setVisible(userLocationEnabled));
 		focusedObject.current = FocusObjects.USER_LOCATION;
 	}, [userLocationEnabled]);
 
@@ -63,32 +60,28 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 	 */
 	useEffect(() => {
 		if (!highlightedTrip || !map.current) {
-			return
+			return;
 		}
 
 		const coordinates = getVehicleLocation(highlightedTrip.sections, highlightedTrip.osrmRoute);
 		const vectorLayer = highlightPolyline(highlightedTrip, i18n.language);
 
 		if (!coordinates) {
-			return
+			return;
 		}
 
-		console.log('highlighted')
-		
+		console.log('highlighted');
+
 		map.current.addLayer(vectorLayer);
 		focusedObject.current = FocusObjects.TRIP;
-	}, [highlightedTrip])
+	}, [highlightedTrip]);
 
 	const loadTrainData = () => {
 		if (!map.current) {
 			return;
 		}
 
-		const boundingBoxExtent = olProj.transformExtent(
-			map.current.getView().calculateExtent(map.current.getSize()),
-			'EPSG:3857',
-			'EPSG:4326',
-		);
+		const boundingBoxExtent = olProj.transformExtent(map.current.getView().calculateExtent(map.current.getSize()), 'EPSG:3857', 'EPSG:4326');
 
 		// [x, y]
 		const [west, north] = olExtent.getTopLeft(boundingBoxExtent);
@@ -116,14 +109,12 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 				return;
 			}
 
-			feature.setGeometry(new olGeom.Point(
-				olProj.fromLonLat(coordinates),
-			))
+			feature.setGeometry(new olGeom.Point(olProj.fromLonLat(coordinates)));
 		});
 
-		map.current?.changed()
-		setTimeout(() => moveMarkers(source), 50)
-	}
+		map.current?.changed();
+		setTimeout(() => moveMarkers(source), 50);
+	};
 
 	const clearTempLayers = () => {
 		map.current!.getLayers().forEach((layer) => {
@@ -152,7 +143,7 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 		const view = new ol.View({
 			center: olProj.fromLonLat([4.4004697, 51.2132694]),
 			zoom: 13,
-		})
+		});
 
 		const geo = new ol.Geolocation({
 			// enableHighAccuracy must be set to true to have the heading value.
@@ -168,10 +159,9 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 			accuracyFeature.setGeometry(geo.getAccuracyGeometry()!);
 		});
 
-
 		geo.on('error', (err) => {
 			uiRepository.setUserLocationEnabled(false);
-			alert(err.message)
+			alert(err.message);
 		});
 
 		const positionFeature = new ol.Feature();
@@ -187,7 +177,7 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 						width: 2,
 					}),
 				}),
-			})
+			}),
 		);
 
 		geo.on('change:position', () => {
@@ -206,12 +196,12 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 
 		const positionLayer = new VectorLayer({
 			properties: {
-				userLocationLayer: true
+				userLocationLayer: true,
 			},
 			source: new VectorSource({
-				features: [accuracyFeature, positionFeature]
-			})
-		})
+				features: [accuracyFeature, positionFeature],
+			}),
+		});
 
 		// create map
 		const initialMap = new ol.Map({
@@ -220,13 +210,14 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 				new TileLayer({
 					source: new XYZ({
 						url: 'https://{1-5}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+						attributions: ['&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>'],
 					}),
 				}),
 				markerLayer,
 				positionLayer,
 			],
 			view,
-			controls: [],
+			// controls: [],
 		});
 
 		initialMap.addEventListener('moveend', loadTrainData);
@@ -266,7 +257,7 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 					return tripsRepository.clearHighlight();
 				}
 
-				tripsRepository.highlightTrip(feature.get('id'))
+				tripsRepository.highlightTrip(feature.get('id'));
 			});
 		});
 
@@ -281,11 +272,11 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 		}
 
 		const leftOverFeatures = (trips || []).reduce((existingFeatures, trip) => {
-			const existingFeature = existingFeatures.find((feature) => feature.get('id') === trip.id)
+			const existingFeature = existingFeatures.find((feature) => feature.get('id') === trip.id);
 
 			if (existingFeature) {
 				existingFeature.set('sections', trip.sections);
-				return existingFeatures.filter((feature) => feature.get('id') !== trip.id)
+				return existingFeatures.filter((feature) => feature.get('id') !== trip.id);
 			}
 
 			const coordinates = getVehicleLocation(trip.sections, trip.osrmRoute);
@@ -298,11 +289,9 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 				id: trip.id,
 				mode: trip.route.routeCode.replaceAll(/[0-9]/g, ''),
 				lineId: trip.id,
-				geometry: new olGeom.Point(
-					olProj.fromLonLat(coordinates),
-				),
+				geometry: new olGeom.Point(olProj.fromLonLat(coordinates)),
 				sections: trip.sections,
-				osrmRoute: trip.osrmRoute
+				osrmRoute: trip.osrmRoute,
 			});
 
 			feature.setStyle(MAP_ICON_STYLES(trip)['normal'][trip.route.routeCode.replaceAll(/[0-9]/g, '')]);
@@ -311,8 +300,8 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 			return existingFeatures;
 		}, markerSource.getFeatures());
 
-		console.log('l', leftOverFeatures.length)
-		leftOverFeatures.forEach((feature) => feature.dispose())
+		console.log('l', leftOverFeatures.length);
+		leftOverFeatures.forEach((feature) => feature.dispose());
 	}, [trips]);
 
 	return <div ref={mapElement} className="map-container" style={{ height: '100%' }}></div>;

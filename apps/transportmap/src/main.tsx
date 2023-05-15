@@ -6,6 +6,7 @@ import * as Sentry from '@sentry/react';
 import { i18n } from './services/i18n.service';
 import App from './App';
 import './assets/scss/index.scss';
+import 'ol/ol.css';
 
 Sentry.init({
 	dsn: 'https://6044c441b3114b28baf632380418c3d2@o4505149251059712.ingest.sentry.io/4505149955964928',
