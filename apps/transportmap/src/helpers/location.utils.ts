@@ -5,10 +5,29 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { clamp } from "ramda";
 
-import { OSRMLeg, Section } from "../store/trips/trips.types";
+import { Section } from "../store/trips/trips.types";
 
-dayjs.extend(utc)
-dayjs.extend(timezone)
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+export const getVehicleProgress = (sections: Section[]): number => {
+	const currentTime = dayjs().tz('Europe/Brussels').format('HH:mm:ss');
+    const activeSection = sections.find(
+        (calculation) => (calculation.realtimeStartTime || calculation.startTime) <= currentTime && currentTime <= (calculation.realtimeEndTime || calculation.endTime),
+    );
+
+    if (!activeSection) {
+        return 0;
+    }
+
+    if (activeSection.index === -1) {
+        return 0
+    }
+
+    return (dayjs().tz('Europe/Brussels').valueOf() - dayjs(`${dayjs().tz('Europe/Brussels').format('YYYY/MM/DD')} ${activeSection.realtimeStartTime || activeSection.startTime}`).valueOf()) /
+        (dayjs(`${dayjs().tz('Europe/Brussels').format('YYYY/MM/DD')} ${activeSection.realtimeEndTime || activeSection.endTime}`).valueOf() -
+            dayjs(`${dayjs().tz('Europe/Brussels').format('YYYY/MM/DD')} ${activeSection.realtimeStartTime || activeSection.startTime}`).valueOf());
+}
 
 export const getVehicleLocation = (sections: Section[], osrmRoute: string[]): [number, number] | null => {
     const currentTime = dayjs().tz('Europe/Brussels').format('HH:mm:ss');
@@ -24,10 +43,7 @@ export const getVehicleLocation = (sections: Section[], osrmRoute: string[]): [n
         return [activeSection.startLocation.longitude, activeSection.startLocation.latitude]
     }
 
-    const sectionProgress =
-        (dayjs().tz('Europe/Brussels').valueOf() - dayjs(`${dayjs().tz('Europe/Brussels').format('YYYY/MM/DD')} ${activeSection.realtimeStartTime || activeSection.startTime}`).valueOf()) /
-        (dayjs(`${dayjs().tz('Europe/Brussels').format('YYYY/MM/DD')} ${activeSection.realtimeEndTime || activeSection.endTime}`).valueOf() -
-            dayjs(`${dayjs().tz('Europe/Brussels').format('YYYY/MM/DD')} ${activeSection.realtimeStartTime || activeSection.startTime}`).valueOf());
+    const sectionProgress = getVehicleProgress(sections);
 
     // Grab index
     const activePolyline = osrmRoute[activeSection.index];

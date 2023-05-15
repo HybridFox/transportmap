@@ -2,9 +2,11 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
 import * as Sentry from '@sentry/react';
+import { ThemeProvider } from 'styled-components';
 
 import { i18n } from './services/i18n.service';
 import App from './App';
+
 import './assets/scss/index.scss';
 import 'ol/ol.css';
 
@@ -34,8 +36,21 @@ const router = createBrowserRouter([
 	},
 ]);
 
+const theme = {
+	main: {
+		primary: '#ffa515',
+		secondary: '#ff874b',
+		success: '#63CC2E',
+		info: '#2D92FF',
+		warning: '#FFAA2B',
+		danger: '#FF608B'
+	}
+}
+
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
 	// <React.StrictMode>
-	<RouterProvider router={router} />,
+	<ThemeProvider theme={theme}>
+		<RouterProvider router={router} />
+	</ThemeProvider>,
 	// </React.StrictMode>,
 );

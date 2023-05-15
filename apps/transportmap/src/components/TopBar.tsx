@@ -17,7 +17,7 @@ import { Badge } from './Badge';
 const LocationIcon = styled.button<{ enabled: boolean }>`
 	padding: 1rem 1.5rem;
 	border-radius: 20px;
-	background-color: ${(props) => props.enabled ? '#98D8AA' : '#161616'};
+	background-color: ${(props) => props.enabled ? props.theme.main.success : '#161616'};
 	box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
 	border: none;
 	color: white;
@@ -29,7 +29,7 @@ const LocationIcon = styled.button<{ enabled: boolean }>`
 const LanguageIcon = styled.button<{ visible: boolean }>`
 	padding: 1rem 1.5rem;
 	border-radius: 20px;
-	background-color: ${(props) => props.visible ? '#98D8AA' : '#161616'};
+	background-color: ${(props) => props.visible ? props.theme.main.success : '#161616'};
 	box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
 	border: none;
 	color: white;
@@ -160,7 +160,7 @@ const RawTopBar: FC<Props> = ({ className, map }: Props) => {
 				{!!searchResults?.trips.length && (
 					<SearchResultsContainer>
 						<SearchResultName>{t('GENERAL.TRIPS')}</SearchResultName>
-						{searchResults?.trips.map((trip) => console.log(trip) as any || (
+						{searchResults?.trips.map((trip) => (
 							<SearchResult onClick={() => {
 								searchRepository.clear()
 								tripsRepository.highlightTrip(trip.id)

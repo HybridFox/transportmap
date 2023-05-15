@@ -18,7 +18,7 @@ const defaultTextProps = {
 	offsetY: -20,
 };
 
-export const MAP_ICON_STYLES = (trip: Trip): Record<string, Record<string, olStyle.Style>> => ({
+export const MAP_ICON_STYLES = (trip: Trip, zIndex = 0): Record<string, Record<string, olStyle.Style>> => ({
 	normal: {
 		BUS: new olStyle.Style({
 			image: new olStyle.Icon({
@@ -26,50 +26,55 @@ export const MAP_ICON_STYLES = (trip: Trip): Record<string, Record<string, olSty
 				color: '#FFC312',
 				src: '/assets/img/icons/popup-bus.svg',
 			}),
+			zIndex
 		}),
 		'L': new olStyle.Style({
 			image: new olStyle.Icon({
 				...defaultIconProps,
-				color: '#12CBC4',
+				color: '#ffa515',
 				src: '/assets/img/icons/popup-train.svg',
 			}),
 			text: new olStyle.Text({
 				...defaultTextProps,
 				text: `${trip.route.routeCode} ${trip.name}`,
-			})
+			}),
+			zIndex
 		}),
 		'IC': new olStyle.Style({
 			image: new olStyle.Icon({
 				...defaultIconProps,
-				color: '#12CBC4',
+				color: '#ffa515',
 				src: '/assets/img/icons/popup-train.svg',
 			}),
 			text: new olStyle.Text({
 				...defaultTextProps,
 				text: `${trip.route.routeCode} ${trip.name}`
-			})
+			}),
+			zIndex
 		}),
 		'S': new olStyle.Style({
 			image: new olStyle.Icon({
 				...defaultIconProps,
-				color: '#12CBC4',
+				color: '#ffa515',
 				src: '/assets/img/icons/popup-train.svg',
 			}),
 			text: new olStyle.Text({
 				...defaultTextProps,
 				text: `${trip.route.routeCode} ${trip.name}`
-			})
+			}),
+			zIndex
 		}),
 		'P': new olStyle.Style({
 			image: new olStyle.Icon({
 				...defaultIconProps,
-				color: '#12CBC4',
+				color: '#ffa515',
 				src: '/assets/img/icons/popup-train.svg',
 			}),
 			text: new olStyle.Text({
 				...defaultTextProps,
 				text: `${trip.route.routeCode} ${trip.name}`
-			})
+			}),
+			zIndex
 		}),
 		METRO: new olStyle.Style({
 			image: new olStyle.Icon({
@@ -77,6 +82,7 @@ export const MAP_ICON_STYLES = (trip: Trip): Record<string, Record<string, olSty
 				color: '#ED4C67',
 				src: '/assets/img/icons/popup-metro.svg',
 			}),
+			zIndex
 		}),
 		TRAM: new olStyle.Style({
 			image: new olStyle.Icon({
@@ -84,6 +90,7 @@ export const MAP_ICON_STYLES = (trip: Trip): Record<string, Record<string, olSty
 				color: '#ED4C67',
 				src: '/assets/img/icons/popup-metro.svg',
 			}),
+			zIndex
 		}),
 	}
 });

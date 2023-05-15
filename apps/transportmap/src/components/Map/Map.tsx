@@ -70,8 +70,6 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 			return;
 		}
 
-		console.log('highlighted');
-
 		map.current.addLayer(vectorLayer);
 		focusedObject.current = FocusObjects.TRIP;
 	}, [highlightedTrip]);
@@ -271,7 +269,7 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 			return;
 		}
 
-		const leftOverFeatures = (trips || []).reduce((existingFeatures, trip) => {
+		const leftOverFeatures = (trips || []).reduce((existingFeatures, trip, i) => {
 			const existingFeature = existingFeatures.find((feature) => feature.get('id') === trip.id);
 
 			if (existingFeature) {
@@ -294,13 +292,12 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 				osrmRoute: trip.osrmRoute,
 			});
 
-			feature.setStyle(MAP_ICON_STYLES(trip)['normal'][trip.route.routeCode.replaceAll(/[0-9]/g, '')]);
+			feature.setStyle(MAP_ICON_STYLES(trip, i)['normal'][trip.route.routeCode.replaceAll(/[0-9]/g, '')]);
 
 			markerSource.addFeature(feature);
 			return existingFeatures;
 		}, markerSource.getFeatures());
 
-		console.log('l', leftOverFeatures.length);
 		leftOverFeatures.forEach((feature) => feature.dispose());
 	}, [trips]);
 

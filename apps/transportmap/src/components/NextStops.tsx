@@ -1,5 +1,5 @@
 /* eslint-disable indent */
-import React, { FC } from 'react';
+import React, { FC, useEffect, useRef, useState } from 'react';
 import styled, { css } from 'styled-components';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat'
@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Trip } from '../store/trips/trips.types';
 import { getTranslation } from '../helpers/translation.util';
+import { getVehicleProgress } from '../helpers/location.utils';
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -23,6 +24,7 @@ interface PopupProps {
 
 const Stops = styled.div`
 	display: flex;
+	padding: 0.6rem 0;
 `;
 
 const Stop = styled.div<{
@@ -40,7 +42,7 @@ const Stop = styled.div<{
 		left: 0;
 		height: 15px;
 		width: 15px;
-		background-color: ${(props) => (props.isPassed ? '#6ab04c' : '#FFF')};
+		background-color: ${(props) => (props.isPassed ? props.theme.main.primary : '#FFF')};
 		border-radius: 50%;
 	}
 
@@ -57,32 +59,53 @@ const PassedLine = styled.div`
 	top: 6px;
 	left: 0;
 	width: 100%;
-	border-bottom: 3px solid green;
+	border-bottom: 3px solid ${(props) => props.theme.main.primary};
 `;
 
-const UpcomingLine = styled.div<{
-	isLastItem: boolean;
-}>`
-	${(props) =>
-		!props.isLastItem &&
-		css`
-			content: '';
-			position: absolute;
-			top: 6px;
-			left: 0;
-			width: 100%;
-			border-bottom: 3px solid #fff;
-
-			&::before {
-				content: '';
-				position: absolute;
-				top: 0;
-				right: 100%;
-				width: 50px;
-				border-bottom: 3px solid #fff;
-			}
-		`}
+const UpcomingLine = styled.div`
+	content: '';
+	position: absolute;
+	top: 6px;
+	left: 0;
+	width: 100%;
+		border-bottom: 3px solid #fff;
 `;
+
+const ActiveLine = styled.div<{ vehicleProgress: number }>`
+	content: '';
+	position: absolute;
+	top: 6px;
+	left: 0;
+	width: 100%;
+	border-bottom: 3px solid #fff;
+
+	&::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: ${(props) => props.vehicleProgress * 100}%;
+		border-bottom: 3px solid ${(props) => props.theme.main.primary};
+	}
+`;
+
+const ActiveLineIndicator = styled.div<{ vehicleProgress: number }>`
+	left: ${(props) => props.vehicleProgress * 100}%;
+	position: absolute;
+	transform: translate(-50%, -50%);
+	background-color: white;
+	height: 30px;
+	width: 30px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	z-index: 5;
+
+	span {
+		color: ${(props) => props.theme.main.primary};
+	}
+`
 
 const StopName = styled.div`
 	white-space: nowrap;
@@ -115,19 +138,58 @@ const StopTimeTitle = styled.p`
 
 const Strikethrough = styled.span`
 	text-decoration: line-through;
+	opacity: 0.75;
 `
 
-// TODO: colors
 const Delay = styled.span`
-	color: red;
+	color: ${(props) => props.theme.main.secondary};
 `
 
 const OnTime = styled.span`
-	color: green;
+	/* color: ${(props) => props.theme.main.success}; */
 `
 
 export const NextStops: FC<PopupProps> = ({ trip }: PopupProps) => {
-	const [t, i18n] = useTranslation()
+	const [t, i18n] = useTranslation();
+	const activeLineIndicatorRef = useRef<HTMLDivElement | null>(null);
+	const scrollRef = useRef<any | null>(null);
+	const wrapperRef = useRef<HTMLDivElement | null>(null);
+	const [vehicleProgress, setVehicleProgress] = useState(0);
+
+	useEffect(() => {
+		// Focus on current timing
+		setVehicleProgress(getVehicleProgress(trip.sections));
+		if (activeLineIndicatorRef.current && scrollRef.current && wrapperRef.current) {
+			const indicatorAbsoluteLeft = activeLineIndicatorRef.current.getBoundingClientRect().left;
+			const wrapperAbsoluteLeft = wrapperRef.current.getBoundingClientRect().left;
+			const containerOffset = indicatorAbsoluteLeft - wrapperAbsoluteLeft;
+			scrollRef.current.view.scrollLeft = containerOffset - (scrollRef.current.container.getBoundingClientRect().width / 2);
+		}
+
+		const interval = setInterval(() => {
+			setVehicleProgress(getVehicleProgress(trip.sections));
+		}, 1000)
+
+		return () => {
+			clearInterval(interval);
+		}
+	}, [])
+
+	const renderLine = (stopTime: any, nextStopTime: any) => {
+		if ((nextStopTime.realtimeArrivalTime || nextStopTime.arrivalTime) < dayjs().tz('Europe/Brussels').format('HH:mm:ss')) {
+			return <PassedLine />
+		}
+
+		if ((stopTime.realtimeArrivalTime || stopTime.arrivalTime) >= dayjs().tz('Europe/Brussels').format('HH:mm:ss')) {
+			return <UpcomingLine />
+		}
+
+		return <ActiveLine vehicleProgress={vehicleProgress}>
+			<ActiveLineIndicator ref={activeLineIndicatorRef} vehicleProgress={vehicleProgress}>
+				<span className='uil uil-metro'></span>
+			</ActiveLineIndicator>
+		</ActiveLine>
+	}
 
 	const renderThumb = ({ style, ...props }: { style: any }) => {
 		const thumbStyle = {
@@ -140,14 +202,14 @@ export const NextStops: FC<PopupProps> = ({ trip }: PopupProps) => {
 	};
 
 	return (
-		<Scrollbars style={{ height: '110px' }} renderThumbHorizontal={renderThumb}>
-			<Stops>
+		<Scrollbars style={{ height: '110px' }} renderThumbHorizontal={renderThumb} autoHide ref={scrollRef}>
+			<Stops ref={wrapperRef}>
 				{trip.stopTimes?.map(
 					(stopTime: any, i) => (
 						<Stop
 							key={i}
 							isPassed={
-								(stopTime.realtimeDepartureTime || stopTime.departureTime) < dayjs().format('HH:mm:ss')
+								(stopTime.realtimeDepartureTime || stopTime.departureTime) < dayjs().format('HH:mm:ss') || (stopTime.realtimeArrivalTime || stopTime.arrivalTime) < dayjs().format('HH:mm:ss')
 							}>
 							<StopName>{getTranslation(stopTime?.stop?.translations, i18n.language)}</StopName>
 							<StopTimeWrapper>
@@ -175,11 +237,7 @@ export const NextStops: FC<PopupProps> = ({ trip }: PopupProps) => {
 									)}
 								</StopTime>
 							</StopTimeWrapper>
-							{(stopTime.realtimeDepartureTime || stopTime.departureTime) < dayjs().tz('Europe/Brussels').format('HH:mm:ss') ? (
-								<PassedLine />
-							) : (
-								<UpcomingLine isLastItem={i === (trip.stopTimes?.length || 0) - 1} />
-							)}
+							{(trip.stopTimes.length - 1) !== i && renderLine(stopTime, trip.stopTimes[i + 1])}
 						</Stop>
 					),
 				)}

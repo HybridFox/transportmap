@@ -1,5 +1,4 @@
 export const getTranslation = (translations: Record<string, string>, locale: string): string => {
-	console.log(translations)
 	if (!translations) {
 		return 'TRANSLATIONS_NOT_FOUND'
 	}
