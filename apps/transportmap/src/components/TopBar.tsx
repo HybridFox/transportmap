@@ -27,6 +27,7 @@ const LocationIcon = styled.button<{ enabled: boolean }>`
 `;
 
 const LanguageIcon = styled.button<{ visible: boolean }>`
+	font-family: 'Prompt', sans-serif;
 	padding: 1rem 1.5rem;
 	border-radius: 20px;
 	background-color: ${(props) => props.visible ? props.theme.main.success : '#161616'};
