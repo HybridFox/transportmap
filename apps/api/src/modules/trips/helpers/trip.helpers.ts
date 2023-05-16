@@ -182,7 +182,7 @@ const getOsrmRoute = async (coordinates: string, loggingService: LoggingService,
 				// continue_straight: true,
 				radiuses: coordinates
 					.split(';')
-					.map(() => 250)
+					.map(() => 100)
 					.join(';'),
 				timestamps: coordinates
 					.split(';')
@@ -197,7 +197,7 @@ const getOsrmRoute = async (coordinates: string, loggingService: LoggingService,
 			loggingService.captureMessage(SentryMessage.OSRM_ROUTE_FETCH_FAIL, SentrySeverity.WARNING, {
 				radiuses: coordinates
 					.split(';')
-					.map(() => 250)
+					.map(() => 100)
 					.join(';'),
 				timestamps: coordinates
 					.split(';')
