@@ -5,9 +5,10 @@ import { getDistance, getRhumbLineBearing, getSpeed } from 'geolib';
 import { omit, pick } from 'ramda';
 import got from 'got';
 import polyline from '@mapbox/polyline';
-import { StopTime, Trip } from '@transportmap/database';
+import { StopTime, Trip, TripRoute } from '@transportmap/database';
 import LineString from 'ol/geom/LineString.js';
 import { CalculatedTrip, TripSection } from '@transportmap/types';
+import { Repository } from 'typeorm';
 
 import { redis } from '~core/instances/redis.instance';
 import { SentryMessage, SentrySeverity } from '~core/enum/sentry.enum';
@@ -15,7 +16,7 @@ import { LoggingService } from '~core/services/logging.service';
 
 const clamp = (number: number, min: number, max: number) => Math.max(min, Math.min(number, max));
 
-export const calculateTripPositions = async (trip: Trip, loggingService: LoggingService): Promise<CalculatedTrip> => {
+export const calculateTripPositions = async (trip: Trip, loggingService: LoggingService, tripRouteRepository: Repository<TripRoute>): Promise<CalculatedTrip> => {
 	const currentTime = dayjs().format('HH:mm:ss');
 	const sortedStopTimes: StopTime[] = trip.stopTimes.sort((a: any, b: any) => a.stopSequence - b.stopSequence);
 
@@ -96,6 +97,7 @@ export const calculateTripPositions = async (trip: Trip, loggingService: Logging
 	const osrmRoute = await getOsrmRoute(
 		sortedStopTimes.map((stopTime) => `${stopTime.stop.longitude},${stopTime.stop.latitude}`, loggingService).join(';'),
 		loggingService,
+		tripRouteRepository,
 	);
 
 	// Now that we have all the section, find the section we are currently in by the current time.
@@ -162,12 +164,12 @@ export const calculateTripPositions = async (trip: Trip, loggingService: Logging
 	};
 };
 
-const getOsrmRoute = async (coordinates: string, loggingService: LoggingService): Promise<string[]> => {
+const getOsrmRoute = async (coordinates: string, loggingService: LoggingService, tripRouteRepository: Repository<TripRoute>): Promise<string[]> => {
 	const key = createHash('sha256').update(coordinates).digest('hex');
-	const cachedTripRoute = await redis.get(`TRIPSECTIONCOORDINATES:${key}`);
+	const cachedTripRoute = await tripRouteRepository.findOne({ where: { key } });
 
 	if (cachedTripRoute) {
-		return JSON.parse(cachedTripRoute);
+		return cachedTripRoute.route;
 	}
 
 	// Grab the steps
@@ -223,8 +225,7 @@ const getOsrmRoute = async (coordinates: string, loggingService: LoggingService)
 		return acc;
 	}, []);
 
-	redis.set(`TRIPSECTIONCOORDINATES:${key}`, JSON.stringify(sectionCoordinates));
-	redis.expire(`TRIPSECTIONCOORDINATES:${key}`, 60 * 60 * 24 * 7);
-
+	tripRouteRepository.save({ key, route: sectionCoordinates })
+	
 	return sectionCoordinates;
 };

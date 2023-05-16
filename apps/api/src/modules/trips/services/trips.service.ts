@@ -3,7 +3,7 @@ import { MongoRepository, Repository } from 'typeorm';
 import NodeCache from 'node-cache';
 import dayjs from 'dayjs';
 import { Cron } from '@nestjs/schedule';
-import { Agency, CalculatedTrip, GTFSStaticStatus, Trip, TABLE_PROVIDERS, mongoDataSource } from '@transportmap/database';
+import { Agency, CalculatedTrip, GTFSStaticStatus, Trip, TABLE_PROVIDERS, mongoDataSource, TripRoute } from '@transportmap/database';
 import { pick } from 'ramda';
 
 import { redis } from '~core/instances/redis.instance';
@@ -21,6 +21,7 @@ export class TripsService {
 		@Inject(TABLE_PROVIDERS.TRIP_REPOSITORY) private tripRepository: Repository<Trip>,
 		@Inject(TABLE_PROVIDERS.AGENCY_REPOSITORY) private agencyRepository: Repository<Agency>,
 		@Inject(TABLE_PROVIDERS.GTFS_STATIC_STATUS) private gtfsStaticStatus: Repository<GTFSStaticStatus>,
+		@Inject(TABLE_PROVIDERS.TRIP_ROUTE_REPOSITORY) private tripRouteRepository: Repository<TripRoute>,
 		private readonly loggingService: LoggingService,
 	) {
 		this.tripsCache = new NodeCache({ stdTTL: 5 * 60, checkperiod: 5 });
@@ -53,7 +54,7 @@ export class TripsService {
 			const leftoverKeys = await trips.reduce(async (acc, trip) => {
 				const keys = await acc;
 
-				const calculatedTrip = await calculateTripPositions(trip, this.loggingService).catch(console.error);
+				const calculatedTrip = await calculateTripPositions(trip, this.loggingService, this.tripRouteRepository).catch(console.error);
 
 				if (!calculatedTrip || !calculatedTrip.sectionLocation.longitude || !calculatedTrip.sectionLocation.latitude) {
 					return keys;
