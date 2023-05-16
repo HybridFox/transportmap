@@ -118,6 +118,7 @@
     "typescript": "^5.0.4",
     "vite": "^4.3.5",
     "vite-plugin-eslint": "^1.8.1",
+    "vite-plugin-sitemap": "^0.3.0",
     "vite-tsconfig-paths": "^4.2.0",
     "vitest": "^0.31.0"
   }
