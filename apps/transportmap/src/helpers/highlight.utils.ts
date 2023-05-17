@@ -2,17 +2,16 @@ import * as polyline from '@mapbox/polyline';
 import VectorSource from 'ol/source/Vector';
 import { GeoJSON } from 'ol/format';
 import VectorLayer from 'ol/layer/Vector';
-
-import { Trip } from "../store/trips/trips.types";
+import { ICalculatedTrip, SectionType } from '@transportmap/types';
 
 import { routeStyleFunction } from './map.utils';
 import { getTranslation } from './translation.util';
 
-export const highlightPolyline = (trip: Trip, locale: string): VectorLayer<VectorSource> => {
-	const coordinates = trip.osrmRoute.reduce((acc, leg) => {
+export const highlightPolyline = (trip: ICalculatedTrip, locale: string): VectorLayer<VectorSource> => {
+	const coordinates = trip.sections.filter((section) => section.type === SectionType.TRAVEL).reduce((acc, section) => {
 		return [
 			...acc,
-			...polyline.decode(leg).map(([latitude, longitude]) => [longitude, latitude])
+			...polyline.decode(section.polyline).map(([latitude, longitude]) => [longitude, latitude])
 		]
 	}, [] as number[][]);
 
@@ -27,17 +26,17 @@ export const highlightPolyline = (trip: Trip, locale: string): VectorLayer<Vecto
 						coordinates: coordinates,
 					},
 				},
-				...trip.stopTimes.map((stopTime) => ({
+				...trip.sections.filter((section) => section.type === SectionType.STOP).map((section) => ({
 					type: 'Feature',
 					geometry: {
 						type: 'Point',
 						coordinates: [
-							stopTime.stop.longitude,
-							stopTime.stop.latitude,
+							section.stop!.longitude,
+							section.stop!.latitude,
 						],
 					},
 					properties: {
-						name: getTranslation(stopTime.stop.translations, locale),
+						name: getTranslation(section.stop!.translations, locale),
 					},
 				})),
 			],

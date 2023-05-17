@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import React, { FC, useContext, useEffect, useRef, useState } from 'react';
+import React, { FC, useEffect, useRef, useState } from 'react';
 import * as ol from 'ol';
 import * as olProj from 'ol/proj';
 import VectorLayer from 'ol/layer/Vector';
@@ -13,10 +13,9 @@ import { useObservable } from '@ngneat/react-rxjs';
 import * as olStyle from 'ol/style';
 import CircleStyle from 'ol/style/Circle';
 import { useTranslation } from 'react-i18next';
+import { ICalculatedTrip } from '@transportmap/types';
 
 import { tripsSelector } from '../../store/trips/trips.selectors';
-// import { tripsRepository } from '../../store/vehicles/trips.repository';
-import { Trip } from '../../store/trips/trips.types';
 import { tripsRepository } from '../../store/trips/trips.repository';
 import { getVehicleLocation } from '../../helpers/location.utils';
 import { highlightPolyline } from '../../helpers/highlight.utils';
@@ -25,7 +24,7 @@ import { uiRepository } from '../../store/ui/ui.repository';
 import { MAP_ICON_STYLES } from './Map.const';
 
 interface Props {
-	highlightedTrip?: Trip;
+	highlightedTrip?: ICalculatedTrip;
 	map: React.MutableRefObject<ol.Map | null>;
 }
 
@@ -63,7 +62,7 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 			return;
 		}
 
-		const coordinates = getVehicleLocation(highlightedTrip.sections, highlightedTrip.osrmRoute);
+		const coordinates = getVehicleLocation(highlightedTrip.sections);
 		const vectorLayer = highlightPolyline(highlightedTrip, i18n.language);
 
 		if (!coordinates) {
@@ -99,9 +98,7 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 	const moveMarkers = (source: VectorSource) => {
 		source?.forEachFeature((feature) => {
 			const sections = feature.get('sections');
-			const osrmRoute = feature.get('osrmRoute');
-
-			const coordinates = getVehicleLocation(sections, osrmRoute);
+			const coordinates = getVehicleLocation(sections);
 
 			if (!coordinates) {
 				return;
@@ -277,7 +274,7 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 				return existingFeatures.filter((feature) => feature.get('id') !== trip.id);
 			}
 
-			const coordinates = getVehicleLocation(trip.sections, trip.osrmRoute);
+			const coordinates = getVehicleLocation(trip.sections);
 
 			if (!coordinates) {
 				return existingFeatures;
@@ -289,7 +286,6 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 				lineId: trip.id,
 				geometry: new olGeom.Point(olProj.fromLonLat(coordinates)),
 				sections: trip.sections,
-				osrmRoute: trip.osrmRoute,
 			});
 
 			feature.setStyle(MAP_ICON_STYLES(trip, i)['normal'][trip.route.routeCode.replaceAll(/[0-9]/g, '')]);

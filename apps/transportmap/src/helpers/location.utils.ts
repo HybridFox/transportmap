@@ -4,13 +4,12 @@ import * as polyline from '@mapbox/polyline';
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { clamp } from "ramda";
-
-import { Section } from "../store/trips/trips.types";
+import { ITripSection, SectionType } from "@transportmap/types";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-export const getVehicleProgress = (sections: Section[]): number => {
+export const getVehicleProgress = (sections: ITripSection[]): number => {
 	const currentTime = dayjs().tz('Europe/Brussels').format('HH:mm:ss');
     const activeSection = sections.find(
         (calculation) => (calculation.realtimeStartTime || calculation.startTime) <= currentTime && currentTime <= (calculation.realtimeEndTime || calculation.endTime),
@@ -20,7 +19,7 @@ export const getVehicleProgress = (sections: Section[]): number => {
         return 0;
     }
 
-    if (activeSection.index === -1) {
+    if (activeSection.type === SectionType.STOP) {
         return 0
     }
 
@@ -29,7 +28,7 @@ export const getVehicleProgress = (sections: Section[]): number => {
             dayjs(`${dayjs().tz('Europe/Brussels').format('YYYY/MM/DD')} ${activeSection.realtimeStartTime || activeSection.startTime}`).valueOf());
 }
 
-export const getVehicleLocation = (sections: Section[], osrmRoute: string[]): [number, number] | null => {
+export const getVehicleLocation = (sections: ITripSection[]): [number, number] | null => {
     const currentTime = dayjs().tz('Europe/Brussels').format('HH:mm:ss');
     const activeSection = sections.find(
         (calculation) => (calculation.realtimeStartTime || calculation.startTime) <= currentTime && currentTime <= (calculation.realtimeEndTime || calculation.endTime),
@@ -39,20 +38,12 @@ export const getVehicleLocation = (sections: Section[], osrmRoute: string[]): [n
         return null;
     }
 
-    if (activeSection.index === -1) {
+    if (activeSection.type === SectionType.STOP) {
         return [activeSection.startLocation.longitude, activeSection.startLocation.latitude]
     }
 
     const sectionProgress = getVehicleProgress(sections);
-
-    // Grab index
-    const activePolyline = osrmRoute[activeSection.index];
-
-    if (!activePolyline) {
-        return [activeSection.startLocation.longitude, activeSection.startLocation.latitude]
-    }
-    
-    const lineString = new olGeom.LineString(polyline.decode(activePolyline));
+    const lineString = new olGeom.LineString(polyline.decode(activeSection.polyline));
     const sectionLocation = lineString.getCoordinateAt(clamp(0, 1, sectionProgress));
 
     return [sectionLocation[1], sectionLocation[0]]

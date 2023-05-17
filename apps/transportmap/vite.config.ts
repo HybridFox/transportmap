@@ -2,6 +2,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import viteTsConfigPaths from 'vite-tsconfig-paths';
+import { viteExternalsPlugin } from 'vite-plugin-externals'
 
 export default defineConfig({
 	cacheDir: '../../node_modules/.vite/transportmap',

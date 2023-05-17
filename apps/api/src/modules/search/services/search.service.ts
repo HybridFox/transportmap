@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Like, MongoRepository, Repository } from 'typeorm';
 import { CalculatedTrip, Stop, TABLE_PROVIDERS, Translation, mongoDataSource } from '@transportmap/database';
 import { pick } from 'ramda';
+import { ISearchResult } from '@transportmap/types';
 
 import { parseStopTranslations } from '../../trips/helpers/translations';
 
@@ -15,10 +16,7 @@ export class SearchService {
 		this.tripCacheRepository = mongoDataSource.getMongoRepository(CalculatedTrip);
 	}
 
-	public async search(query: Record<string, string>): Promise<{
-		trips: Partial<CalculatedTrip>[],
-		stops: Partial<Stop>[]
-	}> {
+	public async search(query: Record<string, string>): Promise<ISearchResult> {
 		if (!query.q || query.q.length < 3) {
 			return {
 				trips: [],
@@ -54,14 +52,8 @@ export class SearchService {
 				.getMany()
 		]);
 
-		console.log(trips)
-
 		return {
-			trips: trips
-				.map((trip) => ({
-					...pick(['osrmRoute', 'route', 'id', 'name'])(trip),
-					sections: trip.sections.map((section) => pick(['startTime', 'realStartTime', 'endTime', 'realEndTime'])(section))
-				})),
+			trips: trips,
 			stops: stops
 				.map((trip) => parseStopTranslations(pick(['id', 'name', 'translations', 'latitude', 'longitude'])(trip)))
 		}

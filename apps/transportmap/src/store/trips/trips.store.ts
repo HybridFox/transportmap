@@ -1,15 +1,14 @@
 import { createStore, withProps } from '@ngneat/elf';
 import { withActiveId, withEntities } from '@ngneat/elf-entities';
 import { withRequestsStatus } from '@ngneat/elf-requests';
-
-import { Trip } from './trips.types';
+import { ICalculatedTrip } from '@transportmap/types';
 
 export const tripsStore = createStore(
 	{ name: 'trips' },
-	withEntities<Trip>(),
+	withEntities<ICalculatedTrip>(),
 	withActiveId(),
 	withRequestsStatus<string>(),
 	withProps<{
-		highlightedTrip?: Trip;
+		highlightedTrip?: ICalculatedTrip;
 	}>({})
 );

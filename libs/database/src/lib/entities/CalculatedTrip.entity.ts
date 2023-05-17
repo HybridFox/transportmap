@@ -1,23 +1,8 @@
-import { Entity, Column, PrimaryColumn, ManyToOne, JoinColumn, OneToMany, Index, OneToOne } from 'typeorm';
-
-import { Calendar } from './Calendar.entity';
-import { CalendarDate } from './CalendarDate.entity';
-import { Route } from './Route.entity';
-import { StopTime } from './StopTime.entity';
-
-// 'id',                 'routeId',
-//    'serviceId',          'headsign',
-//    'name',               'directionId',
-//    'agencyId',           'blockId',
-//    'shapeId',            'type',
-//    'stopTimes',          'route',
-//    'firstDepartureTime', 'lastDepartureTime',
-//    'sectionLocation',    'sectionProgress',
-//    'bearing',            'speed',
-//    'sections',           'osrmRoute'
+import { ICalculatedTrip, ILocation, ITripRoute, ITripSection } from '@transportmap/types';
+import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
 
 @Entity()
-export class CalculatedTrip {
+export class CalculatedTrip implements ICalculatedTrip {
 	@PrimaryColumn()
 	@Index()
 	id: string;
@@ -26,33 +11,26 @@ export class CalculatedTrip {
 	name: string;
 
 	@Column()
-	stopTimes: string;
-
-	@Column()
 	firstDepartureTime: string;
 
 	@Column()
 	lastDepartureTime: string;
 
 	@Column()
-	@Index()
-	sectionLocation: any;
+	sectionLocation: ILocation;
 
 	@Column()
-	bearing: string;
+	bearing: number;
 
 	@Column()
-	sections: any;
+	sections: ITripSection[];
 
 	@Column()
-	route: any;
+	route: ITripRoute;
 
 	@Column()
 	sectionProgress: number;
 
 	@Column()
 	speed: number;
-
-	@Column()
-	osrmRoute: any;
 }

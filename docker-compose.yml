@@ -16,6 +16,10 @@ x-default-options: &default-options
         - ./static:/static:delegated
         - node-modules-data:/app/node_modules
 
+x-no-logs: &no-logs
+    logging:
+        driver: none
+
 services:
     api:
         container_name: transportmap-api

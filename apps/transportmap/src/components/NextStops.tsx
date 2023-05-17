@@ -7,8 +7,8 @@ import Scrollbars from 'react-custom-scrollbars-2';
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { useTranslation } from 'react-i18next';
+import { ICalculatedTrip, ITripSection, SectionType } from '@transportmap/types';
 
-import { Trip } from '../store/trips/trips.types';
 import { getTranslation } from '../helpers/translation.util';
 import { getVehicleProgress } from '../helpers/location.utils';
 
@@ -18,7 +18,7 @@ dayjs.extend(timezone)
 dayjs.extend(customParseFormat)
 
 interface PopupProps {
-	trip: Trip;
+	trip: ICalculatedTrip;
 	className?: string;
 }
 
@@ -175,12 +175,12 @@ export const NextStops: FC<PopupProps> = ({ trip }: PopupProps) => {
 		}
 	}, [])
 
-	const renderLine = (stopTime: any, nextStopTime: any) => {
-		if ((nextStopTime.realtimeArrivalTime || nextStopTime.arrivalTime) < dayjs().tz('Europe/Brussels').format('HH:mm:ss')) {
+	const renderLine = (section: ITripSection, nextSection: ITripSection) => {
+		if ((nextSection.realtimeStartTime || nextSection.startTime) < dayjs().tz('Europe/Brussels').format('HH:mm:ss')) {
 			return <PassedLine />
 		}
 
-		if ((stopTime.realtimeArrivalTime || stopTime.arrivalTime) >= dayjs().tz('Europe/Brussels').format('HH:mm:ss')) {
+		if ((section.realtimeStartTime || section.startTime) >= dayjs().tz('Europe/Brussels').format('HH:mm:ss')) {
 			return <UpcomingLine />
 		}
 
@@ -204,40 +204,40 @@ export const NextStops: FC<PopupProps> = ({ trip }: PopupProps) => {
 	return (
 		<Scrollbars style={{ height: '110px' }} renderThumbHorizontal={renderThumb} autoHide ref={scrollRef}>
 			<Stops ref={wrapperRef}>
-				{trip.stopTimes?.map(
-					(stopTime: any, i) => (
+				{trip.sections.filter((section) => section.type === SectionType.STOP)?.map(
+					(section, i: number) => (
 						<Stop
 							key={i}
 							isPassed={
-								(stopTime.realtimeDepartureTime || stopTime.departureTime) < dayjs().format('HH:mm:ss') || (stopTime.realtimeArrivalTime || stopTime.arrivalTime) < dayjs().format('HH:mm:ss')
+								(section.realtimeEndTime || section.endTime) < dayjs().format('HH:mm:ss') || (section.realtimeStartTime || section.startTime) < dayjs().format('HH:mm:ss')
 							}>
-							<StopName>{getTranslation(stopTime?.stop?.translations, i18n.language)}</StopName>
+							<StopName>{getTranslation(section?.stop?.translations, i18n.language)}</StopName>
 							<StopTimeWrapper>
 								<StopTime>
 									<StopTimeTitle>{t('GENERAL.ARRIVAL')}</StopTimeTitle>
-									{stopTime.realtimeArrivalTime ? (
+									{section.realtimeStartTime ? (
 										<>
-											<Strikethrough>{dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${stopTime.arrivalTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</Strikethrough>{' '}
-											<Delay>{dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${stopTime.realtimeArrivalTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</Delay>
+											<Strikethrough>{dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${section.startTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</Strikethrough>{' '}
+											<Delay>{dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${section.realtimeStartTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</Delay>
 										</>
 									) : (
-										<OnTime>{dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${stopTime.arrivalTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</OnTime>
+										<OnTime>{dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${section.startTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</OnTime>
 									)}
 								</StopTime>
 								<StopTimeSeparator>-</StopTimeSeparator>
 								<StopTime>
 									<StopTimeTitle>{t('GENERAL.DEPARTURE')}</StopTimeTitle>
-									{stopTime.realtimeDepartureTime ? (
+									{section.realtimeEndTime ? (
 										<>
-											<Strikethrough>{dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${stopTime.departureTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</Strikethrough>{' '}
-											<Delay>{dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${stopTime.realtimeDepartureTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</Delay>
+											<Strikethrough>{dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${section.endTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</Strikethrough>{' '}
+											<Delay>{dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${section.realtimeEndTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</Delay>
 										</>
 									) : (
-										<OnTime>{dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${stopTime.departureTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</OnTime>
+										<OnTime>{dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${section.endTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</OnTime>
 									)}
 								</StopTime>
 							</StopTimeWrapper>
-							{(trip.stopTimes.length - 1) !== i && renderLine(stopTime, trip.stopTimes[i + 1])}
+							{(trip.sections.filter((section) => section.type === SectionType.STOP).length - 1) !== i && renderLine(section, trip.sections.filter((section) => section.type === SectionType.STOP)[i + 1])}
 						</Stop>
 					),
 				)}

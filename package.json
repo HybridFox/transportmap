@@ -19,6 +19,7 @@
     "@nestjs/platform-socket.io": "^9.4.0",
     "@nestjs/platform-ws": "^9.4.0",
     "@nestjs/schedule": "^2.2.1",
+    "@nestjs/swagger": "^6.3.0",
     "@nestjs/websockets": "^9.4.0",
     "@ngneat/elf": "^2.3.1",
     "@ngneat/elf-entities": "^4.4.4",
@@ -117,6 +118,7 @@
     "typescript": "^5.0.4",
     "vite": "^4.3.5",
     "vite-plugin-eslint": "^1.8.1",
+    "vite-plugin-externals": "^0.6.2",
     "vite-plugin-sitemap": "^0.3.0",
     "vite-tsconfig-paths": "^4.2.0",
     "vitest": "^0.31.0"

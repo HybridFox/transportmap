@@ -76,15 +76,6 @@ export class RealtimeProcessorService {
 
 			console.log('[REALTIME_SEED] decoding');
 			try {
-				const progressBar = new cliProgress.SingleBar(
-					{
-						fps: 30,
-						forceRedraw: true,
-						noTTYOutput: true,
-						notTTYSchedule: 1000,
-					},
-					cliProgress.Presets.shades_classic,
-				);
 				const message = RealtimeGTFSMessage.decode(protobufFile);
 				const { entity: feedMessages } = RealtimeGTFSMessage.toObject(message, {
 					longs: Number,
@@ -103,6 +94,16 @@ export class RealtimeProcessorService {
 				if (!feedMessages.length) {
 					return;
 				}
+				
+				const progressBar = new cliProgress.SingleBar(
+					{
+						fps: 30,
+						forceRedraw: true,
+						noTTYOutput: true,
+						notTTYSchedule: 1000,
+					},
+					cliProgress.Presets.shades_classic,
+				);
 
 				const queue = async.queue(async ({ tripId, stopTimeUpdate }, callback) => {
 					await this.processStopTimeUpdate(tripId, stopTimeUpdate);
@@ -127,6 +128,12 @@ export class RealtimeProcessorService {
 					});
 
 				console.log('[REALTIME_SEED] down the drain');
+
+				if (!queue.length()) {
+					console.log('q empty')
+					return;
+				}
+
 				progressBar.start(queue.length(), 0);
 				await queue.drain();
 

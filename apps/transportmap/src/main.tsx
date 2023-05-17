@@ -10,6 +10,8 @@ import App from './App';
 import './assets/scss/index.scss';
 import 'ol/ol.css';
 
+window.global = {} as any;
+
 Sentry.init({
 	dsn: 'https://6044c441b3114b28baf632380418c3d2@o4505149251059712.ingest.sentry.io/4505149955964928',
 	integrations: [new Sentry.BrowserTracing(), new Sentry.Replay()],

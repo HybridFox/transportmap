@@ -1,4 +1,4 @@
-export const getTranslation = (translations: Record<string, string>, locale: string): string => {
+export const getTranslation = (translations?: Record<string, string>, locale: string): string => {
 	if (!translations) {
 		return 'TRANSLATIONS_NOT_FOUND'
 	}
