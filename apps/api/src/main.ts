@@ -7,9 +7,10 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
+
+	app.setGlobalPrefix('api');
 	app.useWebSocketAdapter(new WsAdapter(app));
 	app.use(Sentry.Handlers.requestHandler());
-	// TracingHandler creates a trace for every incoming request
 	app.use(Sentry.Handlers.tracingHandler());
 
 	const config = new DocumentBuilder()
@@ -23,8 +24,6 @@ async function bootstrap() {
 	const document = SwaggerModule.createDocument(app, config);
 	SwaggerModule.setup('docs', app, document);
 
-	const globalPrefix = 'api';
-	app.setGlobalPrefix(globalPrefix);
 	const port = process.env.PORT || 3000;
 	await app.listen(port);
 
@@ -38,7 +37,7 @@ async function bootstrap() {
 		],
 	});
 
-	console.log(`🚀 Application is running on: http://localhost:${port}/${globalPrefix}`);
+	console.log(`🚀 Application is running on: localhost:${port}`);
 	app.use(Sentry.Handlers.errorHandler());
 }
 
