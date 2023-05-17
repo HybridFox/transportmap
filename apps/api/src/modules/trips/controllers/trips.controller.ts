@@ -33,11 +33,29 @@ export class TripsController {
 	@ApiQuery({ name: 'skipComposition', type: Boolean, description: 'Skip populating the composition (this will significantly speed up the call if there is no cached composition)', required: false })
 	@ApiOkResponse({ type: () => OACalculatedTrip })
 	public async getOne(@Param('tripId') tripId: string, @Query('skipComposition') skipComposition = 'false'): Promise<any> {
-		const trip = await this.tripCacheRepository.findOne({
-			where: {
-				id: tripId,
+		const [trip] = await this.tripCacheRepository.aggregate([
+			{
+				$project: {
+					iRailID: { $concat: ['BE.NMBS.', '$route.routeCode', '$name'] },
+					route: 1,
+					id: 1,
+					bearing: 1,
+					name: 1,
+					sectionLocation: 1,
+					sectionProgress: 1,
+					sections: 1,
+					speed: 1,
+				}
 			},
-		});
+			{
+				$match: {
+					$or: [
+						{ id: tripId },
+						{ iRailID: tripId },
+					]
+				}
+			}
+		]).toArray();
 		
 		if (!trip) {
 			throw new NotFoundException(`trip with identifier or name ${tripId} could not be found`);
