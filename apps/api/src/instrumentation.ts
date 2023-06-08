@@ -5,7 +5,7 @@ import { SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base';
 import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node';
 import { HttpInstrumentation } from "@opentelemetry/instrumentation-http";
 import { MongoDBInstrumentation } from '@opentelemetry/instrumentation-mongodb';
-import { PgInstrumentation } from '@opentelemetry/instrumentation-pg';
+import { TypeormInstrumentation } from 'opentelemetry-instrumentation-typeorm';
 import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express';
 import { IORedisInstrumentation } from '@opentelemetry/instrumentation-ioredis';
 import { NestInstrumentation } from '@opentelemetry/instrumentation-nestjs-core';
@@ -32,6 +32,7 @@ registerInstrumentations({
 		}),
 		// new PgInstrumentation(),
 		new IORedisInstrumentation(),
+		new TypeormInstrumentation(),
 	],
 });
 
