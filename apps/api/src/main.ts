@@ -1,7 +1,9 @@
+import './instrumentation';
+
 import { NestFactory } from '@nestjs/core';
 import { WsAdapter } from '@nestjs/platform-ws'
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import * as Sentry from '@sentry/node';
+// import * as Sentry from '@sentry/node';
 
 import { AppModule } from './app.module';
 
@@ -10,8 +12,8 @@ async function bootstrap() {
 
 	app.setGlobalPrefix('api');
 	app.useWebSocketAdapter(new WsAdapter(app));
-	app.use(Sentry.Handlers.requestHandler());
-	app.use(Sentry.Handlers.tracingHandler());
+	// app.use(Sentry.Handlers.requestHandler());
+	// app.use(Sentry.Handlers.tracingHandler());
 
 	const config = new DocumentBuilder()
 		.setTitle('Waar is Mijn Trein API')
@@ -27,18 +29,18 @@ async function bootstrap() {
 	const port = process.env.PORT || 3000;
 	await app.listen(port);
 
-	Sentry.init({
-		dsn: process.env.SENTRY_DSN,
-		tracesSampleRate: 1.0,
-		integrations: [
-			// enable HTTP calls tracing
-			new Sentry.Integrations.Http({ tracing: true }),
-			...Sentry.autoDiscoverNodePerformanceMonitoringIntegrations(),
-		],
-	});
+	// Sentry.init({
+	// 	dsn: process.env.SENTRY_DSN,
+	// 	tracesSampleRate: 1.0,
+	// 	integrations: [
+	// 		// enable HTTP calls tracing
+	// 		new Sentry.Integrations.Http({ tracing: true }),
+	// 		...Sentry.autoDiscoverNodePerformanceMonitoringIntegrations(),
+	// 	],
+	// });
 
 	console.log(`🚀 Application is running on: localhost:${port}`);
-	app.use(Sentry.Handlers.errorHandler());
+	// app.use(Sentry.Handlers.errorHandler());
 }
 
 bootstrap();

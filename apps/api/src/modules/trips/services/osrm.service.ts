@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { TABLE_PROVIDERS, TripRoute } from '@transportmap/database';
 import got from 'got';
 
-import { SentryMessage, SentrySeverity } from '../../../core/enum/sentry.enum';
+import { OpenTelemetryMessage, OpenTelemetrySeverity } from '../../../core/enum/open-telemetry.enum';
 import { LoggingService } from '../../../core/services/logging.service';
 
 @Injectable()
@@ -45,7 +45,7 @@ export class OSRMService {
 			})
 			.catch((e) => {
 				console.error(e.response);
-				this.loggingService.captureMessage(SentryMessage.OSRM_ROUTE_FETCH_FAIL, SentrySeverity.WARNING, {
+				this.loggingService.captureMessage(OpenTelemetryMessage.OSRM_ROUTE_FETCH_FAIL, OpenTelemetrySeverity.WARNING, {
 					radiuses: coordinates
 						.split(';')
 						.map(() => 100)

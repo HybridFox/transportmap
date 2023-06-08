@@ -10,7 +10,7 @@ import * as cliProgress from 'cli-progress';
 import { GTFSRealtimeStatus, GTFSStaticStatus, StopTime, TABLE_PROVIDERS } from '@transportmap/database';
 import { Cron } from '@nestjs/schedule';
 
-import { SentryMessage, SentrySeverity } from '~core/enum/sentry.enum';
+import { OpenTelemetryMessage, OpenTelemetrySeverity } from '~core/enum/open-telemetry.enum';
 import { LoggingService } from '~core/services/logging.service';
 
 import { StopTimeUpdate } from '../gtfs.types';
@@ -70,7 +70,7 @@ export class RealtimeProcessorService {
 				responseType: 'buffer'
 			})
 				.catch((e) => {
-					this.loggingService.captureException(e, SentryMessage.REALTIME_GTFS_INACCESSIBLE, SentrySeverity.WARNING, { key, sourceUrl });
+					this.loggingService.captureException(e, OpenTelemetryMessage.REALTIME_GTFS_INACCESSIBLE, OpenTelemetrySeverity.WARNING, { key, sourceUrl });
 					throw e;
 				});
 
@@ -82,7 +82,7 @@ export class RealtimeProcessorService {
 				});
 
 				if (!feedMessages) {
-					this.loggingService.captureMessage(SentryMessage.REALTIME_GTFS_FEED_EMPTY, SentrySeverity.WARNING, {
+					this.loggingService.captureMessage(OpenTelemetryMessage.REALTIME_GTFS_FEED_EMPTY, OpenTelemetrySeverity.WARNING, {
 						key,
 						sourceUrl,
 						protobufFile,
@@ -150,7 +150,7 @@ export class RealtimeProcessorService {
 			} catch (e) {
 				console.error(e);
 
-				this.loggingService.captureException(e, SentryMessage.REALTIME_GTFS_GENERIC_FAIL, SentrySeverity.WARNING, {
+				this.loggingService.captureException(e, OpenTelemetryMessage.REALTIME_GTFS_GENERIC_FAIL, OpenTelemetrySeverity.WARNING, {
 					key,
 					sourceUrl,
 				});

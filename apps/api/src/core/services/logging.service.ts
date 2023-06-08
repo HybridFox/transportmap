@@ -1,34 +1,34 @@
 import { Injectable } from '@nestjs/common';
-import * as Sentry from '@sentry/node';
+// import * as OpenTelemetry from '@sentry/node';
 import { Exception } from '@sentry/node';
 
-import { SentryMessage, SentrySeverity } from '../enum/sentry.enum';
+import { OpenTelemetryMessage, OpenTelemetrySeverity } from '../enum/open-telemetry.enum';
 
 @Injectable()
 export class LoggingService {
-	public captureMessage(message: SentryMessage, severity: SentrySeverity, debugInfo: any): void {
+	public captureMessage(message: OpenTelemetryMessage, severity: OpenTelemetrySeverity, debugInfo: any): void {
 		console.log('event!!!');
 		try {
-			const eventId = Sentry.captureMessage(message, {
-				level: severity,
-				extra: debugInfo,
-				tags: {
-					message,
-				},
-			});
-			console.log('eventId', eventId);
+			// const eventId = OpenTelemetry.captureMessage(message, {
+			// 	level: severity,
+			// 	extra: debugInfo,
+			// 	tags: {
+			// 		message,
+			// 	},
+			// });
+			// console.log('eventId', eventId);
 		} catch (e) {
 			console.error(e);
 		}
 	}
 
-	public captureException(exception: Exception, message: SentryMessage, severity: SentrySeverity, debugInfo: any): void {
-		Sentry.captureException(exception, {
-			level: severity,
-			extra: debugInfo,
-			tags: {
-				message,
-			},
-		});
+	public captureException(exception: Exception, message: OpenTelemetryMessage, severity: OpenTelemetrySeverity, debugInfo: any): void {
+		// OpenTelemetry.captureException(exception, {
+		// 	level: severity,
+		// 	extra: debugInfo,
+		// 	tags: {
+		// 		message,
+		// 	},
+		// });
 	}
 }

@@ -6,7 +6,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 
 import { CoreModule } from '~core/core.module';
-import { SentryInterceptor } from '~core/interceptors/sentry.interceptor';
+// import { SentryInterceptor } from '~core/interceptors/sentry.interceptor';
 
 import { GTFSModule } from './modules/gtfs/gtfs.module';
 import { RoutesModule } from './modules/routes/routes.module';
@@ -31,10 +31,10 @@ import { SearchModule } from './modules/search/search.module';
 	],
 	controllers: [],
 	providers: [
-		{
-			provide: APP_INTERCEPTOR,
-			useClass: SentryInterceptor,
-		},
+		// {
+		// 	provide: APP_INTERCEPTOR,
+		// 	useClass: SentryInterceptor,
+		// },
 	],
 })
 export class AppModule {}

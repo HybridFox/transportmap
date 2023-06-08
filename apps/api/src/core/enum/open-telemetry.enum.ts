@@ -1,4 +1,4 @@
-export enum SentryMessage {
+export enum OpenTelemetryMessage {
 	REALTIME_GTFS_FEED_EMPTY = 'REALTIME_GTFS_FEED_EMPTY',
 	REALTIME_GTFS_STOP_NOT_FOUND = 'REALTIME_GTFS_STOP_NOT_FOUND',
 	REALTIME_GTFS_INACCESSIBLE = 'REALTIME_GTFS_INACCESSIBLE',
@@ -6,7 +6,7 @@ export enum SentryMessage {
 	OSRM_ROUTE_FETCH_FAIL = 'OSRM_ROUTE_FETCH_FAIL',
 }
 
-export enum SentrySeverity {
+export enum OpenTelemetrySeverity {
 	FATAL = 'fatal',
 	ERROR = 'error',
 	WARNING = 'warning',
