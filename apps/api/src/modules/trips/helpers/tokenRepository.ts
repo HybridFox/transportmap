@@ -14,7 +14,7 @@ class TokenRepository {
 			},
 		})
 
-		const key = rawHTML.match(/(?<=localStorage\.setItem\('tmAuthCode', ")([A-Za-z0-9]+)(?="\);)/)[0];
+		const key = rawHTML.match(/(?<=localStorage\.setItem\("tmAuthCode",")([A-Za-z0-9]+)(?="\))/)[0];
 		authCodeToken.set('code', key, 30 * 60);
 
 		return key;
