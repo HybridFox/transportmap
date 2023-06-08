@@ -27,8 +27,10 @@ registerInstrumentations({
 		new HttpInstrumentation(),
 		new ExpressInstrumentation(),
 		new NestInstrumentation(),
-		new MongoDBInstrumentation(),
-		new PgInstrumentation(),
+		new MongoDBInstrumentation({
+			enhancedDatabaseReporting: true
+		}),
+		// new PgInstrumentation(),
 		new IORedisInstrumentation(),
 	],
 });
