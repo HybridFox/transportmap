@@ -1,0 +1,35 @@
+receivers:
+    otlp:
+        protocols:
+            grpc:
+            http:
+
+processors:
+    batch:
+
+exporters:
+    otlp:
+        endpoint: ${env:OTEL_COLLECTOR_ENDPOINT}
+        headers:
+            authorization: ${env:OTEL_COLLECTOR_AUTHORIZATION}
+
+extensions:
+    health_check:
+    pprof:
+    zpages:
+
+service:
+    extensions: [health_check, pprof, zpages]
+    pipelines:
+        traces:
+            receivers: [otlp]
+            processors: [batch]
+            exporters: [otlp]
+        metrics:
+            receivers: [otlp]
+            processors: [batch]
+            exporters: [otlp]
+        logs:
+            receivers: [otlp]
+            processors: [batch]
+            exporters: [otlp]

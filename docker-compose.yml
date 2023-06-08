@@ -163,23 +163,26 @@ services:
             KAFKA_CLUSTERS_0_NAME: local
             KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: transportmap-kafka:9092
 
-    jaeger:
-        image: jaegertracing/all-in-one:latest
-        restart: unless-stopped
-        container_name: transportmap-jaeger
-        environment:
-            COLLECTOR_OTLP_ENABLED: true
-            COLLECTOR_ZIPKIN_HOST_PORT: :9411
-        ports:
-            - 5775:5775/udp
-            - 6831:6831/udp
-            - 6832:6832/udp
-            - 5778:5778
-            - 16686:16686
-            - 14268:14268
-            - 9411:9411
-            - 4318:4318
-            - 4317:4317
+    # collector:
+    #     image: otel/opentelemetry-collector-contrib
+    #     restart: unless-stopped
+    #     container_name: transportmap-collector
+    #     command: [--config=/opt/otel-collector-config.yaml]
+    #     volumes:
+    #         - ./otel-collector-config.yaml:/opt/otel-collector-config.yaml
+    #     ports:
+    #         - 1888:1888 # pprof extension
+    #         - 8888:8888 # Prometheus metrics exposed by the collector
+    #         - 8889:8889 # Prometheus exporter metrics
+    #         - 13133:13133 # health_check extension
+    #         - 4317:4317 # OTLP gRPC receiver
+    #         - 4318:4318 # OTLP http receiver
+    #         - 55679:55679 # zpages extension
+    #     networks:
+    #         - transportmap
+    #     environment:
+    #         OTEL_COLLECTOR_ENDPOINT: tempo-eu-west-0.grafana.net:443
+    #         OTEL_COLLECTOR_AUTHORIZATION: Basic XYZ
 
 volumes:
     redis-data:
