@@ -20,8 +20,8 @@ export class TranslationSeederService {
 					console.log('TRANSLATION', messages.length);
 					await this.translationRepository.insert(
 						messages.map(({ value: record, headers }) => ({
-							translationKey: record.trans_id,
-							language: record.lang,
+							translationKey: record.field_value,
+							language: record.language,
 							translation: record.translation,
 							importId: headers.importId,
 						})),
