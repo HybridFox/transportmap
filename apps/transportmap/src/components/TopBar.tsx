@@ -199,7 +199,7 @@ const RawTopBar: FC<Props> = ({ className, map }: Props) => {
 									], 'EPSG:4326', 'EPSG:3857'), zoom: 15 });
 							}}>
 								<p>
-									{getTranslation(stop.translations, i18n.language)}
+									{getTranslation(stop.translations, i18n.language)|| stop?.name}
 								</p>
 							</SearchResult>
 						))}

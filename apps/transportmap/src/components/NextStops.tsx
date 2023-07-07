@@ -211,7 +211,7 @@ export const NextStops: FC<PopupProps> = ({ trip }: PopupProps) => {
 							isPassed={
 								(section.realtimeEndTime || section.endTime) < dayjs().format('HH:mm:ss') || (section.realtimeStartTime || section.startTime) < dayjs().format('HH:mm:ss')
 							}>
-							<StopName>{getTranslation(section?.stop?.translations, i18n.language)}</StopName>
+							<StopName>{getTranslation(section?.stop?.translations, i18n.language) || section?.stop?.name}</StopName>
 							<StopTimeWrapper>
 								<StopTime>
 									<StopTimeTitle>{t('GENERAL.ARRIVAL')}</StopTimeTitle>

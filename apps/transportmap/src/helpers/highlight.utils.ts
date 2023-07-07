@@ -36,7 +36,7 @@ export const highlightPolyline = (trip: ICalculatedTrip, locale: string): Vector
 						],
 					},
 					properties: {
-						name: getTranslation(section.stop!.translations, locale),
+						name: getTranslation(section.stop!.translations, locale) || section?.stop?.name,
 					},
 				})),
 			],
