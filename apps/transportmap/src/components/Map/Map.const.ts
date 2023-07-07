@@ -52,6 +52,18 @@ export const MAP_ICON_STYLES = (trip: Trip, zIndex = 0): Record<string, Record<s
 			}),
 			zIndex
 		}),
+		'EXP': new olStyle.Style({
+			image: new olStyle.Icon({
+				...defaultIconProps,
+				color: '#ff1515',
+				src: '/assets/img/icons/popup-train.svg',
+			}),
+			text: new olStyle.Text({
+				...defaultTextProps,
+				text: `${trip.route.routeCode} ${trip.name}`
+			}),
+			zIndex
+		}),
 		'S': new olStyle.Style({
 			image: new olStyle.Icon({
 				...defaultIconProps,
