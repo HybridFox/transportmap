@@ -294,7 +294,11 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 			return existingFeatures;
 		}, markerSource.getFeatures());
 
-		leftOverFeatures.forEach((feature) => feature.dispose());
+		console.log(leftOverFeatures)
+		leftOverFeatures.forEach((feature) => {
+			feature.dispose();
+			markerSource.removeFeature(feature);
+		});
 	}, [trips]);
 
 	return <div ref={mapElement} className="map-container" style={{ height: '100%' }}></div>;
