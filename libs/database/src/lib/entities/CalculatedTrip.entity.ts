@@ -11,6 +11,9 @@ export class CalculatedTrip implements ICalculatedTrip {
 	name: string;
 
 	@Column()
+	headSign: string;
+
+	@Column()
 	firstDepartureTime: string;
 
 	@Column()

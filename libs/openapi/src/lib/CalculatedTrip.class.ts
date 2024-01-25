@@ -18,6 +18,9 @@ export class OACalculatedTrip implements ICalculatedTrip {
 	@ApiProperty()
 	bearing: number;
 
+	@ApiProperty()
+	headSign: string;
+
 	@ApiProperty({ isArray: true, type: OATripSection })
 	sections: OATripSection[];
 
