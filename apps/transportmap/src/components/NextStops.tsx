@@ -217,8 +217,8 @@ export const NextStops: FC<PopupProps> = ({ trip }: PopupProps) => {
 									<StopTimeTitle>{t('GENERAL.ARRIVAL')}</StopTimeTitle>
 									{section.realtimeStartTime ? (
 										<>
-											<Strikethrough>{dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${section.startTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</Strikethrough>{' '}
-											<Delay>{dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${section.realtimeStartTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</Delay>
+											<OnTime>{dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${section.startTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</OnTime>{' '}
+											<Delay>+{dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${section.realtimeStartTime}`, 'DD/MM/YYYY HH:mm:ss').diff(dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${section.startTime}`, 'DD/MM/YYYY HH:mm:ss'), 'minutes')}'</Delay>
 										</>
 									) : (
 										<OnTime>{dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${section.startTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</OnTime>
@@ -229,8 +229,8 @@ export const NextStops: FC<PopupProps> = ({ trip }: PopupProps) => {
 									<StopTimeTitle>{t('GENERAL.DEPARTURE')}</StopTimeTitle>
 									{section.realtimeEndTime ? (
 										<>
-											<Strikethrough>{dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${section.endTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</Strikethrough>{' '}
-											<Delay>{dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${section.realtimeEndTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</Delay>
+											<OnTime>{dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${section.endTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</OnTime>{' '}
+											<Delay>+{dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${section.realtimeEndTime}`, 'DD/MM/YYYY HH:mm:ss').diff(dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${section.endTime}`, 'DD/MM/YYYY HH:mm:ss'), 'minutes')}'</Delay>
 										</>
 									) : (
 										<OnTime>{dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${section.endTime}`, 'DD/MM/YYYY HH:mm:ss').format('HH:mm')}</OnTime>

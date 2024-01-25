@@ -24,6 +24,7 @@ const LocationIcon = styled.button<{ enabled: boolean }>`
 	align-self: flex-start;
 	margin-right: 0.5rem;
 	cursor: pointer;
+	height: 50px;
 `;
 
 const LanguageIcon = styled.button<{ visible: boolean }>`
@@ -39,6 +40,7 @@ const LanguageIcon = styled.button<{ visible: boolean }>`
 	font-weight: bold;
 	margin-right: 0.5rem;
 	cursor: pointer;
+	height: 50px;
 `;
 
 const LanguageWrapper = styled.div`
@@ -53,7 +55,6 @@ const LanguageContainer = styled.div`
 
 	ul {
 		margin: 0;
-		padding: 0;
 		list-style: none;
 		display: flex;
 		align-items: center;
@@ -84,6 +85,13 @@ const SearchBar = styled.input`
 	color: white;
 	width: 100%;
 	border: none;
+	font-family: 'Prompt', sans-serif;
+	height: 50px;
+	
+	&:active, &:focus {
+		border: none;
+		outline: none;
+	}
 `;
 
 const SearchResultsContainer = styled.div`

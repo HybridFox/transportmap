@@ -12,13 +12,13 @@ export default defineConfig({
 		host: '0.0.0.0',
 		proxy: {
 			'/api': {
-				target: 'http://host.docker.internal:3001',
+				target: 'http://10.10.1.104:3081',
 			},
 			'/static': {
-				target: 'http://host.docker.internal:3001',
+				target: 'http://10.10.1.104:3081',
 			},
 			'/ws': {
-				target: 'http://host.docker.internal:3001',
+				target: 'http://10.10.1.104:3081',
 				ws: true,
 				rewrite: (path) => path.replace(/^\/ws/, ''),
 			},
