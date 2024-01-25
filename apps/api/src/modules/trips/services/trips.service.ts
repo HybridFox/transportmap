@@ -38,6 +38,7 @@ export class TripsService {
 		const allKeys = (await this.tripCacheRepository.find({
 			select: ['id']
 		})).map(({ id }) => id);
+
 		agencies.forEach(async (agency) => {
 			const gtfsStaticStatus = await this.gtfsStaticStatus.findOneBy({ key: agency.id });
 			if (!gtfsStaticStatus) {

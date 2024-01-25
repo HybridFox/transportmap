@@ -112,6 +112,7 @@ export class PositionService {
 		if (activeSection.type === SectionType.STOP) {
 			return {
 				...pick(['id', 'name', 'route'])(trip),
+				headSign: trip.headsign,
 				sectionLocation: {
 					latitude: activeSection.startLocation.latitude,
 					longitude: activeSection.startLocation.longitude,
@@ -138,6 +139,7 @@ export class PositionService {
 	
 		return {
 			...pick(['id', 'name', 'route'])(trip),
+			headSign: trip.headsign,
 			sectionLocation: {
 				longitude: sectionLocation[1],
 				latitude: sectionLocation[0],

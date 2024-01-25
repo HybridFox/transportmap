@@ -188,7 +188,7 @@ const RawTopBar: FC<Props> = ({ className, map }: Props) => {
 									{trip.route.routeCode} {trip.name}
 								</Badge>
 								<p>
-									{trip.route.name}
+									{trip.headSign || getTranslation(trip.sections[trip.sections.length - 1].stop?.translations, i18n.language) || trip.sections[trip.sections.length - 1].stop?.name}
 								</p>
 							</SearchResult>
 						))}
@@ -208,7 +208,7 @@ const RawTopBar: FC<Props> = ({ className, map }: Props) => {
 									], 'EPSG:4326', 'EPSG:3857'), zoom: 15 });
 							}}>
 								<p>
-									{getTranslation(stop.translations, i18n.language)|| stop?.name}
+									{getTranslation(stop.translations, i18n.language) || stop?.name}
 								</p>
 							</SearchResult>
 						))}

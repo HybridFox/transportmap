@@ -9,6 +9,8 @@ export interface ICalculatedTrip {
 	bearing: number;
 	sections: ITripSection[];
 	route: ITripRoute;
+	headSign: string;
 	sectionProgress: number;
 	speed: number;
+	extraData?: any;
 }

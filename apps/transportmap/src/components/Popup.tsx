@@ -5,9 +5,11 @@ import { useTranslation } from 'react-i18next';
 import { Badge } from './Badge';
 import { NextStops } from './NextStops';
 import { Composition } from './Composition';
+import {ICalculatedTrip} from "@transportmap/types";
+import {getTranslation} from "../helpers/translation.util";
 
 interface PopupProps {
-	trip?: any;
+	trip?: ICalculatedTrip;
 	loading?: boolean;
 	className?: string;
 }
@@ -20,10 +22,18 @@ const PopupHeader = styled.div`
 		margin: 0;
 		color: #eeeeee;
 	}
+
+	@media only screen and (max-width: 1020px) {
+		padding: 1rem;
+	}
 `;
 
 const PopupBody = styled.div`
 	padding: 1rem 1.5rem;
+
+	@media only screen and (max-width: 1020px) {
+		padding: 1rem;
+	}
 `;
 
 const Title = styled.div`
@@ -78,7 +88,7 @@ const PopupLoading = styled.div`
 
 const RawPopup: FC<PopupProps> = ({ trip, className, loading }: PopupProps) => {
 	const [selectedTab, setSelectedTab] = useState<string>('next-stops');
-	const [t] = useTranslation()
+	const [t, i18n] = useTranslation()
 
 	if (loading) {
 		return (<PopupLoading>
@@ -101,7 +111,7 @@ const RawPopup: FC<PopupProps> = ({ trip, className, loading }: PopupProps) => {
 						{trip.route.routeCode} {trip.name}
 					</Badge>
 					<h2>
-						{trip.headsign}
+						{trip.headSign || getTranslation(trip.sections[trip.sections.length - 1].stop?.translations, i18n.language) || trip.sections[trip.sections.length - 1].stop?.name}
 					</h2>
 				</Title>
 				<Tabs>
