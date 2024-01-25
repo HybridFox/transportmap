@@ -1,15 +1,14 @@
 import ky from "ky";
-
-import { Trip } from "../store/trips/trips.types";
+import {ICalculatedTrip} from "@transportmap/types";
 
 export class TripsService {
-    public async get(searchParams: Record<string, string | number>): Promise<Trip[]> {
+    public async get(searchParams: Record<string, string | number>): Promise<ICalculatedTrip[]> {
         return ky.get('/api/v1/trips', {
             searchParams
         }).json()
     }
 
-    public async getOne(tripId: string): Promise<Trip> {
+    public async getOne(tripId: string): Promise<ICalculatedTrip> {
         return ky.get(`/api/v1/trips/${tripId}`).json()
     }
 }

@@ -43,7 +43,7 @@ export const getVehicleLocation = (sections: ITripSection[]): [number, number] |
     }
 
     const sectionProgress = getVehicleProgress(sections);
-    const lineString = new olGeom.LineString(polyline.decode(activeSection.polyline));
+    const lineString = new olGeom.LineString(polyline.decode(activeSection.polyline!));
     const sectionLocation = lineString.getCoordinateAt(clamp(0, 1, sectionProgress));
 
     return [sectionLocation[1], sectionLocation[0]]

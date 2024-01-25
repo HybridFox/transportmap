@@ -8,7 +8,7 @@ import { routeStyleFunction } from './map.utils';
 import { getTranslation } from './translation.util';
 
 export const highlightPolyline = (trip: ICalculatedTrip, locale: string): VectorLayer<VectorSource> => {
-	const coordinates = trip.sections.filter((section) => section.type === SectionType.TRAVEL).reduce((acc, section) => {
+	const coordinates = trip.sections.filter((section) => section.type === SectionType.TRAVEL).reduce((acc, section: any) => {
 		return [
 			...acc,
 			...polyline.decode(section.polyline).map(([latitude, longitude]) => [longitude, latitude])

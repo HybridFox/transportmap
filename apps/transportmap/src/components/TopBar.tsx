@@ -13,6 +13,7 @@ import { uiRepository } from '../store/ui/ui.repository';
 import { getTranslation } from '../helpers/translation.util';
 
 import { Badge } from './Badge';
+import {ICalculatedTrip} from "@transportmap/types";
 
 const LocationIcon = styled.button<{ enabled: boolean }>`
 	padding: 1rem 1.5rem;
@@ -169,7 +170,7 @@ const RawTopBar: FC<Props> = ({ className, map }: Props) => {
 				{!!searchResults?.trips.length && (
 					<SearchResultsContainer>
 						<SearchResultName>{t('GENERAL.TRIPS')}</SearchResultName>
-						{searchResults?.trips.map((trip) => (
+						{searchResults?.trips.map((trip: ICalculatedTrip) => (
 							<SearchResult onClick={() => {
 								searchRepository.clear()
 								tripsRepository.highlightTrip(trip.id)
@@ -196,7 +197,7 @@ const RawTopBar: FC<Props> = ({ className, map }: Props) => {
 				{!!searchResults?.stops.length && (
 					<SearchResultsContainer>
 					<SearchResultName>{t('GENERAL.STOPS')}</SearchResultName>
-						{searchResults?.stops.map((stop) => (
+						{searchResults?.stops.map((stop: any) => (
 							<SearchResult onClick={() => {
 								searchRepository.clear()
 								map.current!

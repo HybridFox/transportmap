@@ -1,6 +1,5 @@
 import * as olStyle from 'ol/style';
-
-import { Trip } from '../../store/trips/trips.types';
+import {ICalculatedTrip} from "@transportmap/types";
 
 const defaultIconProps: any = {
 	anchor: [0.1, 46],
@@ -18,7 +17,7 @@ const defaultTextProps = {
 	offsetY: -20,
 };
 
-export const MAP_ICON_STYLES = (trip: Trip, zIndex = 0): Record<string, Record<string, olStyle.Style>> => ({
+export const MAP_ICON_STYLES = (trip: ICalculatedTrip, zIndex = 0): Record<string, Record<string, olStyle.Style>> => ({
 	normal: {
 		BUS: new olStyle.Style({
 			image: new olStyle.Icon({

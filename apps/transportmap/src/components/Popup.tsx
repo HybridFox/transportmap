@@ -2,14 +2,12 @@ import React, { FC, useState } from 'react';
 import styled, { css } from 'styled-components';
 import { useTranslation } from 'react-i18next';
 
-import { Trip } from '../store/trips/trips.types';
-
 import { Badge } from './Badge';
 import { NextStops } from './NextStops';
 import { Composition } from './Composition';
 
 interface PopupProps {
-	trip?: Trip;
+	trip?: any;
 	loading?: boolean;
 	className?: string;
 }
