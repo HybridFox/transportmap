@@ -10,14 +10,14 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 export const getNextStop = (sections: ITripSection[]): ITripSection | undefined => {
-	const currentTime = dayjs().tz('Europe/Brussels').format('HH:mm:ss');
+	const currentTime = dayjs().format('HH:mm:ss');
 	return sections.find(
 		(section) => currentTime <= (section.realtimeEndTime || section.endTime) && section.type === SectionType.STOP,
 	);
 }
 
 export const getVehicleProgress = (sections: ITripSection[]): number => {
-	const currentTime = dayjs().tz('Europe/Brussels').format('HH:mm:ss');
+	const currentTime = dayjs().format('HH:mm:ss');
     const activeSection = sections.find(
         (calculation) => (calculation.realtimeStartTime || calculation.startTime) <= currentTime && currentTime <= (calculation.realtimeEndTime || calculation.endTime),
     );
@@ -30,13 +30,13 @@ export const getVehicleProgress = (sections: ITripSection[]): number => {
         return 0
     }
 
-    return (dayjs().tz('Europe/Brussels').valueOf() - dayjs(`${dayjs().tz('Europe/Brussels').format('YYYY/MM/DD')} ${activeSection.realtimeStartTime || activeSection.startTime}`).valueOf()) /
-        (dayjs(`${dayjs().tz('Europe/Brussels').format('YYYY/MM/DD')} ${activeSection.realtimeEndTime || activeSection.endTime}`).valueOf() -
-            dayjs(`${dayjs().tz('Europe/Brussels').format('YYYY/MM/DD')} ${activeSection.realtimeStartTime || activeSection.startTime}`).valueOf());
+    return (dayjs().valueOf() - dayjs(`${dayjs().format('YYYY/MM/DD')} ${activeSection.realtimeStartTime || activeSection.startTime}`).valueOf()) /
+        (dayjs(`${dayjs().format('YYYY/MM/DD')} ${activeSection.realtimeEndTime || activeSection.endTime}`).valueOf() -
+            dayjs(`${dayjs().format('YYYY/MM/DD')} ${activeSection.realtimeStartTime || activeSection.startTime}`).valueOf());
 }
 
 export const getVehicleLocation = (sections: ITripSection[]): [number, number] | null => {
-    const currentTime = dayjs().tz('Europe/Brussels').format('HH:mm:ss');
+    const currentTime = dayjs().format('HH:mm:ss');
     const activeSection = sections.find(
         (calculation) => (calculation.realtimeStartTime || calculation.startTime) <= currentTime && currentTime <= (calculation.realtimeEndTime || calculation.endTime),
     );
