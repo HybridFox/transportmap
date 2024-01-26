@@ -20,9 +20,10 @@ import {tripsRepository} from '../../store/trips/trips.repository';
 import {getVehicleLocation} from '../../helpers/location.utils';
 import {highlightPolyline} from '../../helpers/highlight.utils';
 import {uiRepository} from '../../store/ui/ui.repository';
-import {getTripMarkerStyle} from "../../helpers/marker.utils";
+import {getTripMarkerStyle, TRIP_MARKER_STATE} from "../../helpers/marker.utils";
 import {stopsSelector} from "../../store/stops/stops.selectors";
 import {getStopMarkerStyle, STOP_MARKER_STATE} from "../../helpers/stop-marker.utils";
+import dayjs from "dayjs";
 
 interface Props {
 	highlightedTrip?: ICalculatedTrip;
@@ -71,7 +72,15 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 
 		stopMarkerSource.current!.getFeatures().forEach((feature, i) => {
 			if (tripStopIds.includes(feature.get('id'))) {
-				return;
+				const section = highlightedTrip.sections.find((section) => section?.stop?.id === feature.get('id'));
+
+				if (!section) {
+					return;
+				}
+
+				const minutesDelay = dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${section?.realtimeEndTime || section?.endTime}`, 'DD/MM/YYYY HH:mm:ss')
+					.diff(dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${section?.endTime}`, 'DD/MM/YYYY HH:mm:ss'), 'minutes');
+				return feature.setStyle(getStopMarkerStyle(feature.get('stop'), i + 50, STOP_MARKER_STATE.DEFAULT, i18n.language, minutesDelay));
 			}
 
 			feature.setStyle(getStopMarkerStyle(feature.get('stop'), i + 50, STOP_MARKER_STATE.SUPPRESSED, i18n.language));
@@ -276,15 +285,17 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 
 				if (!feature) {
 					tripMarkerSource.current!.getFeatures().forEach((feature, i) => {
-						if (feature.get('highlighted')) {
-							feature.setStyle(getTripMarkerStyle(feature.get('trip'), i, false));
-							feature.set('highlighted', false);
-						}
+						feature.setStyle(getTripMarkerStyle(feature.get('trip'), i, TRIP_MARKER_STATE.DEFAULT));
+						feature.set('highlighted', false);
 					});
 					return tripsRepository.clearHighlight();
 				}
 
-				feature.setStyle(getTripMarkerStyle(feature.get('trip'), 5000, true));
+				tripMarkerSource.current!.getFeatures().forEach((feature, i) => {
+					feature.setStyle(getTripMarkerStyle(feature.get('trip'), i, TRIP_MARKER_STATE.SUPPRESSED));
+					feature.set('highlighted', false);
+				});
+				feature.setStyle(getTripMarkerStyle(feature.get('trip'), 5000, TRIP_MARKER_STATE.HIGHLIGHTED));
 				feature.set('highlighted', true);
 				tripsRepository.highlightTrip(feature.get('id'));
 			});
@@ -323,7 +334,7 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 				trip: trip,
 			});
 
-			feature.setStyle(getTripMarkerStyle(trip, i));
+			feature.setStyle(getTripMarkerStyle(trip, i, highlightedTrip && highlightedTrip?.id !== trip.id ? TRIP_MARKER_STATE.SUPPRESSED : TRIP_MARKER_STATE.DEFAULT));
 
 			tripMarkerSource.current!.addFeature(feature);
 			return existingFeatures;

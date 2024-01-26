@@ -3,6 +3,12 @@ import {ICalculatedTrip} from "@transportmap/types";
 import {getNextStop} from "./location.utils";
 import dayjs from "dayjs";
 
+export enum TRIP_MARKER_STATE {
+	DEFAULT,
+	SUPPRESSED,
+	HIGHLIGHTED
+}
+
 const defaultIconProps: any = {
 	anchor: [0.1, 46],
 	anchorXUnits: 'fraction',
@@ -47,42 +53,43 @@ const HSLToRGB = (h: number, s: number, l: number) => {
 };
 
 
-export const MAIN_ICON_STYLE = (trip: ICalculatedTrip, zIndex = 0, highlight: boolean = false): Record<string, olStyle.Style> => ({
+export const MAIN_ICON_STYLE = (trip: ICalculatedTrip, zIndex = 0, state: TRIP_MARKER_STATE): Record<string, olStyle.Style> => ({
 	'train': new olStyle.Style({
 		image: new olStyle.Icon({
-			...(highlight ? highlightIconProps : defaultIconProps),
-			color: highlight ? '#ffa515' : '#ffffff',
-			src: highlight ? '/assets/img/icons/popup-train.svg' : '/assets/img/icons/popup-empty.svg',
+			...(state === TRIP_MARKER_STATE.HIGHLIGHTED ? highlightIconProps : defaultIconProps),
+			color: state === TRIP_MARKER_STATE.HIGHLIGHTED ? '#ffa515' : '#ffffff',
+			src: state === TRIP_MARKER_STATE.HIGHLIGHTED ? '/assets/img/icons/popup-train.svg' : '/assets/img/icons/popup-empty.svg',
+			opacity: state === TRIP_MARKER_STATE.SUPPRESSED ? 0.25 : 1,
 		}),
 		text: new olStyle.Text({
-			...(highlight ? highlightTextProps : defaultTextProps),
+			...(state === TRIP_MARKER_STATE.HIGHLIGHTED ? highlightTextProps : defaultTextProps),
 			text: `${trip.route.routeCode} ${trip.name}`,
 		}),
 		zIndex
 	}),
 });
 
-export const DELAY_ICON_STYLES = (trip: ICalculatedTrip, zIndex = 0, delayPercentage = 0, highlighted: boolean = false): olStyle.Style => {
+export const DELAY_ICON_STYLES = (trip: ICalculatedTrip, zIndex = 0, delayPercentage = 0, state: TRIP_MARKER_STATE): olStyle.Style => {
 	const hue = Number(((1 - delayPercentage) * 120).toString(10));
 	const colour = HSLToRGB(hue, 100, 50)
 
 	return new olStyle.Style({
 		image: new olStyle.Circle({
-			radius: highlighted ? 5 : 3,
+			radius: state === TRIP_MARKER_STATE.HIGHLIGHTED ? 5 : 3,
 			fill: new olStyle.Fill({
-				color: `rgb(${colour[0]}, ${colour[1]}, ${colour[2]})`
+				color: `rgba(${colour[0]}, ${colour[1]}, ${colour[2]}, ${state === TRIP_MARKER_STATE.SUPPRESSED ? 0.25 : 1})`
 			}),
-			displacement: highlighted ? [90, 22] : [67, 17]
+			displacement: state === TRIP_MARKER_STATE.HIGHLIGHTED ? [90, 22] : [67, 17],
 		}),
 		zIndex: zIndex + 1,
 	})
 }
 
 
-export const getTripMarkerStyle = (trip: ICalculatedTrip, zIndex = 0, highlighted: boolean = false): olStyle.Style[] => {
+export const getTripMarkerStyle = (trip: ICalculatedTrip, zIndex = 0, state: TRIP_MARKER_STATE = TRIP_MARKER_STATE.DEFAULT): olStyle.Style[] => {
 	const nextStop = getNextStop(trip.sections);
 	const minutesDelay = dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${nextStop?.realtimeEndTime || nextStop?.endTime}`, 'DD/MM/YYYY HH:mm:ss')
 		.diff(dayjs(`${dayjs().tz('Europe/Brussels').format('DD/MM/YYYY')} ${nextStop?.endTime}`, 'DD/MM/YYYY HH:mm:ss'), 'minutes');
 
-	return [MAIN_ICON_STYLE(trip, zIndex, highlighted)['train'], DELAY_ICON_STYLES(trip, zIndex, Math.min(1, minutesDelay / 10), highlighted)]
+	return [MAIN_ICON_STYLE(trip, zIndex, state)['train'], DELAY_ICON_STYLES(trip, zIndex, Math.min(1, minutesDelay / 10), state)]
 }
