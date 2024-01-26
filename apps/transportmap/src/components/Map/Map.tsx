@@ -20,8 +20,7 @@ import { tripsRepository } from '../../store/trips/trips.repository';
 import { getVehicleLocation } from '../../helpers/location.utils';
 import { highlightPolyline } from '../../helpers/highlight.utils';
 import { uiRepository } from '../../store/ui/ui.repository';
-
-import { MAP_ICON_STYLES } from './Map.const';
+import {getTripMarkerStyle} from "../../helpers/marker.utils";
 
 interface Props {
 	highlightedTrip?: ICalculatedTrip;
@@ -36,12 +35,12 @@ enum FocusObjects {
 export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 	const mapElement = useRef<HTMLDivElement | null>(null);
 	const focusedObject = useRef<FocusObjects | null>(null);
+	const markerSource = useRef<VectorSource | null>();
 	const [t, i18n] = useTranslation();
 
 	const [trips] = useObservable(tripsSelector.trips$);
 	const [userLocationEnabled] = useObservable(uiRepository.userLocationEnabled$);
 
-	const [markerSource, setMarkerSource] = useState<VectorSource>();
 	const [geolocation, setGeolocation] = useState<ol.Geolocation>();
 
 	useEffect(() => {
@@ -222,7 +221,7 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 
 		// save map and vector layer references to state
 		map.current = initialMap;
-		setMarkerSource(source);
+		markerSource.current = source;
 		moveMarkers(source);
 
 		/**
@@ -249,9 +248,17 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 				clearTempLayers();
 
 				if (!feature) {
+					markerSource.current!.getFeatures().forEach((feature, i) => {
+						if (feature.get('highlighted')) {
+							feature.setStyle(getTripMarkerStyle(feature.get('trip'), i, false));
+							feature.set('highlighted', false);
+						}
+					});
 					return tripsRepository.clearHighlight();
 				}
 
+				feature.setStyle(getTripMarkerStyle(feature.get('trip'), 5000, true));
+				feature.set('highlighted', true);
 				tripsRepository.highlightTrip(feature.get('id'));
 			});
 		});
@@ -286,18 +293,18 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 				lineId: trip.id,
 				geometry: new olGeom.Point(olProj.fromLonLat(coordinates)),
 				sections: trip.sections,
+				trip: trip,
 			});
 
-			feature.setStyle(MAP_ICON_STYLES(trip, i)['normal'][trip.route.routeCode.replaceAll(/[0-9]/g, '')]);
+			feature.setStyle(getTripMarkerStyle(trip, i));
 
-			markerSource.addFeature(feature);
+			markerSource.current!.addFeature(feature);
 			return existingFeatures;
-		}, markerSource.getFeatures());
+		}, markerSource.current!.getFeatures());
 
-		console.log(leftOverFeatures)
 		leftOverFeatures.forEach((feature) => {
 			feature.dispose();
-			markerSource.removeFeature(feature);
+			markerSource.current!.removeFeature(feature);
 		});
 	}, [trips]);
 

@@ -3,11 +3,19 @@ import { MongoRepository, Repository } from 'typeorm';
 import NodeCache from 'node-cache';
 import dayjs from 'dayjs';
 import { Cron } from '@nestjs/schedule';
-import { Agency, CalculatedTrip, GTFSStaticStatus, Trip, TABLE_PROVIDERS, mongoDataSource } from '@transportmap/database';
+import {
+	Agency,
+	CalculatedTrip,
+	GTFSStaticStatus,
+	Trip,
+	TABLE_PROVIDERS,
+	mongoDataSource,
+	PositionStatus
+} from '@transportmap/database';
 import { pick } from 'ramda';
 
-import { LoggingService } from '../../../core/services/logging.service';
-import { redis } from '../../../core/instances/redis.instance';
+import { LoggingService } from '~core/services/logging.service';
+import { redis } from '~core/instances/redis.instance';
 import { parseTripTranslations } from '../helpers/translations';
 
 import { PositionService } from './position.service';
@@ -21,6 +29,7 @@ export class TripsService {
 		@Inject(TABLE_PROVIDERS.TRIP_REPOSITORY) private tripRepository: Repository<Trip>,
 		@Inject(TABLE_PROVIDERS.AGENCY_REPOSITORY) private agencyRepository: Repository<Agency>,
 		@Inject(TABLE_PROVIDERS.GTFS_STATIC_STATUS) private gtfsStaticStatus: Repository<GTFSStaticStatus>,
+		@Inject(TABLE_PROVIDERS.POSITION_STATUS) private positionStatus: Repository<PositionStatus>,
 		private readonly loggingService: LoggingService,
 		private readonly positionService: PositionService,
 	) {
@@ -34,20 +43,33 @@ export class TripsService {
 		// const LineString = (await import('ol/geom/LineString.js')).default;
 
 		const agencies = await this.agencyRepository.find();
-
 		const allKeys = (await this.tripCacheRepository.find({
 			select: ['id']
 		})).map(({ id }) => id);
 
 		agencies.forEach(async (agency) => {
 			const gtfsStaticStatus = await this.gtfsStaticStatus.findOneBy({ key: agency.id });
+			// const positionStatus = await this.positionStatus.findOneBy({ key: agency.id });
+
 			if (!gtfsStaticStatus) {
 				return console.log(`[POSITIONS] cancelling calculating positions for ${agency.id} since a row is not found`);
 			}
 
 			if (gtfsStaticStatus.processingStaticData === true) {
-				return console.log(`[POSITIONS] cancelling calculating positions for ${agency.id} since there is a process running`);
+				return console.log(`[POSITIONS] cancelling calculating positions for ${agency.id} since there is a STATIC process running`);
 			}
+
+			// if (positionStatus && positionStatus.lastStatus === 'RUNNING') {
+			// 	return console.log(`[POSITIONS] cancelling calculating positions for ${agency.id} since there is a REALTIME process running`);
+			// }
+
+			await this.positionStatus.upsert(
+				{
+					key: agency.id,
+					lastStatus: 'RUNNING'
+				},
+				['key'],
+			);
 
 			const trips = await this.getAll(agency.id);
 
@@ -83,6 +105,13 @@ export class TripsService {
 			}
 
 			console.log(`[POSITIONS] {${agency.id}} calculation done, got ${i} trips rendered to redis, ${leftoverKeys.length} keys removed`);
+			await this.positionStatus.upsert(
+				{
+					key: agency.id,
+					lastStatus: null
+				},
+				['key'],
+			);
 		});
 	}
 

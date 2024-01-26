@@ -48,8 +48,6 @@ export class RealtimeProcessorService {
 		gtfsRealtimeSources.reduce(async (acc, { sourceUrl, key }) => {
 			await acc;
 
-			console.log(`[REALTIME_SEED] seeding ${key}`);
-
 			const gtfsStaticStatus = await this.gtfsStaticStatus.findOneBy({ key });
 			const gtfsRealtimeStatus = await this.gtfsRealtimeStatus.findOneBy({ key });
 
@@ -87,12 +85,13 @@ export class RealtimeProcessorService {
 						sourceUrl,
 						protobufFile,
 					});
+					console.log('feed empty')
 
 					return;
 				}
 
 				if (!feedMessages.length) {
-					return;
+					return console.log('q empty')
 				}
 				
 				const progressBar = new cliProgress.SingleBar(

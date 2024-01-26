@@ -12,17 +12,20 @@ export default defineConfig({
 		host: '0.0.0.0',
 		proxy: {
 			'/api': {
-				target: 'http://10.10.1.104:3081',
+				target: 'http://host.docker.internal:3001',
 			},
 			'/static': {
-				target: 'http://10.10.1.104:3081',
+				target: 'http://host.docker.internal:3001',
 			},
 			'/ws': {
-				target: 'http://10.10.1.104:3081',
+				target: 'http://host.docker.internal:3001',
 				ws: true,
 				rewrite: (path) => path.replace(/^\/ws/, ''),
 			},
 		},
+		watch: {
+			usePolling: true
+		}
 	},
 
 	preview: {

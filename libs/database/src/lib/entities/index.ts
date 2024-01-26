@@ -12,8 +12,9 @@ import { CalculatedTrip } from './CalculatedTrip.entity';
 import { Composition } from './Composition.entity';
 import { Translation } from './Translation.entity';
 import { TripRoute } from './TripRoute';
+import { PositionStatus } from './PositionStatus.entity';
 
-export const PostgresEntities = [Agency, Calendar, CalendarDate, Route, Stop, StopTime, Transfer, Trip, GTFSStaticStatus, GTFSRealtimeStatus, Translation, TripRoute];
+export const PostgresEntities = [Agency, Calendar, CalendarDate, Route, Stop, StopTime, Transfer, Trip, GTFSStaticStatus, GTFSRealtimeStatus, Translation, TripRoute, PositionStatus];
 export const MongoEntities = [CalculatedTrip, Composition]
 
 export { Agency } from './Agency.entity';
@@ -30,3 +31,4 @@ export { CalculatedTrip } from './CalculatedTrip.entity';
 export { Composition } from './Composition.entity';
 export { Translation } from './Translation.entity';
 export { TripRoute } from './TripRoute';
+export { PositionStatus } from './PositionStatus.entity';

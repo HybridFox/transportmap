@@ -9,7 +9,7 @@ export enum DATABASE_PROVIDERS {
 
 export const postgresDatasource = new DataSource({
 	type: 'postgres',
-	host: 'transportmap-postgres',
+	host: process.env.POSTGRES_HOST,
 	port: Number(process.env.POSTGRES_PORT || 5432),
 	username: process.env.POSTGRES_USERNAME,
 	password: process.env.POSTGRES_PASSWORD,
@@ -22,7 +22,7 @@ export const postgresDatasource = new DataSource({
 
 export const mongoDataSource = new DataSource({
 	type: 'mongodb',
-	host: 'transportmap-mongo',
+	host: process.env.MONGO_HOST,
 	port: Number(process.env.MONGO_PORT),
 	username: process.env.MONGO_USERNAME,
 	password: process.env.MONGO_PASSWORD,

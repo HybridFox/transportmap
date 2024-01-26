@@ -7,6 +7,21 @@ import { Stop, TABLE_PROVIDERS } from '@transportmap/database';
 export class StopsService {
 	constructor(@Inject(TABLE_PROVIDERS.STOP_REPOSITORY) private stopRepository: Repository<Stop>) {}
 
+	public async search(searchQuery: Record<string, string>): Promise<Stop[]> {
+		const query = this.stopRepository
+			.createQueryBuilder('stop')
+			.where("(stop.platformCode = '') IS NOT FALSE")
+			.leftJoinAndSelect('stop.translations', 'translations')
+
+		// .andWhere(`calendar.${dayjs().format('dddd').toLowerCase()} = '1'`)
+		// .getOne();
+
+		// console.log(query.getSql(), query.getParameters());
+		// console.log(await query.getRawOne())
+
+		return query.getMany();
+	}
+
 	public async getOne(stopId: string): Promise<Stop> {
 		const query = this.stopRepository
 			.createQueryBuilder('stop')

@@ -21,35 +21,35 @@ x-no-logs: &no-logs
         driver: none
 
 services:
-    api:
-        container_name: transportmap-api
-        command: npm run nx run api:serve -- --verbose
-        ports:
-            - 3001:3000
-            - 9229:9229
-        depends_on:
-            - kafka
-            - zookeeper
-            - postgres
-            - mongo
-        env_file:
-            - ./.env/local.env
-        <<: *default-options
-
-    static-processor:
-        container_name: transportmap-sp
-        command: npm run nx run static-processor:serve -- --verbose
-        ports:
-            - 3002:3000
-            - 4002:9229
-        depends_on:
-            - kafka
-            - zookeeper
-            - postgres
-            - mongo
-        env_file:
-            - ./.env/local.env
-        <<: *default-options
+#    api:
+#        container_name: transportmap-api
+#        command: npm run nx run api:serve -- --verbose
+#        ports:
+#            - 3001:3000
+#            - 9229:9229
+#        depends_on:
+#            - kafka
+#            - zookeeper
+#            - postgres
+#            - mongo
+#        env_file:
+#            - ./.env/local.env
+#        <<: *default-options
+#
+#    static-processor:
+#        container_name: transportmap-sp
+#        command: npm run nx run static-processor:serve -- --verbose
+#        ports:
+#            - 3002:3000
+#            - 4002:9229
+#        depends_on:
+#            - kafka
+#            - zookeeper
+#            - postgres
+#            - mongo
+#        env_file:
+#            - ./.env/local.env
+#        <<: *default-options
 
     app:
         container_name: transportmap-app
@@ -125,6 +125,7 @@ services:
             - transportmap
         ports:
             - 2181:2181
+        <<: *no-logs
 
     kafka:
         image: wurstmeister/kafka
@@ -148,20 +149,21 @@ services:
             - 9092:9092
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
+        <<: *no-logs
 
-    kafka-ui:
-        container_name: kafka-ui
-        image: provectuslabs/kafka-ui:latest
-        ports:
-            - 8080:8080
-        depends_on:
-            - kafka
-            - zookeeper
-        networks:
-            - transportmap
-        environment:
-            KAFKA_CLUSTERS_0_NAME: local
-            KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: transportmap-kafka:9092
+#    kafka-ui:
+#        container_name: kafka-ui
+#        image: provectuslabs/kafka-ui:latest
+#        ports:
+#            - 8080:8080
+#        depends_on:
+#            - kafka
+#            - zookeeper
+#        networks:
+#            - transportmap
+#        environment:
+#            KAFKA_CLUSTERS_0_NAME: local
+#            KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: transportmap-kafka:9092
 
     # collector:
     #     image: otel/opentelemetry-collector-contrib

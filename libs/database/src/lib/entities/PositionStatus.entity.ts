@@ -1,14 +1,11 @@
 import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
 
 @Entity()
-export class GTFSRealtimeStatus {
+export class PositionStatus {
 	@PrimaryColumn()
 	@Index()
 	key: string;
 
-	@Column({ default: 0 })
-	lastRealtimeMessageTimestamp: number;
-
 	@Column({ default: null })
-	lastRealtimeStatus?: string;
+	lastStatus?: string;
 }

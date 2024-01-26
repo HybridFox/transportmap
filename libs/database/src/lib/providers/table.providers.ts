@@ -15,6 +15,7 @@ export enum TABLE_PROVIDERS {
 	TRANSLATION_REPOSITORY = 'TRANSLATION_REPOSITORY',
 	TRIP_REPOSITORY = 'TRIP_REPOSITORY',
 	GTFS_STATIC_STATUS = 'GTFS_STATIC_STATUS',
+	POSITION_STATUS = 'POSITION_STATUS',
 	TRIP_ROUTE_REPOSITORY = 'TRIP_ROUTE_REPOSITORY',
 	GTFS_REALTIME_STATUS = 'GTFS_REALTIME_STATUS',
 	CALCULATED_TRIP_REPOSITORY = 'CALCULATED_TRIP_REPOSITORY',
@@ -80,6 +81,11 @@ export const columnProviders = [
 	{
 		provide: TABLE_PROVIDERS.TRIP_ROUTE_REPOSITORY,
 		useFactory: (dataSource: DataSource) => dataSource.getRepository(Entites.TripRoute),
+		inject: [DATABASE_PROVIDERS.POSTGRES],
+	},
+	{
+		provide: TABLE_PROVIDERS.POSITION_STATUS,
+		useFactory: (dataSource: DataSource) => dataSource.getRepository(Entites.PositionStatus),
 		inject: [DATABASE_PROVIDERS.POSTGRES],
 	},
 	{

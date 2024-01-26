@@ -3,11 +3,18 @@ import * as olGeom from 'ol/geom'
 import * as polyline from '@mapbox/polyline';
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import { clamp } from "ramda";
-import { ITripSection, SectionType } from "@transportmap/types";
+import {clamp} from "ramda";
+import {ITripSection, SectionType} from "@transportmap/types";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+
+export const getNextStop = (sections: ITripSection[]): ITripSection | undefined => {
+	const currentTime = dayjs().tz('Europe/Brussels').format('HH:mm:ss');
+	return sections.find(
+		(section) => currentTime <= (section.realtimeEndTime || section.endTime) && section.type === SectionType.STOP,
+	);
+}
 
 export const getVehicleProgress = (sections: ITripSection[]): number => {
 	const currentTime = dayjs().tz('Europe/Brussels').format('HH:mm:ss');

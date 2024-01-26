@@ -7,7 +7,7 @@ import LineString from 'ol/geom/LineString.js';
 import { ICalculatedTrip, ITripSection, SectionType } from '@transportmap/types';
 import { Injectable } from '@nestjs/common';
 
-import { LoggingService } from '../../../core/services/logging.service';
+import { LoggingService } from '~core/services/logging.service';
 
 import { OSRMService } from './osrm.service';
 
