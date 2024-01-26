@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import dayjs from 'dayjs';
 import { Stop, TABLE_PROVIDERS } from '@transportmap/database';
+import {parseStopTranslations} from "../../trips/helpers/translations";
 
 @Injectable()
 export class StopsService {
@@ -19,7 +20,9 @@ export class StopsService {
 		// console.log(query.getSql(), query.getParameters());
 		// console.log(await query.getRawOne())
 
-		return query.getMany();
+		const stops = await query.getMany();
+
+		return stops.map((stop) => parseStopTranslations(stop))
 	}
 
 	public async getOne(stopId: string): Promise<Stop> {

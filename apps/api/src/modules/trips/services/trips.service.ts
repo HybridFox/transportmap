@@ -47,16 +47,16 @@ export class TripsService {
 			select: ['id']
 		})).map(({ id }) => id);
 
-		agencies.forEach(async (agency) => {
+		for (const agency of agencies) {
 			const gtfsStaticStatus = await this.gtfsStaticStatus.findOneBy({ key: agency.id });
 			// const positionStatus = await this.positionStatus.findOneBy({ key: agency.id });
 
 			if (!gtfsStaticStatus) {
-				return console.log(`[POSITIONS] cancelling calculating positions for ${agency.id} since a row is not found`);
+				console.log(`[POSITIONS] cancelling calculating positions for ${agency.id} since a row is not found`);
 			}
 
 			if (gtfsStaticStatus.processingStaticData === true) {
-				return console.log(`[POSITIONS] cancelling calculating positions for ${agency.id} since there is a STATIC process running`);
+				console.log(`[POSITIONS] cancelling calculating positions for ${agency.id} since there is a STATIC process running`);
 			}
 
 			// if (positionStatus && positionStatus.lastStatus === 'RUNNING') {
@@ -112,7 +112,7 @@ export class TripsService {
 				},
 				['key'],
 			);
-		});
+		}
 	}
 
 	public async getAll(agencyId: string): Promise<Trip[]> {
@@ -134,16 +134,16 @@ export class TripsService {
 				.leftJoinAndSelect('trip.calendar', 'calendar')
 				.leftJoinAndSelect('trip.route', 'route')
 				.leftJoinAndSelect('trip.calendarDates', 'calendarDate')
-				.andWhere('calendar.startDate < :startDate', { startDate: dayjs().format('YYYYMMDD') })
-				.andWhere('calendar.endDate > :endDate', { endDate: dayjs().format('YYYYMMDD') })
-				.andWhere('calendarDate.date = :today', { today: dayjs().format('YYYYMMDD') })
+				.andWhere('calendar.startDate < :startDate', {startDate: dayjs().format('YYYYMMDD')})
+				.andWhere('calendar.endDate > :endDate', {endDate: dayjs().format('YYYYMMDD')})
+				.andWhere('calendarDate.date = :today', {today: dayjs().format('YYYYMMDD')})
 				.andWhere(`calendarDate.exceptionType = '1'`)
 				.getMany();
 
 			redis.set(`RAWTRIPS:${agencyId}`, JSON.stringify(trips.map((trip) => parseTripTranslations(trip))));
-		})();
+		})().then(() => null);
 
-		return JSON.parse(rawTrips || '[]');
+		 return JSON.parse(rawTrips || '[]');
 	}
 
 	public async search(query: Record<string, string>): Promise<Partial<CalculatedTrip>[]> {
@@ -192,13 +192,7 @@ export class TripsService {
 			.andWhere(`calendarDate.exceptionType = '1'`)
 			.andWhere(`trip.id = :tripId`, { tripId })
 			.getOne();
-		// .andWhere('stopTime.arrivalTime > :arrivalTime', { arrivalTime: dayjs().subtract(1, 'hour').format('HH:mm:ss') })
-		// .andWhere('stopTime.departureTime < :departureTime', { departureTime: dayjs().add(1, 'hour').format('HH:mm:ss') })
-		// .andWhere('stopTime.')
-		// .orderBy('stopTime.departureTime')
-
-		// return query.getMany();
-
+		
 		this.tripsCache.set(`trips:${tripId}`, JSON.stringify(trip));
 
 		return trip;

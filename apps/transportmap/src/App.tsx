@@ -10,6 +10,7 @@ import { Popup } from './components/Popup';
 import { tripsSelector } from './store/trips/trips.selectors';
 import { TopBar } from './components/TopBar';
 import { Head } from './components/Head';
+import {stopsRepository} from "./store/stops/stops.repository";
 
 const PopupWrapper = styled.div`
 	width: 100%;
@@ -38,7 +39,10 @@ export const App: FC = () => {
 	useEffect(() => {
 		i18n.changeLanguage(locale);
 	}, [locale])
-	
+
+	useEffect(() => {
+		stopsRepository.getStops({});
+	}, []);
 
 	return (
 		<div className="App">

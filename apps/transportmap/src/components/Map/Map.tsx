@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import React, { FC, useEffect, useRef, useState } from 'react';
+import React, {FC, useEffect, useRef, useState} from 'react';
 import * as ol from 'ol';
 import * as olProj from 'ol/proj';
 import VectorLayer from 'ol/layer/Vector';
@@ -8,19 +8,21 @@ import TileLayer from 'ol/layer/Tile';
 import XYZ from 'ol/source/XYZ';
 import * as olExtent from 'ol/extent';
 import * as olGeom from 'ol/geom';
-import { GeoJSON } from 'ol/format';
-import { useObservable } from '@ngneat/react-rxjs';
+import {GeoJSON} from 'ol/format';
+import {useObservable} from '@ngneat/react-rxjs';
 import * as olStyle from 'ol/style';
 import CircleStyle from 'ol/style/Circle';
-import { useTranslation } from 'react-i18next';
-import { ICalculatedTrip } from '@transportmap/types';
+import {useTranslation} from 'react-i18next';
+import {ICalculatedTrip, SectionType} from '@transportmap/types';
 
-import { tripsSelector } from '../../store/trips/trips.selectors';
-import { tripsRepository } from '../../store/trips/trips.repository';
-import { getVehicleLocation } from '../../helpers/location.utils';
-import { highlightPolyline } from '../../helpers/highlight.utils';
-import { uiRepository } from '../../store/ui/ui.repository';
+import {tripsSelector} from '../../store/trips/trips.selectors';
+import {tripsRepository} from '../../store/trips/trips.repository';
+import {getVehicleLocation} from '../../helpers/location.utils';
+import {highlightPolyline} from '../../helpers/highlight.utils';
+import {uiRepository} from '../../store/ui/ui.repository';
 import {getTripMarkerStyle} from "../../helpers/marker.utils";
+import {stopsSelector} from "../../store/stops/stops.selectors";
+import {getStopMarkerStyle, STOP_MARKER_STATE} from "../../helpers/stop-marker.utils";
 
 interface Props {
 	highlightedTrip?: ICalculatedTrip;
@@ -35,10 +37,12 @@ enum FocusObjects {
 export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 	const mapElement = useRef<HTMLDivElement | null>(null);
 	const focusedObject = useRef<FocusObjects | null>(null);
-	const markerSource = useRef<VectorSource | null>();
+	const tripMarkerSource = useRef<VectorSource | null>();
+	const stopMarkerSource = useRef<VectorSource | null>();
 	const [t, i18n] = useTranslation();
 
 	const [trips] = useObservable(tripsSelector.trips$);
+	const [stops] = useObservable(stopsSelector.stops$);
 	const [userLocationEnabled] = useObservable(uiRepository.userLocationEnabled$);
 
 	const [geolocation, setGeolocation] = useState<ol.Geolocation>();
@@ -63,6 +67,15 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 
 		const coordinates = getVehicleLocation(highlightedTrip.sections);
 		const vectorLayer = highlightPolyline(highlightedTrip, i18n.language);
+		const tripStopIds = highlightedTrip.sections.filter((section) => section.type === SectionType.STOP).map((section) => section.stop!.id);
+
+		stopMarkerSource.current!.getFeatures().forEach((feature, i) => {
+			if (tripStopIds.includes(feature.get('id'))) {
+				return;
+			}
+
+			feature.setStyle(getStopMarkerStyle(feature.get('stop'), i + 50, STOP_MARKER_STATE.SUPPRESSED, i18n.language));
+		})
 
 		if (!coordinates) {
 			return;
@@ -118,19 +131,31 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 
 			layer.dispose();
 		});
+		stopMarkerSource.current!.getFeatures().forEach((feature, i) => {
+			feature.setStyle(getStopMarkerStyle(feature.get('stop'), i + 50, STOP_MARKER_STATE.DEFAULT, i18n.language));
+		})
 	};
 
 	/**
 	 * Initialise map
 	 */
 	useEffect(() => {
-		const source = new VectorSource({
+		const tripSource = new VectorSource({
+			format: new GeoJSON(),
+		})
+
+		const stopSource = new VectorSource({
 			format: new GeoJSON(),
 		});
 
 		// create and add vector source layer
-		const markerLayer = new VectorLayer({
-			source,
+		const tripMarkerLayer = new VectorLayer({
+			source: tripSource,
+			zIndex: 5,
+		});
+
+		const stopMarkerLayer = new VectorLayer({
+			source: stopSource,
 			zIndex: 5,
 		});
 
@@ -207,7 +232,8 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 						attributions: ['&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>'],
 					}),
 				}),
-				markerLayer,
+				stopMarkerLayer,
+				tripMarkerLayer,
 				positionLayer,
 			],
 			view,
@@ -221,8 +247,9 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 
 		// save map and vector layer references to state
 		map.current = initialMap;
-		markerSource.current = source;
-		moveMarkers(source);
+		tripMarkerSource.current = tripSource;
+		stopMarkerSource.current = stopSource;
+		moveMarkers(tripSource);
 
 		/**
 		 * Make mouse a pointer when hovering over clickable stuff
@@ -233,7 +260,7 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 			}
 
 			const pixel = initialMap.getEventPixel(evt.originalEvent);
-			markerLayer.getFeatures(pixel).then((features: any) => {
+			tripMarkerLayer.getFeatures(pixel).then((features: any) => {
 				const feature = features.length ? features[0] : undefined;
 				initialMap.getTargetElement().style.cursor = feature ? 'pointer' : '';
 			});
@@ -243,12 +270,12 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 			const pixel = initialMap.getEventPixel(evt.originalEvent);
 			focusedObject.current = null;
 
-			markerLayer.getFeatures(pixel).then((features: any) => {
+			tripMarkerLayer.getFeatures(pixel).then((features: any) => {
 				const feature = features.length ? features[0] : undefined;
 				clearTempLayers();
 
 				if (!feature) {
-					markerSource.current!.getFeatures().forEach((feature, i) => {
+					tripMarkerSource.current!.getFeatures().forEach((feature, i) => {
 						if (feature.get('highlighted')) {
 							feature.setStyle(getTripMarkerStyle(feature.get('trip'), i, false));
 							feature.set('highlighted', false);
@@ -269,7 +296,7 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 	}, []);
 
 	useEffect(() => {
-		if (!markerSource) {
+		if (!tripMarkerSource) {
 			return;
 		}
 
@@ -298,15 +325,33 @@ export const MapComponent: FC<Props> = ({ highlightedTrip, map }: Props) => {
 
 			feature.setStyle(getTripMarkerStyle(trip, i));
 
-			markerSource.current!.addFeature(feature);
+			tripMarkerSource.current!.addFeature(feature);
 			return existingFeatures;
-		}, markerSource.current!.getFeatures());
+		}, tripMarkerSource.current!.getFeatures());
 
 		leftOverFeatures.forEach((feature) => {
 			feature.dispose();
-			markerSource.current!.removeFeature(feature);
+			tripMarkerSource.current!.removeFeature(feature);
 		});
 	}, [trips]);
+
+	useEffect(() => {
+		if (!tripMarkerSource) {
+			return;
+		}
+
+		tripMarkerSource.current!.getFeatures().forEach((feature) => tripMarkerSource.current!.removeFeature(feature))
+		stops.forEach((stop, i) => {
+			const feature = new ol.Feature({
+				id: stop.id,
+				geometry: new olGeom.Point(olProj.fromLonLat([stop.longitude, stop.latitude])),
+				stop: stop,
+			});
+
+			feature.setStyle(getStopMarkerStyle(stop, i, STOP_MARKER_STATE.DEFAULT, i18n.language));
+			stopMarkerSource.current!.addFeature(feature);
+		})
+	}, [stops]);
 
 	return <div ref={mapElement} className="map-container" style={{ height: '100%' }}></div>;
 };

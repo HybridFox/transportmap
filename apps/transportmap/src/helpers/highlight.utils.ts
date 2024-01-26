@@ -26,19 +26,19 @@ export const highlightPolyline = (trip: ICalculatedTrip, locale: string): Vector
 						coordinates: coordinates,
 					},
 				},
-				...trip.sections.filter((section) => section.type === SectionType.STOP).map((section) => ({
-					type: 'Feature',
-					geometry: {
-						type: 'Point',
-						coordinates: [
-							section.stop!.longitude,
-							section.stop!.latitude,
-						],
-					},
-					properties: {
-						name: getTranslation(section.stop!.translations, locale) || section?.stop?.name,
-					},
-				})),
+				// ...trip.sections.filter((section) => section.type === SectionType.STOP).map((section) => ({
+				// 	type: 'Feature',
+				// 	geometry: {
+				// 		type: 'Point',
+				// 		coordinates: [
+				// 			section.stop!.longitude,
+				// 			section.stop!.latitude,
+				// 		],
+				// 	},
+				// 	properties: {
+				// 		stop: section.stop,
+				// 	},
+				// })),
 			],
 		}, {
 			dataProjection: 'EPSG:4326',
@@ -48,7 +48,7 @@ export const highlightPolyline = (trip: ICalculatedTrip, locale: string): Vector
 
 	return new VectorLayer({
 		source: tempSource,
-		style: routeStyleFunction,
+		style: routeStyleFunction(locale),
 		properties: {
 			tempLayer: true,
 		},
